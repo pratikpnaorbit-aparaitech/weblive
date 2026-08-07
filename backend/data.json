@@ -2106,6 +2106,28 @@
         "title": "Project Problem & Solution"
       },
       "createdAt": "2026-08-07T10:37:36.469Z"
+    },
+    {
+      "id": "log_1786099360404_47pk6",
+      "userId": "admin",
+      "action": "ADMIN_DUPLICATE_CHAPTER",
+      "details": {
+        "projectId": "cafe-billing",
+        "originalId": "chap_cafe-billing_1",
+        "newId": "chap_cafe-billing_1786099360403_wl5e"
+      },
+      "createdAt": "2026-08-07T10:42:40.404Z"
+    },
+    {
+      "id": "log_1786099397023_di0gq",
+      "userId": "admin",
+      "action": "ADMIN_UPDATE_DOC_CHAPTER",
+      "details": {
+        "projectId": "multi-vendor",
+        "chapterId": "chap_multi-vendor_1",
+        "title": "Overview"
+      },
+      "createdAt": "2026-08-07T10:43:17.023Z"
     }
   ],
   "leaders": [
@@ -2441,7 +2463,7 @@
       "mode": "Documentation Preview",
       "progressEnabled": true,
       "createdAt": "2026-08-07T10:37:36.468Z",
-      "updatedAt": "2026-08-07T10:37:36.469Z",
+      "updatedAt": "2026-08-07T10:42:40.404Z",
       "chapters": [
         {
           "id": "chap_cafe-billing_1",
@@ -2493,8 +2515,58 @@
           "updatedAt": "2026-08-07T10:37:36.468Z"
         },
         {
-          "id": "chap_cafe-billing_2",
+          "id": "chap_cafe-billing_1786099360403_wl5e",
           "chapterNumber": 2,
+          "title": "Overview (Copy)",
+          "shortDescription": "Comprehensive Overview documentation and architectural guide for Cafe Billing System.",
+          "mainHeading": "1. Overview - Cafe Billing System",
+          "introduction": "Master the Overview requirements, technical specification, and implementation details for Cafe Billing System.",
+          "importantSubtopics": [
+            "Business Purpose & System Domain",
+            "Architecture & Schema Requirements",
+            "Validation, Security & Performance Standards",
+            "API Integration & Frontend State Mapping",
+            "Testing, Verification & Audit Logging"
+          ],
+          "projectObjective": "Automate cafe operations & POS transactions.",
+          "learningOutcomes": [
+            "POS architecture",
+            "Real-time orders",
+            "KOT printing"
+          ],
+          "readingTime": "15 min",
+          "codingTime": "2 hours",
+          "difficulty": "Intermediate",
+          "status": "draft",
+          "isEnabled": true,
+          "order": 2,
+          "sections": [
+            {
+              "heading": "1. Core System Specifications",
+              "content": "Review detailed functional requirements and entity relationships for Overview within Cafe Billing System.",
+              "bulletPoints": [
+                "Maintain transactional data integrity across API controllers.",
+                "Enforce strict input sanitization and authorization permissions.",
+                "Log audit trail entries for system modifications."
+              ],
+              "order": 1
+            }
+          ],
+          "codeExamples": [
+            {
+              "title": "Backend Controller Endpoint Example",
+              "language": "javascript",
+              "code": "// Cafe Billing System - Overview Controller\nconst handleRequest = async (req, res) => {\n  try {\n    const data = await service.process(req.body);\n    res.json({ success: true, data });\n  } catch (error) {\n    res.status(500).json({ error: error.message });\n  }\n};",
+              "explanation": "Standard async error-handled Express controller pattern.",
+              "order": 1
+            }
+          ],
+          "updatedAt": "2026-08-07T10:42:40.404Z",
+          "createdAt": "2026-08-07T10:42:40.403Z"
+        },
+        {
+          "id": "chap_cafe-billing_2",
+          "chapterNumber": 3,
           "title": "Project Problem & Solution",
           "shortDescription": "Updated dynamic problem statement & solution architecture",
           "mainHeading": "2. Problem & Solution - Cafe Billing System",
@@ -2517,7 +2589,7 @@
           "difficulty": "Intermediate",
           "status": "published",
           "isEnabled": true,
-          "order": 2,
+          "order": 3,
           "sections": [
             {
               "heading": "1. Core System Specifications",
@@ -2543,7 +2615,7 @@
         },
         {
           "id": "chap_cafe-billing_3",
-          "chapterNumber": 3,
+          "chapterNumber": 4,
           "title": "Requirements",
           "shortDescription": "Comprehensive Requirements documentation and architectural guide for Cafe Billing System.",
           "mainHeading": "3. Requirements - Cafe Billing System",
@@ -2566,7 +2638,7 @@
           "difficulty": "Intermediate",
           "status": "published",
           "isEnabled": true,
-          "order": 3,
+          "order": 4,
           "sections": [
             {
               "heading": "1. Core System Specifications",
@@ -2592,7 +2664,7 @@
         },
         {
           "id": "chap_cafe-billing_4",
-          "chapterNumber": 4,
+          "chapterNumber": 5,
           "title": "Workflow",
           "shortDescription": "Comprehensive Workflow documentation and architectural guide for Cafe Billing System.",
           "mainHeading": "4. Workflow - Cafe Billing System",
@@ -2615,7 +2687,7 @@
           "difficulty": "Intermediate",
           "status": "published",
           "isEnabled": true,
-          "order": 4,
+          "order": 5,
           "sections": [
             {
               "heading": "1. Core System Specifications",
@@ -2641,7 +2713,7 @@
         },
         {
           "id": "chap_cafe-billing_5",
-          "chapterNumber": 5,
+          "chapterNumber": 6,
           "title": "Modules",
           "shortDescription": "Comprehensive Modules documentation and architectural guide for Cafe Billing System.",
           "mainHeading": "5. Modules - Cafe Billing System",
@@ -2664,7 +2736,7 @@
           "difficulty": "Intermediate",
           "status": "published",
           "isEnabled": true,
-          "order": 5,
+          "order": 6,
           "sections": [
             {
               "heading": "1. Core System Specifications",
@@ -2690,7 +2762,7 @@
         },
         {
           "id": "chap_cafe-billing_6",
-          "chapterNumber": 6,
+          "chapterNumber": 7,
           "title": "Architecture",
           "shortDescription": "Comprehensive Architecture documentation and architectural guide for Cafe Billing System.",
           "mainHeading": "6. Architecture - Cafe Billing System",
@@ -2713,7 +2785,7 @@
           "difficulty": "Intermediate",
           "status": "published",
           "isEnabled": true,
-          "order": 6,
+          "order": 7,
           "sections": [
             {
               "heading": "1. Core System Specifications",
@@ -2739,7 +2811,7 @@
         },
         {
           "id": "chap_cafe-billing_7",
-          "chapterNumber": 7,
+          "chapterNumber": 8,
           "title": "Database",
           "shortDescription": "Comprehensive Database documentation and architectural guide for Cafe Billing System.",
           "mainHeading": "7. Database - Cafe Billing System",
@@ -2762,7 +2834,7 @@
           "difficulty": "Intermediate",
           "status": "published",
           "isEnabled": true,
-          "order": 7,
+          "order": 8,
           "sections": [
             {
               "heading": "1. Core System Specifications",
@@ -2788,7 +2860,7 @@
         },
         {
           "id": "chap_cafe-billing_8",
-          "chapterNumber": 8,
+          "chapterNumber": 9,
           "title": "APIs",
           "shortDescription": "Comprehensive APIs documentation and architectural guide for Cafe Billing System.",
           "mainHeading": "8. APIs - Cafe Billing System",
@@ -2811,7 +2883,7 @@
           "difficulty": "Intermediate",
           "status": "published",
           "isEnabled": true,
-          "order": 8,
+          "order": 9,
           "sections": [
             {
               "heading": "1. Core System Specifications",
@@ -2837,7 +2909,7 @@
         },
         {
           "id": "chap_cafe-billing_9",
-          "chapterNumber": 9,
+          "chapterNumber": 10,
           "title": "Security",
           "shortDescription": "Comprehensive Security documentation and architectural guide for Cafe Billing System.",
           "mainHeading": "9. Security - Cafe Billing System",
@@ -2860,7 +2932,7 @@
           "difficulty": "Intermediate",
           "status": "published",
           "isEnabled": true,
-          "order": 9,
+          "order": 10,
           "sections": [
             {
               "heading": "1. Core System Specifications",
@@ -2886,7 +2958,7 @@
         },
         {
           "id": "chap_cafe-billing_10",
-          "chapterNumber": 10,
+          "chapterNumber": 11,
           "title": "UI/UX",
           "shortDescription": "Comprehensive UI/UX documentation and architectural guide for Cafe Billing System.",
           "mainHeading": "10. UI/UX - Cafe Billing System",
@@ -2909,7 +2981,7 @@
           "difficulty": "Intermediate",
           "status": "published",
           "isEnabled": true,
-          "order": 10,
+          "order": 11,
           "sections": [
             {
               "heading": "1. Core System Specifications",
@@ -2935,7 +3007,7 @@
         },
         {
           "id": "chap_cafe-billing_11",
-          "chapterNumber": 11,
+          "chapterNumber": 12,
           "title": "Code Examples",
           "shortDescription": "Comprehensive Code Examples documentation and architectural guide for Cafe Billing System.",
           "mainHeading": "11. Code Examples - Cafe Billing System",
@@ -2958,7 +3030,7 @@
           "difficulty": "Intermediate",
           "status": "published",
           "isEnabled": true,
-          "order": 11,
+          "order": 12,
           "sections": [
             {
               "heading": "1. Core System Specifications",
@@ -2984,7 +3056,7 @@
         },
         {
           "id": "chap_cafe-billing_12",
-          "chapterNumber": 12,
+          "chapterNumber": 13,
           "title": "Testing",
           "shortDescription": "Comprehensive Testing documentation and architectural guide for Cafe Billing System.",
           "mainHeading": "12. Testing - Cafe Billing System",
@@ -3007,7 +3079,7 @@
           "difficulty": "Intermediate",
           "status": "published",
           "isEnabled": true,
-          "order": 12,
+          "order": 13,
           "sections": [
             {
               "heading": "1. Core System Specifications",
@@ -3033,7 +3105,7 @@
         },
         {
           "id": "chap_cafe-billing_13",
-          "chapterNumber": 13,
+          "chapterNumber": 14,
           "title": "Deployment",
           "shortDescription": "Comprehensive Deployment documentation and architectural guide for Cafe Billing System.",
           "mainHeading": "13. Deployment - Cafe Billing System",
@@ -3056,7 +3128,7 @@
           "difficulty": "Intermediate",
           "status": "published",
           "isEnabled": true,
-          "order": 13,
+          "order": 14,
           "sections": [
             {
               "heading": "1. Core System Specifications",
@@ -3082,7 +3154,7 @@
         },
         {
           "id": "chap_cafe-billing_14",
-          "chapterNumber": 14,
+          "chapterNumber": 15,
           "title": "Assignment",
           "shortDescription": "Comprehensive Assignment documentation and architectural guide for Cafe Billing System.",
           "mainHeading": "14. Assignment - Cafe Billing System",
@@ -3105,7 +3177,7 @@
           "difficulty": "Intermediate",
           "status": "published",
           "isEnabled": true,
-          "order": 14,
+          "order": 15,
           "sections": [
             {
               "heading": "1. Core System Specifications",
@@ -3131,7 +3203,7 @@
         },
         {
           "id": "chap_cafe-billing_15",
-          "chapterNumber": 15,
+          "chapterNumber": 16,
           "title": "Quiz",
           "shortDescription": "Comprehensive Quiz documentation and architectural guide for Cafe Billing System.",
           "mainHeading": "15. Quiz - Cafe Billing System",
@@ -3154,7 +3226,7 @@
           "difficulty": "Intermediate",
           "status": "published",
           "isEnabled": true,
-          "order": 15,
+          "order": 16,
           "sections": [
             {
               "heading": "1. Core System Specifications",
@@ -3180,7 +3252,7 @@
         },
         {
           "id": "chap_cafe-billing_16",
-          "chapterNumber": 16,
+          "chapterNumber": 17,
           "title": "References",
           "shortDescription": "Comprehensive References documentation and architectural guide for Cafe Billing System.",
           "mainHeading": "16. References - Cafe Billing System",
@@ -3203,7 +3275,7 @@
           "difficulty": "Intermediate",
           "status": "published",
           "isEnabled": true,
-          "order": 16,
+          "order": 17,
           "sections": [
             {
               "heading": "1. Core System Specifications",
@@ -3237,7 +3309,7 @@
       "mode": "Documentation Preview",
       "progressEnabled": true,
       "createdAt": "2026-08-07T10:37:36.468Z",
-      "updatedAt": "2026-08-07T10:37:36.468Z",
+      "updatedAt": "2026-08-07T10:43:17.023Z",
       "chapters": [
         {
           "id": "chap_multi-vendor_1",
@@ -3249,9 +3321,11 @@
           "importantSubtopics": [
             "Business Purpose & System Domain",
             "Architecture & Schema Requirements",
-            "Validation, Security & Performance Standards",
+            "Validation",
+            "Security & Performance Standards",
             "API Integration & Frontend State Mapping",
-            "Testing, Verification & Audit Logging"
+            "Testing",
+            "Verification & Audit Logging"
           ],
           "projectObjective": "Multi-tenant e-commerce platform.",
           "learningOutcomes": [
@@ -3268,7 +3342,7 @@
           "sections": [
             {
               "heading": "1. Core System Specifications",
-              "content": "Review detailed functional requirements and entity relationships for Overview within Multi-Vendor E-Commerce Platform.",
+              "content": "Maintain transactional data integrity across API controllers., Enforce strict input sanitization and authorization permissions., Log audit trail entries for system modifications.",
               "bulletPoints": [
                 "Maintain transactional data integrity across API controllers.",
                 "Enforce strict input sanitization and authorization permissions.",
@@ -3282,11 +3356,11 @@
               "title": "Backend Controller Endpoint Example",
               "language": "javascript",
               "code": "// Multi-Vendor E-Commerce Platform - Overview Controller\nconst handleRequest = async (req, res) => {\n  try {\n    const data = await service.process(req.body);\n    res.json({ success: true, data });\n  } catch (error) {\n    res.status(500).json({ error: error.message });\n  }\n};",
-              "explanation": "Standard async error-handled Express controller pattern.",
+              "explanation": "Sample snippet for implementation.",
               "order": 1
             }
           ],
-          "updatedAt": "2026-08-07T10:37:36.468Z"
+          "updatedAt": "2026-08-07T10:43:17.023Z"
         },
         {
           "id": "chap_multi-vendor_2",

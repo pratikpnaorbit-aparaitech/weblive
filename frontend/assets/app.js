@@ -1222,9 +1222,11 @@ function getEnhancedChapterContent(project, chapterIndex, chapterName, completed
   const outcomes = chapObj.learningOutcomes || project.outcomes || ["Full-stack architecture", "REST API integration"];
 
   const cleanProjId = project.id.toLowerCase().replace(/[^a-z0-9]/g, "-");
+  const cleanModName = (project.modules && project.modules[chapterIndex % project.modules.length]) || "Core Module";
 
   return `
     <div class="enhancement-sections-wrapper" style="margin-top:24px;display:grid;gap:20px">
+      <!-- Theoretical Cards Grid -->
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
         <div class="stat-badge-card" style="background:var(--card2);padding:12px;border:1px solid var(--border);border-radius:10px">
           <span class="muted" style="font-size:12px;display:block">Estimated Reading</span>
@@ -1240,25 +1242,69 @@ function getEnhancedChapterContent(project, chapterIndex, chapterName, completed
         </div>
       </div>
 
+      <!-- Comprehensive Theoretical Guide -->
       <div class="enhancement-card">
-        <h4 class="card-title">🎯 Project Objective</h4>
-        <p style="margin:4px 0 0;font-size:13px;line-height:1.5">${objective}</p>
+        <h4 class="card-title">📚 Deep Theoretical Architecture & Specifications</h4>
+        <p style="font-size:13px;line-height:1.6;color:var(--text)">
+          In real-world web engineering, <b>${chapterName}</b> forms a core pillar of the <b>${project.name}</b> platform. This module establishes a robust separation of concerns between client interface events, server middleware validation, and transactional database persistence. By adhering to 3-tier architecture, system developers ensure low latency (sub-200ms SLAs), high concurrent throughput, and complete operational auditing.
+        </p>
       </div>
 
-      <div class="enhancement-card">
-        <h4 class="card-title">💡 Learning Outcomes</h4>
-        <ul style="margin:6px 0 0;padding-left:20px;font-size:13px">
-          ${(Array.isArray(outcomes) ? outcomes : [outcomes]).map(o => `<li>${o}</li>`).join("")}
-        </ul>
+      <div class="enhancement-grid-2col">
+        <div class="enhancement-card">
+          <h4 class="card-title">🎯 Project Objective</h4>
+          <p style="margin:4px 0 0;font-size:13px;line-height:1.5">${objective}</p>
+        </div>
+        <div class="enhancement-card">
+          <h4 class="card-title">💡 Learning Outcomes</h4>
+          <ul style="margin:6px 0 0;padding-left:20px;font-size:13px">
+            ${(Array.isArray(outcomes) ? outcomes : [outcomes]).map(o => `<li>${o}</li>`).join("")}
+          </ul>
+        </div>
       </div>
 
+      <!-- Real World Use Cases & Tech Stack -->
+      <div class="enhancement-grid-2col">
+        <div class="enhancement-card">
+          <h4 class="card-title">🛠️ Core Technologies & Tools</h4>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">
+            <span class="pill" style="background:#e0e7ff;color:#3730a3">HTML5 / CSS3</span>
+            <span class="pill" style="background:#fef3c7;color:#92400e">JavaScript (ES6+)</span>
+            <span class="pill" style="background:#dcfce7;color:#166534">Node.js / Express</span>
+            <span class="pill" style="background:#ccfbf1;color:#115e59">MongoDB / Mongoose</span>
+            <span class="pill" style="background:#f3e8ff;color:#6b21a8">RESTful APIs</span>
+            <span class="pill" style="background:#fee2e2;color:#991b1b">JWT Auth</span>
+          </div>
+        </div>
+        <div class="enhancement-card">
+          <h4 class="card-title">🏢 Real-World Enterprise Application</h4>
+          <p style="font-size:13px;line-height:1.5">
+            Production web platforms utilize this architectural pattern to process automated transactions, maintain state integrity across user sessions, enforce security compliance, and generate live administrative analytics.
+          </p>
+        </div>
+      </div>
+
+      <!-- Implementation Roadmap -->
       <div class="enhancement-card">
-        <h4 class="card-title">🚀 Git Workflow</h4>
+        <h4 class="card-title">🚀 Step-by-Step Implementation Roadmap</h4>
+        <ol style="margin:6px 0 0;padding-left:20px;font-size:13px;line-height:1.6">
+          <li><b>Requirements Analysis:</b> Define entity attributes, user authorization roles, and API contracts for <i>${cleanModName}</i>.</li>
+          <li><b>Database Schema Setup:</b> Create Mongoose models/collections, indexes, and initial data seeds.</li>
+          <li><b>Backend Controller & Routes:</b> Build Express REST API endpoints with request body validation and error handling.</li>
+          <li><b>Frontend Integration:</b> Connect UI forms and data tables to REST endpoints with reactive loading state handlers.</li>
+          <li><b>Testing & Audit Verification:</b> Execute unit tests (\`node test.js\`), check network status codes, and verify audit logs.</li>
+        </ol>
+      </div>
+
+      <!-- Git Workflow -->
+      <div class="enhancement-card">
+        <h4 class="card-title">⚡ Git Version Control Commands</h4>
         <pre class="code-tree-box"><code>git add .
-git commit -m "feat(${cleanProjId}): implement ${chapterName} module with UI & REST API"
+git commit -m "feat(${cleanProjId}): implement ${chapterName} module with REST API & validation"
 git push origin main</code></pre>
       </div>
 
+      <!-- Progress Summary Bar -->
       <div class="progress-summary-bar-box" style="background:var(--card2);padding:16px;border:1px solid var(--border);border-radius:12px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
           <b>📊 Project Progress Summary</b>

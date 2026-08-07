@@ -92,23 +92,438 @@ const DEFAULT_CHAPTER_TITLES = [
   "Code Examples", "Testing", "Deployment", "Assignment", "Quiz", "References"
 ];
 
+function getDetailedTheoryForChapter(title, proj) {
+  const projName = proj.name || "Web Development Project";
+  const projSummary = proj.summary || "Production web application";
+  const projStack = proj.stack || "React, Node.js, Express, MongoDB";
+
+  switch (title) {
+    case "Overview":
+      return {
+        introduction: `The ${projName} is designed as an enterprise-ready industrial solution. The primary objective is to streamline ${projSummary.toLowerCase()}. Built with ${projStack}, the application features a modular 3-tier architecture separating presentation UI, RESTful business logic, and transactional database storage. User roles (Students, Interns, Team Leaders, Administrators) interact with dedicated interface views enforcing strict Role-Based Access Control (RBAC).`,
+        subtopics: [
+          "System Scope & Core Business Domain",
+          "Architectural Paradigm: Client-Server REST Monolith",
+          "Multi-Tenant User Roles & RBAC Matrix",
+          "Data Flow & Event Lifecycle",
+          "Security, Privacy & Audit Trail Requirements",
+          "Performance SLAs & System Scalability Boundaries"
+        ],
+        sections: [
+          {
+            heading: "1. Executive Summary & System Domain",
+            content: `The ${projName} provides an automated digital infrastructure replacing traditional manual processes. It operates seamlessly across modern browsers, offering real-time synchronization, interactive dashboards, and automated report generation. The system handles concurrent user actions securely using stateless JSON Web Token (JWT) authorization header validation.`,
+            bulletPoints: [
+              "High-availability operational uptime target: 99.9%.",
+              "Stateless REST API communication over HTTPS.",
+              "Dual storage architecture (Local JSON fallback + Live MongoDB Cloud sync).",
+              "Automatic activity auditing for regulatory compliance."
+            ]
+          },
+          {
+            heading: "2. Key System Modules & Architectural Components",
+            content: `The system comprises modular components including Authentication Gateway, User Management Directory, Task & Progress Tracking Engine, Real-time Camera Work Monitor, and Report Generator.`,
+            bulletPoints: [
+              "Frontend: Single Page Application (SPA) with responsive CSS flexbox/grid layout.",
+              "Backend: Node.js Express server handling JSON payloads up to 12MB.",
+              "Database: Mongoose ORM schema modeling with automatic indexing."
+            ]
+          }
+        ]
+      };
+
+    case "Problem & Solution":
+      return {
+        introduction: `Traditional approaches to ${projName} rely heavily on manual recordkeeping, fragmented spreadsheets, and uncoordinated communication channels. These legacy workflows lead to data inconsistencies, loss of audit trails, delayed processing times, and security vulnerabilities. The ${projName} solves these issues by establishing a centralized, real-time web portal that automates validation, tracks progress, and ensures data integrity.`,
+        subtopics: [
+          "Identified Legacy Bottlenecks & Operational Inefficiencies",
+          "Digital Transformation Strategy & Value Proposition",
+          "Automated System Architecture vs Manual Spreadsheets",
+          "Real-Time Audit Trails & Data Encryption Standards",
+          "Scalability, Reliability & Error Recovery Mechanisms"
+        ],
+        sections: [
+          {
+            heading: "1. Comprehensive Problem Analysis",
+            content: `Manual tracking methods suffer from human error, lack of centralized authorization, and vulnerability to data corruption. Without automated validation and logging, management lacks visibility into operational progress and compliance status.`,
+            bulletPoints: [
+              "Risk of duplicate or conflicting records during peak usage.",
+              "Lack of immutable audit trail for security investigations.",
+              "Inefficient manual file exports and delayed reporting cycles."
+            ]
+          },
+          {
+            heading: "2. The Digital Web Solution",
+            content: `By consolidating business logic into standardized REST API endpoints and deploying an intuitive web dashboard, ${projName} provides instant visibility, verified progress tracking, and secure database persistence.`,
+            bulletPoints: [
+              "Instant data updates with sub-200ms API response time.",
+              "Cryptographic password hashing and token-based authentication.",
+              "Automated Excel and JSON report exports on demand."
+            ]
+          }
+        ]
+      };
+
+    case "Requirements":
+      return {
+        introduction: `Defining clear functional and non-functional requirements is critical for building a robust implementation of ${projName}. Functional requirements dictate what the system does (user onboarding, data entry, reports, state transitions), while non-functional requirements dictate system quality attributes (performance, security, usability, reliability).`,
+        subtopics: [
+          "Functional Requirements Specifications (FRS)",
+          "Non-Functional Requirements (NFRs: SLA, Security, Speed)",
+          "Hardware, Software & Network Prerequisites",
+          "API Payload Validation & Error Handling Contracts",
+          "Data Storage & Indexing SLAs"
+        ],
+        sections: [
+          {
+            heading: "1. Functional Requirements Matrix",
+            content: `The application must enforce strict validation rules across all input forms and API requests.`,
+            bulletPoints: [
+              "User Authentication: Secure login with email/username and salted PBKDF2/JWT tokens.",
+              "Dashboard Access: Role-specific view routing for Students and Admins.",
+              "CRUD Operations: Complete Create, Read, Update, Delete capabilities with real-time UI updates.",
+              "Persistent Notes & Audit Trail: Permanent storage of intern notes and administrative logs."
+            ]
+          },
+          {
+            heading: "2. Non-Functional Quality Attributes",
+            content: `Quality attributes ensure the web portal performs reliably under production conditions.`,
+            bulletPoints: [
+              "Performance: API responses complete under 200 milliseconds.",
+              "Security: OWASP Top 10 compliance including XSS, SQLi/NoSQLi prevention.",
+              "Usability: Fully responsive layout across Desktop, Laptop, Tablet, and Mobile screens."
+            ]
+          }
+        ]
+      };
+
+    case "Workflow":
+      return {
+        introduction: `The operational workflow of ${projName} governs how data moves from initial candidate selection through progress tracking, documentation reading, note-taking, and administrative review. Understanding this state machine prevents invalid state transitions and guarantees data consistency across sessions.`,
+        subtopics: [
+          "System State Machine & Transition Rules",
+          "User Journey: Onboarding → Project Selection → Tracked Learning",
+          "Admin Lifecycle: Candidate Approval → Course Management → Report Generation",
+          "Exception Handling & Partial Failure Recovery",
+          "Session Security & Token Invalidation Logic"
+        ],
+        sections: [
+          {
+            heading: "1. User & Intern Workflow Lifecycle",
+            content: `1. User signs in on the modern login page.\n2. Candidate selects 4 core projects.\n3. Candidate opens project chapters, reads documentation, writes persistent notes, and completes quizzes.\n4. Work progress is tracked in real-time with camera focus indicators.`,
+            bulletPoints: [
+              "Session time tracking updates live every second.",
+              "Notes are saved immediately to database with timestamp linkage.",
+              "Completed chapters update progress statistics automatically."
+            ]
+          },
+          {
+            heading: "2. Administrator & Leadership Workflow",
+            content: `Admins monitor candidate directory, review internship notes, edit project roadmaps, customize chapter documentation dynamically, and export comprehensive Excel workbooks.`,
+            bulletPoints: [
+              "Fixed left sidebar navigation allows instant tab switching.",
+              "Modal overlays float at z-index 10000 to prevent text clipping.",
+              "Bulk action tools enable batch chapter publishing or deletion."
+            ]
+          }
+        ]
+      };
+
+    case "Modules":
+      return {
+        introduction: `The ${projName} codebase is partitioned into distinct functional modules. Modular decomposition enforces separation of concerns, simplifies maintenance, enables parallel developer collaboration, and optimizes test coverage.`,
+        subtopics: [
+          "Authentication & Role Authorization Module",
+          "Student Directory & Candidate Management Module",
+          "Projects Catalog & Dynamic Roadmap Module",
+          "Progress & Time Tracking Module",
+          "Persistent Intern Notes Directory Module",
+          "Documentation Management Engine (CRUD)",
+          "Audit Logging & Report Export Module"
+        ],
+        sections: [
+          {
+            heading: "1. Core System Modules Overview",
+            content: `Each module contains its own API endpoints, database schemas, and UI components.`,
+            bulletPoints: [
+              "Authentication: Manages credentials, hashing, JWT token verification.",
+              "Projects Roadmap: Renders active projects, tech stack badges, and chapter previews.",
+              "Documentation Management: Full chapter editor with reordering, draft/published status, and bulk actions."
+            ]
+          }
+        ]
+      };
+
+    case "Architecture":
+      return {
+        introduction: `The system utilizes a modern 3-Tier Layered Web Architecture comprising Presentation Layer (HTML/CSS/JS frontend SPA), Business Logic Layer (Node.js/Express REST server), and Data Persistence Layer (Mongoose + JSON database engine).`,
+        subtopics: [
+          "3-Tier Architecture & Data Flow",
+          "Single Page Application (SPA) Rendering Cycle",
+          "RESTful Service Contracts & JSON Payload Formats",
+          "Dual Persistence Engine: JSON + MongoDB Atlas Sync",
+          "Middleware Pipeline: Auth, Logger, Error Handler"
+        ],
+        sections: [
+          {
+            heading: "1. Architectural Layer Breakdown",
+            content: `Client requests travel through the Nginx/Serve presentation layer, hit the Express router middleware pipeline, execute business logic controllers, and commit changes to database storage.`,
+            bulletPoints: [
+              "Stateless HTTP requests decoupled from client UI state.",
+              "CORS-enabled cross-origin communication.",
+              "Synchronous JSON write queue mirrored to MongoDB Atlas in real-time."
+            ]
+          }
+        ]
+      };
+
+    case "Database":
+      return {
+        introduction: `Data persistence in ${projName} relies on a structured schema design supporting users, projects, chapters, intern notes, camera work logs, and audit trails. Fast query execution is guaranteed through indexed lookup keys.`,
+        subtopics: [
+          "Entity-Relationship Diagram (ERD) & Collection Schemas",
+          "Users Schema & Authentication Hashes",
+          "Projects & Dynamic Documentation Schemas",
+          "Intern Notes Linkage: Student ID + Project ID + Chapter ID",
+          "Database Indexing Strategy & Mongoose Schema Validation"
+        ],
+        sections: [
+          {
+            heading: "1. Database Collections & Schemas",
+            content: `The database maintains collections for 'users', 'projects', 'documentation', 'notes', and 'auditLogs'.`,
+            bulletPoints: [
+              "users: Stores profile details, progress state, selected project IDs.",
+              "notes: Stores linked student notes with date/time stamps.",
+              "documentation: Stores dynamic chapter titles, subtopics, code snippets, and order."
+            ]
+          }
+        ]
+      };
+
+    case "APIs":
+      return {
+        introduction: `The RESTful API provides standardized HTTP interfaces for querying and modifying system state. Routes follow REST conventions: GET for fetching, POST for creating, PUT for updating, and DELETE for removal.`,
+        subtopics: [
+          "REST API Endpoint Specification & Path Conventions",
+          "Authentication Middleware Header (Bearer Token / x-admin-password)",
+          "Request Validation Schemas & Payload Limits",
+          "Standard HTTP Status Code Responses (200, 201, 400, 401, 403, 404, 500)",
+          "JSON Response Contracts & Error Wrappers"
+        ],
+        sections: [
+          {
+            heading: "1. Core API Endpoints List",
+            content: `Standardized endpoint URLs allow seamless frontend state synchronization.`,
+            bulletPoints: [
+              "POST /api/auth/student-login: Student login endpoint.",
+              "GET /api/documentation/:projectId: Fetch dynamic chapter docs for project.",
+              "POST /api/admin/documentation/:projectId/chapters: Add chapter (Admin only)."
+            ]
+          }
+        ]
+      };
+
+    case "Security":
+      return {
+        introduction: `Security is implemented across all system tiers according to OWASP guidelines. Passwords are encrypted using salted PBKDF2 hashing, sessions rely on signed JWTs, and all mutation endpoints enforce strict role checks.`,
+        subtopics: [
+          "OWASP Top 10 Mitigation Strategies",
+          "Salted Hashing (PBKDF2 1000 iterations, SHA-512)",
+          "JWT Session Token Verification & Protection",
+          "Input Sanitization, XSS & Injection Prevention",
+          "CORS Policy & Secure HTTP Headers"
+        ],
+        sections: [
+          {
+            heading: "1. Defense-in-Depth Security Controls",
+            content: `All client inputs are sanitized before database queries execution to prevent code injection attacks.`,
+            bulletPoints: [
+              "No plaintext passwords are ever stored in the database.",
+              "Admin endpoints enforce Bearer token verification.",
+              "Security audit logs capture all sensitive administrative operations."
+            ]
+          }
+        ]
+      };
+
+    case "UI/UX":
+      return {
+        introduction: `The UI/UX design emphasizes modern aesthetics, vibrant visual hierarchy, smooth transitions, dark navy sidebars, responsive card grids, and high contrast typography (Inter / System Fonts).`,
+        subtopics: [
+          "Design Tokens: Navy (#0f172a), Slate (#1e293b), Emerald (#10b981), Blue (#3b82f6)",
+          "Fixed Left Sidebar & Responsive Drawer (< 992px)",
+          "Modal Z-Index Hierarchy (Z-Index: 10000)",
+          "Micro-Animations & Dynamic Hover States",
+          "Accessibility Standards (WCAG 2.1 Compliance)"
+        ],
+        sections: [
+          {
+            heading: "1. Visual Design System & Aesthetics",
+            content: `Clean spacing, subtle box shadows, rounded card radii (12px-14px), and clear status badges ensure an intuitive user experience.`,
+            bulletPoints: [
+              "Modal overlays float above all sticky headers to eliminate header overlap.",
+              "Clear color cues for Published (green) vs Draft (amber) statuses.",
+              "Responsive grid adjusts smoothly from mobile screens up to 4K displays."
+            ]
+          }
+        ]
+      };
+
+    case "Code Examples":
+      return {
+        introduction: `Production-ready reference implementations illustrate standard patterns for backend controllers, database schema modeling, authentication middleware, and frontend API consumption.`,
+        subtopics: [
+          "Express Controller Async Endpoint Pattern",
+          "Mongoose Schema & Dual Sync Persistence Handler",
+          "JWT Auth Middleware Implementation",
+          "Frontend API Fetch Helper with Toast Notifications",
+          "Dynamic Documentation Rendering Engine"
+        ],
+        sections: [
+          {
+            heading: "1. Backend Controller Reference Code",
+            content: `Standard Express async handler with input validation and audit logging.`,
+            bulletPoints: [
+              "Validates required payload keys before database mutations.",
+              "Appends timestamp and logs administrative activity.",
+              "Returns formatted JSON success/failure responses."
+            ]
+          }
+        ]
+      };
+
+    case "Testing":
+      return {
+        introduction: `Quality assurance involves unit testing server utility functions, automated API endpoint testing via node scripts, and manual UI verification across responsive breakpoints.`,
+        subtopics: [
+          "Unit Testing Business Logic & Helper Functions",
+          "API Endpoint Integration Test Suite (`node test.js`)",
+          "Database Persistence & Fallback Recovery Tests",
+          "UI Component Responsiveness & Cross-Browser Verification",
+          "Edge Case Validation: Missing Fields, Invalid Passwords, Expired Tokens"
+        ],
+        sections: [
+          {
+            heading: "1. Automated Test Execution",
+            content: `The project includes an automated verification script (\`node test.js\`) verifying authentication, database connectivity, and note APIs before deployment.`,
+            bulletPoints: [
+              "Clean execution with zero errors required for production releases.",
+              "Validates dual-write JSON and MongoDB Atlas connectivity.",
+              "Checks security middleware against unauthorized requests."
+            ]
+          }
+        ]
+      };
+
+    case "Deployment":
+      return {
+        introduction: `Deploying ${projName} involves building static frontend assets, configuring environment variables (\`.env\`), setting up PM2 / Node server process management, and establishing Nginx reverse proxy routing over HTTPS.`,
+        subtopics: [
+          "Environment Variables Configuration (`.env`)",
+          "Backend Production Server Initialization (`node server.js`)",
+          "Frontend Static Asset Serving (`npx serve .` / Nginx)",
+          "MongoDB Atlas Cloud Cluster Connection Setup",
+          "Process Monitoring & Automated Crash Restart Strategy"
+        ],
+        sections: [
+          {
+            heading: "1. Deployment Step-by-Step Guide",
+            content: `Follow the standardized production deployment steps:`,
+            bulletPoints: [
+              "Step 1: Configure backend/.env with PORT, JWT_SECRET, and MONGODB_URI.",
+              "Step 2: Install dependencies using `npm install` in backend directory.",
+              "Step 3: Run automated test suite `node test.js` to confirm validation.",
+              "Step 4: Launch production server via `npm start` or PM2 process manager."
+            ]
+          }
+        ]
+      };
+
+    case "Assignment":
+      return {
+        introduction: `Hands-on practical assignment designed to test candidates on constructing full-stack features for ${projName}. Candidates implement backend API controllers, database schemas, and responsive UI components.`,
+        subtopics: [
+          "Milestone 1: Environment Setup & Codebase Inspection",
+          "Milestone 2: Database Schema & REST API Implementation",
+          "Milestone 3: Frontend UI Integration & State Handling",
+          "Milestone 4: Testing, Security & Audit Logging Verification",
+          "Milestone 5: Git Commit & GitHub Repository Submission"
+        ],
+        sections: [
+          {
+            heading: "1. Assignment Submission Requirements",
+            content: `Complete all milestone deliverables, verify that all automated unit tests pass, commit changes to GitHub, and submit your live repository URL.`,
+            bulletPoints: [
+              "All feature routes must enforce JWT authentication where required.",
+              "UI views must be fully responsive across desktop and mobile devices.",
+              "Git commit history must contain clear atomic commit messages."
+            ]
+          }
+        ]
+      };
+
+    case "Quiz":
+      return {
+        introduction: `Interactive knowledge evaluation quiz assessing candidate comprehension of ${projName} architecture, REST API design, security practices, and database management.`,
+        subtopics: [
+          "Question 1: Frontend vs Backend Security Responsibilities",
+          "Question 2: RESTful Endpoint Conventions & Status Codes",
+          "Question 3: Database Transactions & Indexing Efficiency",
+          "Question 4: Authentication vs Authorization Mechanics"
+        ],
+        sections: [
+          {
+            heading: "1. Quiz Completion Rules",
+            content: `Select the correct answer for each technical question and submit for instant evaluation. Quiz completion is recorded permanently in student progress statistics.`,
+            bulletPoints: [
+              "Requires 100% score to pass quiz evaluation.",
+              "Quiz results sync automatically with Admin Dashboard reports.",
+              "Quiz completion badge displays on candidate profile."
+            ]
+          }
+        ]
+      };
+
+    case "References":
+    default:
+      return {
+        introduction: `Official documentation links, architectural standards, specification guides, and engineering references for building production-grade web applications with React, Node.js, Express, and MongoDB.`,
+        subtopics: [
+          "Official React Documentation (react.dev)",
+          "Express.js API Reference & Middleware Guide",
+          "Node.js Runtime & Async Patterns",
+          "MongoDB Atlas & Mongoose ODM Documentation",
+          "OWASP Top 10 Web Security Standards",
+          "MDN Web Docs - JavaScript & Web APIs"
+        ],
+        sections: [
+          {
+            heading: "1. Core Documentation Resources",
+            content: `Reference standard web specifications and official documentation while developing and debugging your modules.`,
+            bulletPoints: [
+              "MDN Web Docs: Developer guides for JS, HTML5, CSS3, Fetch API.",
+              "OWASP Foundation: Web application security risks and guidelines.",
+              "GitHub Docs: Version control, branching strategies, and pull requests."
+            ]
+          }
+        ]
+      };
+  }
+}
+
 function generateDefaultChapters(proj) {
   return DEFAULT_CHAPTER_TITLES.map((title, index) => {
     const chapNum = index + 1;
+    const theory = getDetailedTheoryForChapter(title, proj);
+
     return {
       id: `chap_${proj.id}_${chapNum}`,
       chapterNumber: chapNum,
       title: title,
       shortDescription: `Comprehensive ${title} documentation and architectural guide for ${proj.name}.`,
       mainHeading: `${chapNum}. ${title} - ${proj.name}`,
-      introduction: `Master the ${title} requirements, technical specification, and implementation details for ${proj.name}.`,
-      importantSubtopics: [
-        "Business Purpose & System Domain",
-        "Architecture & Schema Requirements",
-        "Validation, Security & Performance Standards",
-        "API Integration & Frontend State Mapping",
-        "Testing, Verification & Audit Logging"
-      ],
+      introduction: theory.introduction,
+      importantSubtopics: theory.subtopics,
       projectObjective: proj.objective || `Automate ${proj.name} core operations, business workflows, and reporting.`,
       learningOutcomes: Array.isArray(proj.outcomes) && proj.outcomes.length ? proj.outcomes : [
         `Production-grade ${title} architecture`,
@@ -121,18 +536,7 @@ function generateDefaultChapters(proj) {
       status: "published",
       isEnabled: true,
       order: chapNum,
-      sections: [
-        {
-          heading: "1. Core System Specifications",
-          content: `Review detailed functional requirements and entity relationships for ${title} within ${proj.name}.`,
-          bulletPoints: [
-            "Maintain transactional data integrity across API controllers.",
-            "Enforce strict input sanitization and authorization permissions.",
-            "Log audit trail entries for system modifications."
-          ],
-          order: 1
-        }
-      ],
+      sections: theory.sections,
       codeExamples: [
         {
           title: "Backend Controller Endpoint Example",
