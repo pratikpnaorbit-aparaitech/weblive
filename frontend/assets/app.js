@@ -291,7 +291,9 @@ function switchAdminTab(tabName, clickedEl) {
   const sections = document.querySelectorAll(".admin-tab-section");
   sections.forEach(sec => sec.classList.remove("active"));
 
-  const targetId = `adminTab${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`;
+  let targetId = `adminTab${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`;
+  if (tabName === "docmgmt") targetId = "adminTabDocMgmt";
+
   const targetSection = $(targetId);
   if (targetSection) {
     targetSection.classList.add("active");
@@ -303,6 +305,7 @@ function switchAdminTab(tabName, clickedEl) {
     projects: "Available Internship Projects",
     progress: "Student Progress & Work Camera Tracking",
     notes: "Student Internship Notes Directory",
+    docmgmt: "Dynamic Documentation Management System",
     reports: "Automatic Student Work Excel Reports",
     settings: "System Settings & Profile"
   };
@@ -318,6 +321,10 @@ function switchAdminTab(tabName, clickedEl) {
   if (tabName === "projects") renderAdminProjectsGrid();
   if (tabName === "progress") renderLeaderDashboard();
   if (tabName === "notes") renderAdminNotes();
+  if (tabName === "docmgmt") {
+    populateDocAdminProjectSelect();
+    loadAdminDocForSelectedProject();
+  }
 }
 
 async function loadProjects() {
@@ -1205,188 +1212,18 @@ function openChapter(index) {
   window.scrollTo({top:0,behavior:"smooth"});
 }
 
-function getEnhancedChapterContent(project, chapterIndex, chapterName, completedCount) {
-  const totalChapters = CHAPTERS.length;
+function getEnhancedChapterContent(project, chapterIndex, chapterName, completedCount, totalChapters = 16, chapObj = {}) {
+  const remainingCount = Math.max(0, totalChapters - completedCount);
   const percentComplete = Math.round((completedCount / totalChapters) * 100);
-  const remainingCount = totalChapters - completedCount;
-  const difficulty = chapterIndex < 4 ? "Beginner" : (chapterIndex < 10 ? "Intermediate" : "Advanced");
-  const diffBadgeClass = difficulty === "Beginner" ? "badge-beginner" : (difficulty === "Intermediate" ? "badge-intermediate" : "badge-advanced");
-  const estTimeReading = 15 + (chapterIndex % 3) * 10;
-  const estTimeCoding = 45 + (chapterIndex % 4) * 30;
-  const cleanProjId = project.id.replace(/-/g, "_");
-  const cleanModName = project.modules[chapterIndex % project.modules.length] || "Core Module";
+  const readingTime = chapObj.readingTime || "15 min";
+  const codingTime = chapObj.codingTime || "2 hours";
+  const difficulty = chapObj.difficulty || project.level || "Intermediate";
+  const objective = chapObj.projectObjective || project.objective || "Automate system processes and reporting.";
+  const outcomes = chapObj.learningOutcomes || project.outcomes || ["Full-stack architecture", "REST API integration"];
+
+  const cleanProjId = project.id.toLowerCase().replace(/[^a-z0-9]/g, "-");
 
   return `
-    <div class="enhanced-chapter-section">
-      <!-- 17. Estimated Time, 18. Difficulty Level, 20. Progress Summary -->
-      <div class="meta-info-grid">
-        <div class="meta-card">
-          <span class="meta-icon">⏱️</span>
-          <div>
-            <div class="meta-label">17. Estimated Time</div>
-            <div class="meta-val">${estTimeReading} mins reading · ${estTimeCoding} mins coding</div>
-          </div>
-        </div>
-        <div class="meta-card">
-          <span class="meta-icon">🎯</span>
-          <div>
-            <div class="meta-label">18. Difficulty Level</div>
-            <div class="meta-val"><span class="diff-badge ${diffBadgeClass}">${difficulty}</span></div>
-          </div>
-        </div>
-        <div class="meta-card">
-          <span class="meta-icon">📊</span>
-          <div>
-            <div class="meta-label">20. Progress Summary</div>
-            <div class="meta-val"><b>${completedCount}/${totalChapters}</b> Chapters Done (${percentComplete}%)</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 1. Project Objective & 2. Learning Outcomes -->
-      <div class="enhancement-grid-2col">
-        <div class="enhancement-card">
-          <h4 class="card-title">🎯 1. Project Objective</h4>
-          <p>Implement the business logic and digital workflow for the <b>${cleanModName}</b> feature in <b>${project.name}</b>. Ensure reliable data processing, multi-user role validation, operational security, and real-time state management for enterprise production deployment.</p>
-        </div>
-        <div class="enhancement-card">
-          <h4 class="card-title">🎓 2. Learning Outcomes</h4>
-          <ul class="styled-bullet-list">
-            <li>Master ${chapterName} architectural concepts & component design.</li>
-            <li>Implement production-grade REST API integration and database mapping.</li>
-            <li>Apply asynchronous error handling, state validation, and clean code principles.</li>
-            <li>Understand real-world industry standards for ${project.name}.</li>
-          </ul>
-        </div>
-      </div>
-
-      <!-- 3. Technologies Used & 4. Real-World Use Case -->
-      <div class="enhancement-grid-2col">
-        <div class="enhancement-card">
-          <h4 class="card-title">🛠️ 3. Technologies Used</h4>
-          <div class="tech-tags-list">
-            <span class="tech-tag">HTML5</span>
-            <span class="tech-tag">CSS3 / Flexbox</span>
-            <span class="tech-tag">JavaScript (ES6+)</span>
-            <span class="tech-tag">React / Modular UI</span>
-            <span class="tech-tag">Node.js</span>
-            <span class="tech-tag">Express.js</span>
-            <span class="tech-tag">REST API</span>
-            <span class="tech-tag">MongoDB / SQL</span>
-            <span class="tech-tag">Git & GitHub</span>
-          </div>
-        </div>
-        <div class="enhancement-card">
-          <h4 class="card-title">🏢 4. Real-World Use Case</h4>
-          <p>Used by production web platforms (such as Shopify, Swiggy, Stripe, Salesforce, and Uber) to automate ${cleanModName} processes, maintain transaction integrity, manage session permissions, and generate live administrative analytics.</p>
-        </div>
-      </div>
-
-      <!-- 5. Implementation Steps -->
-      <div class="enhancement-card">
-        <h4 class="card-title">🚀 5. Implementation Steps</h4>
-        <ol class="step-process-list">
-          <li><b>Requirement Analysis:</b> Review functional requirements and define entity schemas for <i>${cleanModName}</i>.</li>
-          <li><b>Database Schema Setup:</b> Create collections/tables, indexes, and initial seeds for data persistence.</li>
-          <li><b>Backend Controller & API Routes:</b> Build REST API endpoints with request validation and JSON responses.</li>
-          <li><b>Frontend Component Construction:</b> Build responsive UI views with loading spinners, forms, and data tables.</li>
-          <li><b>State Integration & Error Handling:</b> Connect frontend state handlers to backend endpoints with try/catch blocks.</li>
-          <li><b>Testing & Verification:</b> Run unit tests, manual API calls, and verify audit logs.</li>
-        </ol>
-      </div>
-
-      <!-- 6. Database Tables & 7. API Endpoints -->
-      <div class="enhancement-grid-2col">
-        <div class="enhancement-card">
-          <h4 class="card-title">🗄️ 6. Database Tables</h4>
-          <table class="enhanced-table">
-            <thead><tr><th>Table / Collection</th><th>Key Fields</th><th>Description</th></tr></thead>
-            <tbody>
-              <tr><td><code>users</code></td><td>id, email, role, status</td><td>User accounts & authorization</td></tr>
-              <tr><td><code>${cleanProjId}_${cleanModName.toLowerCase().replace(/[^a-z0-9]/g, '_')}</code></td><td>id, userId, status, createdAt</td><td>Module operation logs & state</td></tr>
-              <tr><td><code>audit_logs</code></td><td>id, userId, action, timestamp</td><td>Security activity & event logs</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="enhancement-card">
-          <h4 class="card-title">🔌 7. API Endpoints</h4>
-          <table class="enhanced-table">
-            <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th></tr></thead>
-            <tbody>
-              <tr><td><span class="method-tag post">POST</span></td><td><code>/api/${cleanProjId}/${cleanModName.toLowerCase().replace(/[^a-z0-9]/g, '-')}</code></td><td>Create new record</td></tr>
-              <tr><td><span class="method-tag get">GET</span></td><td><code>/api/${cleanProjId}/${cleanModName.toLowerCase().replace(/[^a-z0-9]/g, '-')}</code></td><td>Fetch module records</td></tr>
-              <tr><td><span class="method-tag put">PUT</span></td><td><code>/api/${cleanProjId}/${cleanModName.toLowerCase().replace(/[^a-z0-9]/g, '-')}/:id</code></td><td>Update module status</td></tr>
-              <tr><td><span class="method-tag delete">DELETE</span></td><td><code>/api/${cleanProjId}/${cleanModName.toLowerCase().replace(/[^a-z0-9]/g, '-')}/:id</code></td><td>Remove/deactivate record</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- 8. Folder Structure & 9. Best Practices -->
-      <div class="enhancement-grid-2col">
-        <div class="enhancement-card">
-          <h4 class="card-title">📁 8. Folder Structure</h4>
-          <pre class="code-tree-box"><code>project-root/
-├── src/
-│   ├── components/${cleanModName}/
-│   │   ├── ${cleanModName}View.jsx
-│   │   └── ${cleanModName}Card.jsx
-│   ├── controllers/${cleanModName.toLowerCase()}Controller.js
-│   ├── models/${cleanModName.toLowerCase()}Model.js
-│   └── routes/${cleanModName.toLowerCase()}Routes.js
-└── tests/${cleanModName.toLowerCase()}.test.js</code></pre>
-        </div>
-        <div class="enhancement-card">
-          <h4 class="card-title">💡 9. Best Practices</h4>
-          <ul class="styled-bullet-list">
-            <li><b>Input Sanitization:</b> Validate and sanitize all incoming payloads on both frontend and backend.</li>
-            <li><b>Async Safety:</b> Wrap asynchronous controller calls in <code>try...catch</code> blocks to prevent unhandled promise rejections.</li>
-            <li><b>Modular Code:</b> Keep single-responsibility components and decouple database queries into model modules.</li>
-            <li><b>Security First:</b> Never hardcode secret keys or credentials in client-side script code.</li>
-          </ul>
-        </div>
-      </div>
-
-      <!-- 10. Common Mistakes & 14. Industry Tips -->
-      <div class="enhancement-grid-2col">
-        <div class="enhancement-card alert-mistakes">
-          <h4 class="card-title">⚠️ 10. Common Mistakes</h4>
-          <ul class="styled-bullet-list">
-            <li>Skipping client-side and server-side validation checks.</li>
-            <li>Forgetting to handle loading states or API timeout exceptions in UI components.</li>
-            <li>Exposing database errors directly to end-user clients.</li>
-            <li>Not creating feature branches or writing descriptive Git commit messages.</li>
-          </ul>
-        </div>
-        <div class="enhancement-card alert-industry">
-          <h4 class="card-title">💎 14. Industry Tips</h4>
-          <ul class="styled-bullet-list">
-            <li><b>Clean Architecture:</b> Follow DRY (Don't Repeat Yourself) principles across component trees.</li>
-            <li><b>Structured Logging:</b> Use structured JSON logs (e.g. Winston/Pino) for production monitoring.</li>
-            <li><b>Pull Requests:</b> Keep commits atomic and test UI responsiveness across devices before merging.</li>
-          </ul>
-        </div>
-      </div>
-
-      <!-- 11. Assignment & 12. Mini Challenge -->
-      <div class="enhancement-grid-2col">
-        <div class="enhancement-card">
-          <h4 class="card-title">📝 11. Assignment</h4>
-          <p>Build the core UI form and database endpoints for <b>${cleanModName}</b>. Test POST and GET methods using Postman or browser console, and verify that audit logs record the activity.</p>
-        </div>
-        <div class="enhancement-card">
-          <h4 class="card-title">⚡ 12. Mini Challenge</h4>
-          <p>Add a real-time status filter toggle (e.g. <i>Active / Completed / Pending</i>) and a search input to instantly filter records in the UI table without re-fetching from backend.</p>
-        </div>
-      </div>
-
-      <!-- 13. Interview Questions -->
-      <div class="enhancement-card">
-        <h4 class="card-title">❓ 13. Technical Interview Questions</h4>
-        <div class="qna-accordion">
-          <details class="qna-item"><summary>Q1: How does ${chapterName} integrate into the overall system architecture of ${project.name}?</summary><div class="qna-ans">It connects UI user actions to backend controller endpoints, processing business rules and updating database state with security audit logging.</div></details>
-          <details class="qna-item"><summary>Q2: What techniques ensure database query performance during high traffic for this module?</summary><div class="qna-ans">Using indexes on frequently searched fields (like <code>userId</code>, <code>email</code>, <code>status</code>), pagination, and caching static resources.</div></details>
-          <details class="qna-item"><summary>Q3: How do you handle authorization and prevent unauthorized endpoint access?</summary><div class="qna-ans">By attaching JWT middleware (e.g., <code>authenticate</code> & <code>authorize("ADMIN")</code>) to REST API routes to check user tokens and roles before execution.</div></details>
     <div class="enhancement-sections-wrapper" style="margin-top:24px;display:grid;gap:20px">
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
         <div class="stat-badge-card" style="background:var(--card2);padding:12px;border:1px solid var(--border);border-radius:10px">
