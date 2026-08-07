@@ -1,4 +1,5 @@
 
+require("dotenv").config();
 const express=require("express");
 const cors=require("cors");
 const jwt=require("jsonwebtoken");
@@ -6,6 +7,7 @@ const fs=require("fs");
 const path=require("path");
 const ExcelJS=require("exceljs");
 const crypto=require("crypto");
+const mongoose=require("mongoose");
 
 const app=express();
 const PORT=process.env.PORT||5000;
@@ -14,12 +16,43 @@ const PASSWORD=process.env.PORTAL_PASSWORD||"Aparaitech123@";
 const STUDENT_DEFAULT_PASSWORD=process.env.STUDENT_DEFAULT_PASSWORD||"Aparaitech123@";
 const LEADER_DEFAULT_USERNAME=process.env.LEADER_DEFAULT_USERNAME||"teamleader";
 const LEADER_DEFAULT_PASSWORD=process.env.LEADER_DEFAULT_PASSWORD||"Leader123@";
+const MONGODB_URI=process.env.MONGODB_URI||"mongodb+srv://rathodkrushna4696_db_user:Aparaitech123%40@cluster0.q84ry3f.mongodb.net/aparaitech_internship?retryWrites=true&w=majority&appName=Cluster0";
+
 const FILE=path.join(__dirname,"data.json");
 const UPLOADS=path.join(__dirname,"uploads");
 const REPORTS=path.join(__dirname,"reports");
 const REPORT_FILE=path.join(REPORTS,"student_work_report.xlsx");
 if(!fs.existsSync(UPLOADS))fs.mkdirSync(UPLOADS,{recursive:true});
 if(!fs.existsSync(REPORTS))fs.mkdirSync(REPORTS,{recursive:true});
+
+// Mongoose MongoDB Atlas Schema & Model
+const portalDataSchema = new mongoose.Schema({
+  key: { type: String, default: "main_data", unique: true },
+  data: { type: mongoose.Schema.Types.Mixed, default: {} }
+}, { timestamps: true });
+
+const PortalData = mongoose.model("PortalData", portalDataSchema);
+
+let isMongoConnected = false;
+
+if (MONGODB_URI) {
+  mongoose.connect(MONGODB_URI)
+    .then(async () => {
+      isMongoConnected = true;
+      console.log("🍃 MongoDB Atlas connected successfully!");
+      try {
+        let record = await PortalData.findOne({ key: "main_data" });
+        if (!record) {
+          const localDb = read();
+          record = await PortalData.create({ key: "main_data", data: localDb });
+          console.log("🌱 MongoDB Atlas initialized with local database data.");
+        }
+      } catch (err) {
+        console.error("MongoDB initial sync notice:", err.message);
+      }
+    })
+    .catch(err => console.error("⚠️ MongoDB Atlas connection notice:", err.message));
+}
 
 app.use(cors());
 app.use(express.json({limit:"12mb"}));
@@ -40,21 +73,133 @@ function verifyPassword(password, storedPassword){
   return password===storedPassword;
 }
 
+const DEFAULT_PROJECTS = [
+  { id: "cafe-billing", name: "Cafe Billing System", icon: "☕", level: "Intermediate", duration: "4–6 Weeks", stack: "React, Node.js, Express, MongoDB", summary: "Complete cafe POS, KOT, table ordering, billing, inventory, payments and reports.", modules: ["Authentication", "Dashboard", "Menu", "POS Billing", "Tables", "KOT", "Payments", "Inventory", "Customers", "Reports"], status: "active", difficulty: "Intermediate", objective: "Automate cafe operations & POS transactions.", outcomes: ["POS architecture", "Real-time orders", "KOT printing"], customChapters: [] },
+  { id: "multi-vendor", name: "Multi-Vendor E-Commerce Platform", icon: "🛍️", level: "Advanced", duration: "6–8 Weeks", stack: "React, Node.js, Express, MongoDB", summary: "Vendors, products, cart, checkout, commissions, returns and payouts.", modules: ["Vendors", "KYC", "Products", "Variants", "Cart", "Checkout", "Orders", "Commission", "Payouts", "Reviews"], status: "active", difficulty: "Advanced", objective: "Multi-tenant e-commerce platform.", outcomes: ["Vendor management", "Payout engine", "Cart & checkout"], customChapters: [] },
+  { id: "food-delivery", name: "Food Delivery & Restaurant Management", icon: "🍔", level: "Advanced", duration: "6–8 Weeks", stack: "React, Node.js, Express, MongoDB, Maps", summary: "Restaurants, ordering, delivery assignment, live tracking and settlements.", modules: ["Restaurants", "Menus", "Cart", "Orders", "Restaurant Panel", "Delivery", "Tracking", "Coupons", "Payments", "Settlements"], status: "active", difficulty: "Advanced", objective: "End-to-end food ordering platform.", outcomes: ["Geo-tracking", "Order dispatch", "Commission engine"], customChapters: [] },
+  { id: "hospital", name: "Hospital & Doctor Appointment System", icon: "🏥", level: "Intermediate", duration: "5–7 Weeks", stack: "React, Node.js, Express, MongoDB", summary: "Doctors, patients, schedules, appointments, prescriptions and billing.", modules: ["Patients", "Doctors", "Departments", "Schedules", "Appointments", "Medical Records", "Prescriptions", "Billing", "Notifications", "Reports"], status: "active", difficulty: "Intermediate", objective: "Clinical workflow & patient care booking.", outcomes: ["Doctor scheduling", "EHR records", "Prescription PDF"], customChapters: [] },
+  { id: "college", name: "College / Institute Management System", icon: "🎓", level: "Advanced", duration: "7–9 Weeks", stack: "React, Node.js, Express, MongoDB", summary: "Admissions, attendance, fees, exams, results, library and notices.", modules: ["Admissions", "Students", "Faculty", "Courses", "Attendance", "Timetable", "Fees", "Exams", "Results", "Library"], status: "active", difficulty: "Advanced", objective: "Higher education ERP platform.", outcomes: ["Course management", "Fee gateways", "Examination engine"], customChapters: [] },
+  { id: "job-portal", name: "Job Portal & Recruitment Management", icon: "💼", level: "Advanced", duration: "6–8 Weeks", stack: "React, Node.js, Express, MongoDB", summary: "Jobs, candidates, applications, interviews, feedback and offers.", modules: ["Candidates", "Employers", "Jobs", "Resume", "Applications", "Shortlisting", "Interviews", "Feedback", "Offers", "Analytics"], status: "active", difficulty: "Advanced", objective: "Recruitment & Applicant Tracking System (ATS).", outcomes: ["Resume parser", "Interview scheduler", "Job matching"], customChapters: [] },
+  { id: "real-estate", name: "Real Estate Property Platform", icon: "🏠", level: "Intermediate", duration: "5–7 Weeks", stack: "React, Node.js, Express, MongoDB, Maps", summary: "Properties, agents, enquiries, site visits, leads and bookings.", modules: ["Properties", "Agents", "Search", "Maps", "Enquiries", "Visits", "Lead CRM", "Bookings", "Documents", "Reports"], status: "active", difficulty: "Intermediate", objective: "Property listing & agent lead management.", outcomes: ["Map integration", "Lead CRM", "Virtual tours"], customChapters: [] },
+  { id: "agriculture", name: "Agriculture & Livestock Marketplace", icon: "🌾", level: "Advanced", duration: "7–9 Weeks", stack: "React, Node.js, Express, MongoDB", summary: "Farmers, buyers, crops, livestock, orders, payments and transport.", modules: ["Farmers", "Verification", "Crops", "Livestock", "Marketplace", "Orders", "Payments", "Transport", "Ratings", "Reports"], status: "active", difficulty: "Advanced", objective: "Direct B2B farm marketplace.", outcomes: ["Crop auctions", "Logistics mapping", "Escrow payments"], customChapters: [] },
+  { id: "inventory", name: "Inventory & Business Management", icon: "📦", level: "Advanced", duration: "6–8 Weeks", stack: "React, Node.js, Express, MongoDB", summary: "Purchases, sales, stock, suppliers, customers, expenses and reports.", modules: ["Products", "Categories", "Suppliers", "Customers", "Purchases", "Sales", "Stock Ledger", "Expenses", "Payments", "Reports"], status: "active", difficulty: "Advanced", objective: "Enterprise inventory & warehouse tracking.", outcomes: ["Stock auditing", "Purchase orders", "GST invoicing"], customChapters: [] },
+  { id: "employee-task", name: "Live Project & Employee Task Portal", icon: "✅", level: "Advanced", duration: "6–8 Weeks", stack: "React, Node.js, Express, MongoDB", summary: "Projects, employees, tasks, attendance, reports and performance.", modules: ["Employees", "Projects", "Tasks", "Task Updates", "Daily Reports", "Attendance", "Duty Tracking", "Approvals", "Notifications", "Performance"], status: "active", difficulty: "Advanced", objective: "Agile task management & employee portal.", outcomes: ["Kanban boards", "Timesheet tracking", "Sprint velocity"], customChapters: [] }
+];
+
+const DEFAULT_CHAPTER_TITLES = [
+  "Overview", "Problem & Solution", "Requirements", "Workflow", "Modules",
+  "Architecture", "Database", "APIs", "Security", "UI/UX",
+  "Code Examples", "Testing", "Deployment", "Assignment", "Quiz", "References"
+];
+
+function generateDefaultChapters(proj) {
+  return DEFAULT_CHAPTER_TITLES.map((title, index) => {
+    const chapNum = index + 1;
+    return {
+      id: `chap_${proj.id}_${chapNum}`,
+      chapterNumber: chapNum,
+      title: title,
+      shortDescription: `Comprehensive ${title} documentation and architectural guide for ${proj.name}.`,
+      mainHeading: `${chapNum}. ${title} - ${proj.name}`,
+      introduction: `Master the ${title} requirements, technical specification, and implementation details for ${proj.name}.`,
+      importantSubtopics: [
+        "Business Purpose & System Domain",
+        "Architecture & Schema Requirements",
+        "Validation, Security & Performance Standards",
+        "API Integration & Frontend State Mapping",
+        "Testing, Verification & Audit Logging"
+      ],
+      projectObjective: proj.objective || `Automate ${proj.name} core operations, business workflows, and reporting.`,
+      learningOutcomes: Array.isArray(proj.outcomes) && proj.outcomes.length ? proj.outcomes : [
+        `Production-grade ${title} architecture`,
+        "RESTful API integration & error handling",
+        "Database mapping & asynchronous state validation"
+      ],
+      readingTime: "15 min",
+      codingTime: "2 hours",
+      difficulty: proj.difficulty || proj.level || "Intermediate",
+      status: "published",
+      isEnabled: true,
+      order: chapNum,
+      sections: [
+        {
+          heading: "1. Core System Specifications",
+          content: `Review detailed functional requirements and entity relationships for ${title} within ${proj.name}.`,
+          bulletPoints: [
+            "Maintain transactional data integrity across API controllers.",
+            "Enforce strict input sanitization and authorization permissions.",
+            "Log audit trail entries for system modifications."
+          ],
+          order: 1
+        }
+      ],
+      codeExamples: [
+        {
+          title: "Backend Controller Endpoint Example",
+          language: "javascript",
+          code: `// ${proj.name} - ${title} Controller\nconst handleRequest = async (req, res) => {\n  try {\n    const data = await service.process(req.body);\n    res.json({ success: true, data });\n  } catch (error) {\n    res.status(500).json({ error: error.message });\n  }\n};`,
+          explanation: "Standard async error-handled Express controller pattern.",
+          order: 1
+        }
+      ],
+      updatedAt: new Date().toISOString()
+    };
+  });
+}
+
+function getDefaultDocumentationForProject(proj) {
+  return {
+    id: `doc_${proj.id}`,
+    projectId: proj.id,
+    projectTitle: proj.name,
+    projectDescription: proj.summary,
+    mode: "Documentation Preview",
+    progressEnabled: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    chapters: generateDefaultChapters(proj)
+  };
+}
+
 function read(){
   try{
     const db = JSON.parse(fs.readFileSync(FILE,"utf8"));
     db.notes = Array.isArray(db.notes) ? db.notes : [];
+    db.projects = Array.isArray(db.projects) && db.projects.length ? db.projects : DEFAULT_PROJECTS;
+    db.documentation = Array.isArray(db.documentation) ? db.documentation : [];
+
+    db.projects.forEach(p => {
+      let doc = db.documentation.find(d => d.projectId === p.id);
+      if (!doc) {
+        doc = getDefaultDocumentationForProject(p);
+        db.documentation.push(doc);
+      }
+    });
+
     return db;
   }
-  catch{return{users:[],leaders:[],auditLogs:[],notes:[]}}
+  catch{
+    const defaultDoc = DEFAULT_PROJECTS.map(p => getDefaultDocumentationForProject(p));
+    return {users:[], leaders:[], auditLogs:[], notes:[], projects: DEFAULT_PROJECTS, documentation: defaultDoc};
+  }
 }
 function write(db){
   db.users=Array.isArray(db.users)?db.users:[];
   db.leaders=Array.isArray(db.leaders)?db.leaders:[];
   db.auditLogs=Array.isArray(db.auditLogs)?db.auditLogs:[];
   db.notes=Array.isArray(db.notes)?db.notes:[];
+  db.projects=Array.isArray(db.projects)?db.projects:DEFAULT_PROJECTS;
+  db.documentation=Array.isArray(db.documentation)?db.documentation:[];
   fs.writeFileSync(FILE,JSON.stringify(db,null,2));
   queueExcelReport(db);
+
+  if (isMongoConnected) {
+    PortalData.findOneAndUpdate(
+      { key: "main_data" },
+      { data: db },
+      { upsert: true, new: true }
+    ).catch(err => console.error("MongoDB Atlas sync error:", err.message));
+  }
 }
 function auth(req,res,next){
   try{
@@ -1025,6 +1170,417 @@ app.get("/api/admin/notes", adminAuth, (req, res) => {
 app.get("/api/admin/candidates",(req,res)=>{
   if(req.headers["x-admin-password"]!==PASSWORD)return res.status(401).json({message:"Invalid admin password."});
   const db=read();res.json({total:db.users.length,candidates:db.users,auditLogs:db.auditLogs.slice(-200).reverse()});
+});
+
+// PROJECT MANAGEMENT API ENDPOINTS
+
+// 1. Get all projects (public for students, full list for admins)
+app.get("/api/projects", (req, res) => {
+  const db = read();
+  let list = db.projects || DEFAULT_PROJECTS;
+  const isLeader = req.headers["authorization"] && req.headers["authorization"].includes("Bearer");
+  if (!isLeader) {
+    list = list.filter(p => p.status !== "inactive");
+  }
+  res.json({ projects: list });
+});
+
+// 2. Admin: Add New Project
+app.post("/api/admin/projects", adminAuth, (req, res) => {
+  const { name, icon, summary, description, level, duration, stack, modules, status, difficulty, objective, outcomes } = req.body || {};
+  if (!name || !summary) {
+    return res.status(400).json({ message: "Project Name and Summary are required." });
+  }
+
+  const db = read();
+  db.projects = Array.isArray(db.projects) && db.projects.length ? db.projects : [...DEFAULT_PROJECTS];
+
+  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || `proj-${Date.now()}`;
+  const id = slug + "_" + Math.random().toString(36).slice(2, 6);
+
+  const newProject = {
+    id,
+    name,
+    icon: icon || "💻",
+    summary,
+    description: description || summary,
+    level: level || "Intermediate",
+    duration: duration || "4–6 Weeks",
+    stack: stack || "React, Node.js, Express, MongoDB",
+    modules: Array.isArray(modules) ? modules : (modules ? String(modules).split(",").map(s=>s.trim()) : ["Overview", "Authentication", "Dashboard", "Modules", "Testing", "Deployment"]),
+    status: status || "active",
+    difficulty: difficulty || level || "Intermediate",
+    objective: objective || "Build production-grade web application module.",
+    outcomes: Array.isArray(outcomes) ? outcomes : (outcomes ? String(outcomes).split(",").map(s=>s.trim()) : ["Full-stack architecture", "REST API integration"]),
+    customChapters: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+
+  db.projects.push(newProject);
+  log(db, req.admin.username || "admin", "ADMIN_CREATE_PROJECT", { projectId: id, name });
+  write(db);
+  res.json({ message: "New project created successfully.", project: newProject });
+});
+
+// 3. Admin: Update Existing Project
+app.put("/api/admin/projects/:id", adminAuth, (req, res) => {
+  const { id } = req.params;
+  const db = read();
+  db.projects = Array.isArray(db.projects) && db.projects.length ? db.projects : [...DEFAULT_PROJECTS];
+
+  const projectIndex = db.projects.findIndex(p => p.id === id);
+  if (projectIndex === -1) {
+    return res.status(404).json({ message: "Project not found." });
+  }
+
+  const p = db.projects[projectIndex];
+  const { name, icon, summary, description, level, duration, stack, modules, status, difficulty, objective, outcomes, customChapters } = req.body || {};
+
+  if (name) p.name = name;
+  if (icon) p.icon = icon;
+  if (summary) p.summary = summary;
+  if (description !== undefined) p.description = description;
+  if (level) p.level = level;
+  if (duration) p.duration = duration;
+  if (stack) p.stack = stack;
+  if (status) p.status = status;
+  if (difficulty) p.difficulty = difficulty;
+  if (objective) p.objective = objective;
+  if (modules !== undefined) p.modules = Array.isArray(modules) ? modules : String(modules).split(",").map(s=>s.trim());
+  if (outcomes !== undefined) p.outcomes = Array.isArray(outcomes) ? outcomes : String(outcomes).split(",").map(s=>s.trim());
+  if (customChapters !== undefined) p.customChapters = customChapters;
+  p.updatedAt = new Date().toISOString();
+
+  log(db, req.admin.username || "admin", "ADMIN_UPDATE_PROJECT", { projectId: id });
+  write(db);
+  res.json({ message: "Project updated successfully.", project: p });
+});
+
+// 4. Admin: Delete Project Safely
+app.delete("/api/admin/projects/:id", adminAuth, (req, res) => {
+  const { id } = req.params;
+  const db = read();
+  db.projects = Array.isArray(db.projects) && db.projects.length ? db.projects : [...DEFAULT_PROJECTS];
+
+  const projectIndex = db.projects.findIndex(p => p.id === id);
+  if (projectIndex === -1) {
+    return res.status(404).json({ message: "Project not found." });
+  }
+
+  const deleted = db.projects.splice(projectIndex, 1)[0];
+  log(db, req.admin.username || "admin", "ADMIN_DELETE_PROJECT", { projectId: id, name: deleted.name });
+  write(db);
+  res.json({ message: `Project '${deleted.name}' deleted successfully.` });
+});
+
+// 5. Admin: Add / Update Chapter Content & Documentation
+app.post("/api/admin/projects/:id/chapters", adminAuth, (req, res) => {
+  const { id } = req.params;
+  const { chapterIndex, chapterName, content } = req.body || {};
+  const db = read();
+  db.projects = Array.isArray(db.projects) && db.projects.length ? db.projects : [...DEFAULT_PROJECTS];
+
+  const project = db.projects.find(p => p.id === id);
+  if (!project) return res.status(404).json({ message: "Project not found." });
+
+  project.customChapters = Array.isArray(project.customChapters) ? project.customChapters : [];
+  const idx = Number(chapterIndex);
+
+  let chap = project.customChapters.find(c => c.index === idx);
+  if (chap) {
+    if (chapterName) chap.name = chapterName;
+    if (content !== undefined) chap.content = content;
+    chap.updatedAt = new Date().toISOString();
+  } else {
+    chap = {
+      index: idx,
+      name: chapterName || `Chapter ${idx + 1}`,
+      content: content || "",
+      updatedAt: new Date().toISOString()
+    };
+    project.customChapters.push(chap);
+  }
+
+  log(db, req.admin.username || "admin", "ADMIN_UPDATE_CHAPTER", { projectId: id, chapterIndex: idx });
+  write(db);
+  res.json({ message: "Chapter documentation updated successfully.", chapter: chap });
+});
+
+// DYNAMIC DOCUMENTATION MANAGEMENT ENDPOINTS
+
+// 1. GET Public Documentation for a project (Students / Viewers)
+app.get("/api/documentation/:projectId", (req, res) => {
+  const { projectId } = req.params;
+  const db = read();
+  let doc = db.documentation.find(d => d.projectId === projectId);
+  const proj = db.projects.find(p => p.id === projectId);
+
+  if (!doc) {
+    if (proj) {
+      doc = getDefaultDocumentationForProject(proj);
+      db.documentation.push(doc);
+      write(db);
+    } else {
+      return res.status(404).json({ message: "Documentation not found." });
+    }
+  }
+
+  // Filter published and enabled chapters for public student view
+  const publicChapters = (doc.chapters || []).filter(c => c.isEnabled !== false && c.status !== "draft");
+  publicChapters.sort((a, b) => (a.order || 0) - (b.order || 0));
+
+  res.json({
+    documentation: {
+      ...doc,
+      chapters: publicChapters
+    }
+  });
+});
+
+// 2. GET Full Documentation for Admin (Includes Drafts & Disabled)
+app.get("/api/admin/documentation/:projectId", adminAuth, (req, res) => {
+  const { projectId } = req.params;
+  const db = read();
+  let doc = db.documentation.find(d => d.projectId === projectId);
+  const proj = db.projects.find(p => p.id === projectId);
+
+  if (!doc) {
+    if (proj) {
+      doc = getDefaultDocumentationForProject(proj);
+      db.documentation.push(doc);
+      write(db);
+    } else {
+      return res.status(404).json({ message: "Documentation not found for this project." });
+    }
+  }
+
+  (doc.chapters || []).sort((a, b) => (a.order || 0) - (b.order || 0));
+  res.json({ documentation: doc });
+});
+
+// 3. Admin: Create New Chapter in Documentation
+app.post("/api/admin/documentation/:projectId/chapters", adminAuth, (req, res) => {
+  const { projectId } = req.params;
+  const { title, shortDescription, mainHeading, introduction, importantSubtopics, projectObjective, learningOutcomes, readingTime, codingTime, difficulty, status, isEnabled, sections, codeExamples } = req.body || {};
+
+  if (!title) {
+    return res.status(400).json({ message: "Chapter Title is required." });
+  }
+
+  const db = read();
+  let doc = db.documentation.find(d => d.projectId === projectId);
+  if (!doc) return res.status(404).json({ message: "Documentation not found." });
+
+  doc.chapters = Array.isArray(doc.chapters) ? doc.chapters : [];
+  const nextOrder = doc.chapters.length + 1;
+  const chapId = `chap_${projectId}_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+
+  const newChapter = {
+    id: chapId,
+    chapterNumber: nextOrder,
+    title,
+    shortDescription: shortDescription || `Chapter ${nextOrder}: ${title}`,
+    mainHeading: mainHeading || `${nextOrder}. ${title}`,
+    introduction: introduction || "",
+    importantSubtopics: Array.isArray(importantSubtopics) ? importantSubtopics : (importantSubtopics ? String(importantSubtopics).split(",").map(s=>s.trim()).filter(Boolean) : []),
+    projectObjective: projectObjective || "",
+    learningOutcomes: Array.isArray(learningOutcomes) ? learningOutcomes : (learningOutcomes ? String(learningOutcomes).split(",").map(s=>s.trim()).filter(Boolean) : []),
+    readingTime: readingTime || "15 min",
+    codingTime: codingTime || "2 hours",
+    difficulty: difficulty || "Intermediate",
+    status: status || "published",
+    isEnabled: isEnabled !== false,
+    order: nextOrder,
+    sections: Array.isArray(sections) ? sections : [],
+    codeExamples: Array.isArray(codeExamples) ? codeExamples : [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+
+  doc.chapters.push(newChapter);
+  doc.updatedAt = new Date().toISOString();
+
+  log(db, req.admin.username || "admin", "ADMIN_CREATE_DOC_CHAPTER", { projectId, chapterId: chapId, title });
+  write(db);
+  res.json({ message: "New chapter created successfully.", chapter: newChapter });
+});
+
+// 4. Admin: Update Existing Chapter
+app.put("/api/admin/documentation/:projectId/chapters/:chapterId", adminAuth, (req, res) => {
+  const { projectId, chapterId } = req.params;
+  const db = read();
+  const doc = db.documentation.find(d => d.projectId === projectId);
+  if (!doc) return res.status(404).json({ message: "Documentation not found." });
+
+  const chap = (doc.chapters || []).find(c => c.id === chapterId || String(c.order) === String(chapterId) || String(c.chapterNumber) === String(chapterId));
+  if (!chap) return res.status(404).json({ message: "Chapter not found." });
+
+  const { chapterNumber, title, shortDescription, mainHeading, introduction, importantSubtopics, projectObjective, learningOutcomes, readingTime, codingTime, difficulty, status, isEnabled, order, sections, codeExamples } = req.body || {};
+
+  if (chapterNumber !== undefined) chap.chapterNumber = Number(chapterNumber);
+  if (title) chap.title = title;
+  if (shortDescription !== undefined) chap.shortDescription = shortDescription;
+  if (mainHeading !== undefined) chap.mainHeading = mainHeading;
+  if (introduction !== undefined) chap.introduction = introduction;
+  if (importantSubtopics !== undefined) chap.importantSubtopics = Array.isArray(importantSubtopics) ? importantSubtopics : String(importantSubtopics).split(",").map(s=>s.trim()).filter(Boolean);
+  if (projectObjective !== undefined) chap.projectObjective = projectObjective;
+  if (learningOutcomes !== undefined) chap.learningOutcomes = Array.isArray(learningOutcomes) ? learningOutcomes : String(learningOutcomes).split(",").map(s=>s.trim()).filter(Boolean);
+  if (readingTime !== undefined) chap.readingTime = readingTime;
+  if (codingTime !== undefined) chap.codingTime = codingTime;
+  if (difficulty) chap.difficulty = difficulty;
+  if (status) chap.status = status;
+  if (isEnabled !== undefined) chap.isEnabled = Boolean(isEnabled);
+  if (order !== undefined) chap.order = Number(order);
+  if (sections !== undefined) chap.sections = Array.isArray(sections) ? sections : [];
+  if (codeExamples !== undefined) chap.codeExamples = Array.isArray(codeExamples) ? codeExamples : [];
+  chap.updatedAt = new Date().toISOString();
+  doc.updatedAt = new Date().toISOString();
+
+  log(db, req.admin.username || "admin", "ADMIN_UPDATE_DOC_CHAPTER", { projectId, chapterId, title: chap.title });
+  write(db);
+  res.json({ message: "Chapter updated successfully.", chapter: chap });
+});
+
+// 5. Admin: Delete Chapter
+app.delete("/api/admin/documentation/:projectId/chapters/:chapterId", adminAuth, (req, res) => {
+  const { projectId, chapterId } = req.params;
+  const db = read();
+  const doc = db.documentation.find(d => d.projectId === projectId);
+  if (!doc) return res.status(404).json({ message: "Documentation not found." });
+
+  const idx = (doc.chapters || []).findIndex(c => c.id === chapterId || String(c.order) === String(chapterId) || String(c.chapterNumber) === String(chapterId));
+  if (idx === -1) return res.status(404).json({ message: "Chapter not found." });
+
+  const deleted = doc.chapters.splice(idx, 1)[0];
+  doc.chapters.forEach((c, i) => {
+    c.order = i + 1;
+    c.chapterNumber = i + 1;
+  });
+  doc.updatedAt = new Date().toISOString();
+
+  log(db, req.admin.username || "admin", "ADMIN_DELETE_DOC_CHAPTER", { projectId, chapterId, title: deleted.title });
+  write(db);
+  res.json({ message: `Chapter '${deleted.title}' deleted successfully.` });
+});
+
+// 6. Admin: Reorder Chapters
+app.put("/api/admin/documentation/:projectId/reorder", adminAuth, (req, res) => {
+  const { projectId } = req.params;
+  const { chapterIds } = req.body || {};
+  if (!Array.isArray(chapterIds)) return res.status(400).json({ message: "chapterIds array is required." });
+
+  const db = read();
+  const doc = db.documentation.find(d => d.projectId === projectId);
+  if (!doc) return res.status(404).json({ message: "Documentation not found." });
+
+  const reordered = [];
+  chapterIds.forEach((id, index) => {
+    const chap = (doc.chapters || []).find(c => c.id === id);
+    if (chap) {
+      chap.order = index + 1;
+      chap.chapterNumber = index + 1;
+      reordered.push(chap);
+    }
+  });
+
+  (doc.chapters || []).forEach(c => {
+    if (!reordered.includes(c)) {
+      c.order = reordered.length + 1;
+      c.chapterNumber = reordered.length + 1;
+      reordered.push(c);
+    }
+  });
+
+  doc.chapters = reordered;
+  doc.updatedAt = new Date().toISOString();
+  log(db, req.admin.username || "admin", "ADMIN_REORDER_CHAPTERS", { projectId });
+  write(db);
+  res.json({ message: "Chapters reordered successfully.", chapters: doc.chapters });
+});
+
+// 7. Admin: Update Project Documentation Settings
+app.put("/api/admin/documentation/:projectId/settings", adminAuth, (req, res) => {
+  const { projectId } = req.params;
+  const { projectTitle, projectDescription, mode, progressEnabled } = req.body || {};
+  const db = read();
+  let doc = db.documentation.find(d => d.projectId === projectId);
+  if (!doc) return res.status(404).json({ message: "Documentation not found." });
+
+  if (projectTitle) doc.projectTitle = projectTitle;
+  if (projectDescription !== undefined) doc.projectDescription = projectDescription;
+  if (mode) doc.mode = mode;
+  if (progressEnabled !== undefined) doc.progressEnabled = Boolean(progressEnabled);
+  doc.updatedAt = new Date().toISOString();
+
+  log(db, req.admin.username || "admin", "ADMIN_UPDATE_DOC_SETTINGS", { projectId });
+  write(db);
+  res.json({ message: "Documentation settings updated successfully.", documentation: doc });
+});
+
+// 8. Admin: Duplicate Chapter
+app.post("/api/admin/documentation/:projectId/chapters/:chapterId/duplicate", adminAuth, (req, res) => {
+  const { projectId, chapterId } = req.params;
+  const db = read();
+  const doc = db.documentation.find(d => d.projectId === projectId);
+  if (!doc) return res.status(404).json({ message: "Documentation not found." });
+
+  const original = (doc.chapters || []).find(c => c.id === chapterId || String(c.order) === String(chapterId));
+  if (!original) return res.status(404).json({ message: "Original chapter not found." });
+
+  const dupId = `chap_${projectId}_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+  const dupOrder = original.order + 1;
+
+  const duplicated = {
+    ...JSON.parse(JSON.stringify(original)),
+    id: dupId,
+    chapterNumber: dupOrder,
+    title: `${original.title} (Copy)`,
+    order: dupOrder,
+    status: "draft",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+
+  doc.chapters.splice(original.order, 0, duplicated);
+  doc.chapters.forEach((c, i) => {
+    c.order = i + 1;
+    c.chapterNumber = i + 1;
+  });
+  doc.updatedAt = new Date().toISOString();
+
+  log(db, req.admin.username || "admin", "ADMIN_DUPLICATE_CHAPTER", { projectId, originalId: chapterId, newId: dupId });
+  write(db);
+  res.json({ message: "Chapter duplicated successfully.", chapter: duplicated });
+});
+
+// 9. Admin: Bulk Actions
+app.post("/api/admin/documentation/:projectId/bulk", adminAuth, (req, res) => {
+  const { projectId } = req.params;
+  const { action, chapterIds } = req.body || {};
+  if (!action || !Array.isArray(chapterIds)) return res.status(400).json({ message: "Action and chapterIds array required." });
+
+  const db = read();
+  const doc = db.documentation.find(d => d.projectId === projectId);
+  if (!doc) return res.status(404).json({ message: "Documentation not found." });
+
+  if (action === "publish") {
+    (doc.chapters || []).forEach(c => { if (chapterIds.includes(c.id)) c.status = "published"; });
+  } else if (action === "unpublish") {
+    (doc.chapters || []).forEach(c => { if (chapterIds.includes(c.id)) c.status = "draft"; });
+  } else if (action === "enable") {
+    (doc.chapters || []).forEach(c => { if (chapterIds.includes(c.id)) c.isEnabled = true; });
+  } else if (action === "disable") {
+    (doc.chapters || []).forEach(c => { if (chapterIds.includes(c.id)) c.isEnabled = false; });
+  } else if (action === "delete") {
+    doc.chapters = (doc.chapters || []).filter(c => !chapterIds.includes(c.id));
+    doc.chapters.forEach((c, i) => { c.order = i + 1; c.chapterNumber = i + 1; });
+  }
+
+  doc.updatedAt = new Date().toISOString();
+  log(db, req.admin.username || "admin", "ADMIN_BULK_DOC_ACTION", { projectId, action, count: chapterIds.length });
+  write(db);
+  res.json({ message: `Bulk action '${action}' completed on ${chapterIds.length} chapters.`, chapters: doc.chapters });
 });
 
 const server = app.listen(PORT,()=>console.log(`🚀 Backend running on http://localhost:${PORT}`))

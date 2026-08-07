@@ -69,12 +69,17 @@ function show(id) {
     id = "loginView";
   }
 
+  // Admin Route Shield: Admin users must NEVER land on student project selection or student dashboard
+  if (isAdmin && (id === "selectView" || id === "dashboardView" || id === "homeView")) {
+    id = "adminView";
+  }
+
   // If user is already logged in and tries to access loginView
   if (isLogged && id === "loginView") {
     id = isAdmin ? "adminView" : ((state.user?.selectedProjects || []).length === 4 ? "dashboardView" : "selectView");
   }
 
-  // Admin route protection
+  // Admin route protection for non-admins
   if (id === "adminView" && !isAdmin) {
     notify("Admin credentials required to access the Admin Panel.", "error");
     id = "loginView";
@@ -82,11 +87,8 @@ function show(id) {
 
   ["homeView","loginView","adminView","leaderView","selectView","dashboardView","docView"].forEach(viewId => $(viewId)?.classList.add("hidden"));
   $(id)?.classList.remove("hidden");
-  if (id === "loginView") {
-    document.body.classList.add("on-login-page");
-  } else {
-    document.body.classList.remove("on-login-page");
-  }
+  document.body.classList.toggle("on-login-page", id === "loginView");
+  document.body.classList.toggle("on-admin-page", id === "adminView");
   window.scrollTo({ top: 0, behavior: "smooth" });
   updateNav();
 }
@@ -268,6 +270,252 @@ async function createStudentAccount() {
   }
 }
 
+/* ADMIN SIDEBAR & NAVIGATION CONTROLLERS */
+function toggleAdminSidebar() {
+  const adminView = $("adminView");
+  if (adminView) {
+    adminView.classList.toggle("show-sidebar");
+  }
+}
+
+function switchAdminTab(tabName, clickedEl) {
+  const links = document.querySelectorAll(".sidebar-link");
+  links.forEach(link => link.classList.remove("active"));
+  if (clickedEl) {
+    clickedEl.classList.add("active");
+  } else {
+    const activeLink = document.querySelector(`.sidebar-link[data-tab="${tabName}"]`);
+    if (activeLink) activeLink.classList.add("active");
+  }
+
+  const sections = document.querySelectorAll(".admin-tab-section");
+  sections.forEach(sec => sec.classList.remove("active"));
+
+  const targetId = `adminTab${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`;
+  const targetSection = $(targetId);
+  if (targetSection) {
+    targetSection.classList.add("active");
+  }
+
+  const titles = {
+    overview: "Dashboard Overview",
+    students: "Registered Students Directory",
+    projects: "Available Internship Projects",
+    progress: "Student Progress & Work Camera Tracking",
+    notes: "Student Internship Notes Directory",
+    reports: "Automatic Student Work Excel Reports",
+    settings: "System Settings & Profile"
+  };
+
+  if ($("adminHeaderTitle")) {
+    $("adminHeaderTitle").textContent = titles[tabName] || "Admin Dashboard";
+  }
+
+  if (window.innerWidth <= 992) {
+    $("adminView")?.classList.remove("show-sidebar");
+  }
+
+  if (tabName === "projects") renderAdminProjectsGrid();
+  if (tabName === "progress") renderLeaderDashboard();
+  if (tabName === "notes") renderAdminNotes();
+}
+
+async function loadProjects() {
+  try {
+    const res = await api("/projects");
+    if (res?.projects && res.projects.length) {
+      window.PROJECTS = res.projects;
+    }
+  } catch (err) {
+    console.warn("Could not load projects from API, using default projects:", err.message);
+  }
+}
+
+async function renderAdminProjectsGrid() {
+  await loadProjects();
+  const grid = $("adminProjectsGrid");
+  if (!grid) return;
+
+  const isAdmin = state.role === "ADMIN" || Boolean(state.leaderToken);
+
+  grid.innerHTML = (window.PROJECTS || []).map(p => {
+    const statusBadgeClass = p.status === "inactive" ? "background:#fef3c7;color:#92400e" : "background:#dcfce7;color:#166534";
+    const statusText = p.status === "inactive" ? "Inactive" : "Active";
+
+    return `
+      <article class="panel project-card" style="background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:18px;display:flex;flex-direction:column;justify-content:space-between">
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <span style="font-size:32px">${p.icon || "💻"}</span>
+            <div style="display:flex;gap:6px">
+              <span class="pill" style="font-size:11px">${p.level || "Intermediate"}</span>
+              <span class="pill" style="font-size:11px;${statusBadgeClass}">${statusText}</span>
+            </div>
+          </div>
+          <h4 style="margin:0 0 6px;color:var(--navy);font-size:16px">${p.name}</h4>
+          <p class="muted" style="font-size:13px;line-height:1.4;margin:0 0 12px">${p.summary}</p>
+          <div style="margin-bottom:12px">
+            <small class="muted" style="display:block;margin-bottom:4px"><b>Stack:</b> ${p.stack || "Full Stack Web"}</small>
+            <small class="muted" style="display:block"><b>Duration:</b> ${p.duration || "4–6 Weeks"}</small>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;padding-top:12px;border-top:1px solid var(--border)">
+          <button class="btn primary btn-xs" type="button" onclick="openProjectDocument('${p.id}', true)">Preview Docs & Chapters</button>
+          ${isAdmin ? `
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+              <button class="btn outline btn-xs" type="button" onclick="openEditProjectModal('${p.id}')">✏️ Edit Project</button>
+              <button class="btn danger btn-xs" type="button" onclick="deleteProjectConfirm('${p.id}')">🗑️ Delete</button>
+            </div>
+          ` : ""}
+        </div>
+      </article>
+    `;
+  }).join("");
+}
+
+function openCreateProjectModal() {
+  if ($("projFormId")) $("projFormId").value = "";
+  if ($("projFormName")) $("projFormName").value = "";
+  if ($("projFormIcon")) $("projFormIcon").value = "💻";
+  if ($("projFormSummary")) $("projFormSummary").value = "";
+  if ($("projFormDescription")) $("projFormDescription").value = "";
+  if ($("projFormLevel")) $("projFormLevel").value = "Intermediate";
+  if ($("projFormDuration")) $("projFormDuration").value = "4–6 Weeks";
+  if ($("projFormStatus")) $("projFormStatus").value = "active";
+  if ($("projFormStack")) $("projFormStack").value = "React, Node.js, Express, MongoDB";
+  if ($("projFormObjective")) $("projFormObjective").value = "Build production-grade web application module.";
+  if ($("projFormOutcomes")) $("projFormOutcomes").value = "Full-stack architecture, REST API integration";
+
+  if ($("projectFormModalTitle")) $("projectFormModalTitle").textContent = "Create New Internship Project";
+  $("projectFormModal")?.classList.add("show");
+}
+
+function openEditProjectModal(projectId) {
+  const p = (window.PROJECTS || []).find(x => x.id === projectId);
+  if (!p) return notify("Project not found.", "error");
+
+  if ($("projFormId")) $("projFormId").value = p.id;
+  if ($("projFormName")) $("projFormName").value = p.name || "";
+  if ($("projFormIcon")) $("projFormIcon").value = p.icon || "💻";
+  if ($("projFormSummary")) $("projFormSummary").value = p.summary || "";
+  if ($("projFormDescription")) $("projFormDescription").value = p.description || p.summary || "";
+  if ($("projFormLevel")) $("projFormLevel").value = p.level || "Intermediate";
+  if ($("projFormDuration")) $("projFormDuration").value = p.duration || "4–6 Weeks";
+  if ($("projFormStatus")) $("projFormStatus").value = p.status || "active";
+  if ($("projFormStack")) $("projFormStack").value = p.stack || "";
+  if ($("projFormObjective")) $("projFormObjective").value = p.objective || "";
+  if ($("projFormOutcomes")) $("projFormOutcomes").value = Array.isArray(p.outcomes) ? p.outcomes.join(", ") : (p.outcomes || "");
+
+  if ($("projectFormModalTitle")) $("projectFormModalTitle").textContent = `Edit Project: ${p.name}`;
+  $("projectFormModal")?.classList.add("show");
+}
+
+async function saveProjectForm() {
+  const id = $("projFormId")?.value;
+  const payload = {
+    name: $("projFormName")?.value.trim(),
+    icon: $("projFormIcon")?.value.trim(),
+    summary: $("projFormSummary")?.value.trim(),
+    description: $("projFormDescription")?.value.trim(),
+    level: $("projFormLevel")?.value,
+    duration: $("projFormDuration")?.value.trim(),
+    status: $("projFormStatus")?.value,
+    stack: $("projFormStack")?.value.trim(),
+    objective: $("projFormObjective")?.value.trim(),
+    outcomes: $("projFormOutcomes")?.value.split(",").map(s => s.trim()).filter(Boolean)
+  };
+
+  if (!payload.name || !payload.summary) {
+    return notify("Project Name and Summary are required.", "error");
+  }
+
+  try {
+    let res;
+    if (id) {
+      res = await leaderApi(`/admin/projects/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(payload)
+      });
+    } else {
+      res = await leaderApi("/admin/projects", {
+        method: "POST",
+        body: JSON.stringify(payload)
+      });
+    }
+
+    notify(res.message || "Project saved successfully.");
+    $("projectFormModal")?.classList.remove("show");
+    await renderAdminProjectsGrid();
+  } catch (err) {
+    notify(err.message, "error");
+  }
+}
+
+async function deleteProjectConfirm(projectId) {
+  const p = (window.PROJECTS || []).find(x => x.id === projectId);
+  if (!p) return;
+
+  if (confirm(`Are you sure you want to delete "${p.name}"?\nExisting student progress records will remain safely intact.`)) {
+    try {
+      const res = await leaderApi(`/admin/projects/${projectId}`, {
+        method: "DELETE"
+      });
+      notify(res.message || "Project deleted.");
+      await renderAdminProjectsGrid();
+    } catch (err) {
+      notify(err.message, "error");
+    }
+  }
+}
+
+function openAdminDocChapterEdit() {
+  if (!state.currentProject) return;
+  const idx = state.currentChapter;
+  const customChapters = state.currentProject.customChapters || [];
+  const existing = customChapters.find(c => c.index === idx);
+
+  if ($("editDocChapIndex")) $("editDocChapIndex").value = idx;
+  if ($("editDocChapName")) $("editDocChapName").value = existing?.name || CHAPTERS[idx] || `Chapter ${idx + 1}`;
+  if ($("editDocChapContent")) $("editDocChapContent").value = existing?.content || "";
+
+  if ($("editDocChapterTitle")) $("editDocChapterTitle").textContent = `Edit Chapter ${idx + 1}: ${CHAPTERS[idx] || ''}`;
+  $("editDocChapterModal")?.classList.add("show");
+}
+
+async function saveDocChapterFromModal() {
+  if (!state.currentProject) return;
+  const idx = Number($("editDocChapIndex")?.value || 0);
+  const chapterName = $("editDocChapName")?.value.trim();
+  const content = $("editDocChapContent")?.value;
+
+  try {
+    const res = await leaderApi(`/admin/projects/${state.currentProject.id}/chapters`, {
+      method: "POST",
+      body: JSON.stringify({
+        chapterIndex: idx,
+        chapterName,
+        content
+      })
+    });
+
+    notify(res.message || "Chapter documentation updated.");
+    $("editDocChapterModal")?.classList.remove("show");
+
+    state.currentProject.customChapters = state.currentProject.customChapters || [];
+    let chap = state.currentProject.customChapters.find(c => c.index === idx);
+    if (chap) {
+      chap.name = chapterName;
+      chap.content = content;
+    } else {
+      state.currentProject.customChapters.push({ index: idx, name: chapterName, content });
+    }
+
+    renderChapter();
+  } catch (err) {
+    notify(err.message, "error");
+  }
+}
+
 /* ADMIN DASHBOARD FUNCTIONS */
 async function renderAdminDashboard() {
   try {
@@ -318,6 +566,7 @@ async function renderAdminDashboard() {
     adminStudentsCache = data.students || [];
     filterAdminStudents();
     await renderAdminNotes();
+    renderAdminProjectsGrid();
   } catch (error) {
     notify(error.message, "error");
   }
@@ -1138,110 +1387,141 @@ function getEnhancedChapterContent(project, chapterIndex, chapterName, completed
           <details class="qna-item"><summary>Q1: How does ${chapterName} integrate into the overall system architecture of ${project.name}?</summary><div class="qna-ans">It connects UI user actions to backend controller endpoints, processing business rules and updating database state with security audit logging.</div></details>
           <details class="qna-item"><summary>Q2: What techniques ensure database query performance during high traffic for this module?</summary><div class="qna-ans">Using indexes on frequently searched fields (like <code>userId</code>, <code>email</code>, <code>status</code>), pagination, and caching static resources.</div></details>
           <details class="qna-item"><summary>Q3: How do you handle authorization and prevent unauthorized endpoint access?</summary><div class="qna-ans">By attaching JWT middleware (e.g., <code>authenticate</code> & <code>authorize("ADMIN")</code>) to REST API routes to check user tokens and roles before execution.</div></details>
-          <details class="qna-item"><summary>Q4: What is the benefit of separating routes, controllers, and models in backend code?</summary><div class="qna-ans">Separation of concerns ensures clean readability, simplified unit testing, easier maintenance, and scalable team collaboration.</div></details>
-          <details class="qna-item"><summary>Q5: Why is client-side validation alone insufficient for web security?</summary><div class="qna-ans">Client-side code can be bypassed or manipulated in browser DevTools. Backend server validation is mandatory to guarantee data integrity and security.</div></details>
+    <div class="enhancement-sections-wrapper" style="margin-top:24px;display:grid;gap:20px">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+        <div class="stat-badge-card" style="background:var(--card2);padding:12px;border:1px solid var(--border);border-radius:10px">
+          <span class="muted" style="font-size:12px;display:block">Estimated Reading</span>
+          <b style="color:var(--navy);font-size:16px">📖 ${readingTime}</b>
+        </div>
+        <div class="stat-badge-card" style="background:var(--card2);padding:12px;border:1px solid var(--border);border-radius:10px">
+          <span class="muted" style="font-size:12px;display:block">Estimated Coding</span>
+          <b style="color:var(--navy);font-size:16px">💻 ${codingTime}</b>
+        </div>
+        <div class="stat-badge-card" style="background:var(--card2);padding:12px;border:1px solid var(--border);border-radius:10px">
+          <span class="muted" style="font-size:12px;display:block">Difficulty Level</span>
+          <b style="color:var(--blue);font-size:16px">⚡ ${difficulty}</b>
         </div>
       </div>
 
-      <!-- 15. GitHub Task & 16. Completion Checklist -->
-      <div class="enhancement-grid-2col">
-        <div class="enhancement-card">
-          <h4 class="card-title">🐙 15. GitHub Commit Task</h4>
-          <p>Commit your completed code to your GitHub repository:</p>
-          <pre class="code-tree-box"><code>git add .
+      <div class="enhancement-card">
+        <h4 class="card-title">🎯 Project Objective</h4>
+        <p style="margin:4px 0 0;font-size:13px;line-height:1.5">${objective}</p>
+      </div>
+
+      <div class="enhancement-card">
+        <h4 class="card-title">💡 Learning Outcomes</h4>
+        <ul style="margin:6px 0 0;padding-left:20px;font-size:13px">
+          ${(Array.isArray(outcomes) ? outcomes : [outcomes]).map(o => `<li>${o}</li>`).join("")}
+        </ul>
+      </div>
+
+      <div class="enhancement-card">
+        <h4 class="card-title">🚀 Git Workflow</h4>
+        <pre class="code-tree-box"><code>git add .
 git commit -m "feat(${cleanProjId}): implement ${chapterName} module with UI & REST API"
 git push origin main</code></pre>
-        </div>
-        <div class="enhancement-card">
-          <h4 class="card-title">✅ 16. Completion Checklist</h4>
-          <div class="checklist-grid">
-            <label class="check-item"><input type="checkbox" checked disabled> <span>Requirement Understood</span></label>
-            <label class="check-item"><input type="checkbox" checked disabled> <span>UI Completed</span></label>
-            <label class="check-item"><input type="checkbox" checked disabled> <span>Backend Completed</span></label>
-            <label class="check-item"><input type="checkbox" checked disabled> <span>Database Updated</span></label>
-            <label class="check-item"><input type="checkbox" checked disabled> <span>API Tested</span></label>
-            <label class="check-item"><input type="checkbox" checked disabled> <span>GitHub Commit Done</span></label>
-          </div>
-        </div>
       </div>
 
-      <!-- 19. Additional Resources & 20. Progress Summary Footer -->
-      <div class="enhancement-card">
-        <h4 class="card-title">📚 19. Additional Resources & Documentation</h4>
-        <div class="resource-links-grid">
-          <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript" target="_blank" class="resource-link">🌐 MDN Web Docs - JavaScript Guide</a>
-          <a href="https://react.dev/" target="_blank" class="resource-link">⚛️ Official React Documentation</a>
-          <a href="https://expressjs.com/" target="_blank" class="resource-link">🚀 Express.js API Reference</a>
-          <a href="https://owasp.org/" target="_blank" class="resource-link">🔒 OWASP Web Security Guidelines</a>
-        </div>
-      </div>
-
-      <div class="progress-summary-bar-box">
+      <div class="progress-summary-bar-box" style="background:var(--card2);padding:16px;border:1px solid var(--border);border-radius:12px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-          <b>📊 20. Project Progress Summary</b>
+          <b>📊 Project Progress Summary</b>
           <span><b>${completedCount}/${totalChapters}</b> Chapters Finished (${remainingCount} Remaining)</span>
         </div>
-        <div class="progress-track-bg">
-          <div class="progress-track-fill" style="width:${percentComplete}%"></div>
+        <div class="progress-track-bg" style="background:var(--border);height:8px;border-radius:4px;overflow:hidden">
+          <div class="progress-track-fill" style="width:${percentComplete}%;background:var(--green);height:100%"></div>
         </div>
+        <small class="muted" style="display:block;margin-top:6px;text-align:right">${percentComplete}% Complete</small>
       </div>
     </div>
   `;
 }
 
 function renderChapter() {
-  const p=state.currentProject, chapter=CHAPTERS[state.currentChapter];
+  const p = state.currentProject;
+  const docChapters = (state.currentDoc?.chapters || []).filter(c => c.isEnabled !== false && c.status !== "draft");
+  const activeChapObj = docChapters[state.currentChapter] || {
+    id: `chap_${state.currentChapter}`,
+    title: CHAPTERS[state.currentChapter] || "Overview",
+    chapterNumber: state.currentChapter + 1,
+    mainHeading: `${state.currentChapter + 1}. ${CHAPTERS[state.currentChapter] || "Overview"}`,
+    introduction: p.summary,
+    importantSubtopics: ["Business purpose", "Actors & permissions", "Fields and validation", "Workflow and exceptions", "Database and API mapping", "Testing and deployment"],
+    projectObjective: p.objective || "Automate operations and reporting.",
+    learningOutcomes: p.outcomes || ["Full-stack architecture", "REST API integration"],
+    readingTime: "15 min",
+    codingTime: "2 hours",
+    difficulty: p.difficulty || "Intermediate"
+  };
+
+  const chapterTitle = activeChapObj.title;
+  const totalChaptersCount = docChapters.length || CHAPTERS.length;
+
   const completed = state.publicMode
     ? JSON.parse(localStorage.getItem(`publicProgress:${p.id}`)||"[]")
     : (state.user?.progress?.[p.id]?.completedChapters || []);
-  const moduleRows=p.modules.map((m,i)=>`<tr><td>${i+1}</td><td>${m}</td><td>Purpose, fields, CRUD, validation, permissions, workflow, reports and testing.</td></tr>`).join("");
-  let body=`<div class="summarybox"><b>${p.name}</b><br>${p.summary}</div>
-    <div class="chapter-queue">${CHAPTERS.map((c,i)=>`<span class="queue-chip ${completed.includes(i)||completed.includes(c)?"done":""} ${i===state.currentChapter?"current":""}">${i+1}</span>`).join("")}</div>
-    <h3>Important Subtopics</h3><ul><li>Business purpose</li><li>Actors and permissions</li><li>Fields and validation</li><li>Workflow and exceptions</li><li>Database and API mapping</li><li>Testing and deployment</li></ul>`;
 
-  if(chapter==="Overview") body+=`<table class="table"><tr><th>Week</th><th>Work</th></tr><tr><td>1</td><td>Research and SRS</td></tr><tr><td>2</td><td>Database and authentication</td></tr><tr><td>3–4</td><td>Core modules</td></tr><tr><td>5</td><td>Testing and reports</td></tr><tr><td>6</td><td>Deployment and submission</td></tr></table>`;
-  if(chapter==="Requirements") body+=`<table class="table"><tr><th>#</th><th>Module</th><th>Requirement</th></tr>${moduleRows}</table>`;
-  if(chapter==="Modules") body+=`<table class="table"><tr><th>#</th><th>Module</th><th>Coverage</th></tr>${moduleRows}</table>`;
-  if(chapter==="Architecture") body+=`<pre>React Frontend → REST API → Node / Express → MongoDB</pre>`;
-  if(chapter==="Database") body+=`<table class="table"><tr><th>Collection</th><th>Purpose</th></tr><tr><td>users</td><td>Profiles and roles</td></tr><tr><td>transactions</td><td>Operational records</td></tr><tr><td>auditLogs</td><td>Activity tracking</td></tr></table>`;
-  if(chapter==="APIs") body+=`<table class="table"><tr><th>Method</th><th>Endpoint</th><th>Purpose</th></tr><tr><td>POST</td><td>/api/auth/login</td><td>Login</td></tr><tr><td>GET</td><td>/api/resources</td><td>List</td></tr><tr><td>POST</td><td>/api/resources</td><td>Create</td></tr></table>`;
-  if(chapter==="Security") body+=`<ul><li>Password hashing</li><li>JWT/session</li><li>Role permissions</li><li>Validation</li><li>Rate limiting</li><li>HTTPS</li></ul>`;
-  if(chapter==="UI/UX") body+=`<div class="image-ref"><b>Image Reference</b><p>Add Login, Dashboard, Form, Reports and Mobile screenshots.</p></div>`;
-  if(chapter==="Code Examples") body+=`<pre>router.post("/resources", authenticate, authorize("ADMIN"), validate(schema), controller.create);</pre>`;
-  if(chapter==="Testing") body+=`<ul><li>Unit testing</li><li>API testing</li><li>Integration testing</li><li>UI testing</li><li>UAT</li></ul>`;
-  if(chapter==="Deployment") body+=`<pre># Backend\nnpm install\nnpm test\nnpm start\n\n# Frontend\nnpx serve .</pre>`;
-  if(chapter==="Assignment") body+=`<ol><li>Complete modules.</li><li>Add screenshots.</li><li>Write tests.</li><li>Deploy.</li><li>Submit GitHub URL.</li></ol>`;
-  if(chapter==="Quiz") {
-    const quizPassed = state.user?.progress?.[p.id]?.quizPassed;
-    body+=`<h3>Project Quiz</h3>
-      <label class="quiz-option"><input type="radio" name="quizAnswer" value="frontend"> Security is only required in frontend.</label>
-      <label class="quiz-option"><input type="radio" name="quizAnswer" value="backend"> Backend must enforce authentication and authorization.</label>
-      <label class="quiz-option"><input type="radio" name="quizAnswer" value="none"> Validation is optional.</label>
-      <button class="btn primary" id="quizButton" type="button">Submit Quiz</button>
-      ${quizPassed?'<div class="quiz-result">Quiz Passed · Score 100%</div>':""}`;
+  const progressEnabled = state.currentDoc?.progressEnabled !== false;
+
+  let body = `<div class="summarybox"><b>${state.currentDoc?.projectTitle || p.name}</b><br>${state.currentDoc?.projectDescription || p.summary}</div>
+    <div class="chapter-queue">
+      ${docChapters.map((c, i) => `<span class="queue-chip ${completed.includes(i)||completed.includes(c.title)||completed.includes(c.id)?"done":""} ${i===state.currentChapter?"current":""}">${c.chapterNumber || (i+1)}</span>`).join("")}
+    </div>`;
+
+  if (activeChapObj.introduction) {
+    body += `<div class="chapter-intro-box" style="margin:16px 0;line-height:1.6;font-size:14px;color:var(--text)">${activeChapObj.introduction}</div>`;
   }
-  if(chapter==="References") body+=`<ul><li>React documentation</li><li>Node.js documentation</li><li>Express documentation</li><li>MongoDB documentation</li><li>OWASP guidance</li><li>GitHub documentation</li></ul>`;
 
-  body += getEnhancedChapterContent(p, state.currentChapter, chapter, completed.length);
+  if (Array.isArray(activeChapObj.importantSubtopics) && activeChapObj.importantSubtopics.length) {
+    body += `<h3>Important Subtopics</h3><ul>${activeChapObj.importantSubtopics.map(st => `<li>${st}</li>`).join("")}</ul>`;
+  }
 
-  const noteKey=`note:${p.id}:${state.currentChapter}`;
-  $("chapterContent").innerHTML=`<section class="chapter">
+  if (Array.isArray(activeChapObj.sections) && activeChapObj.sections.length) {
+    activeChapObj.sections.forEach(sec => {
+      body += `<div class="enhancement-card" style="margin-top:16px">
+        <h4 class="card-title">${sec.heading || "Section"}</h4>
+        ${sec.content ? `<p style="font-size:13px;line-height:1.5">${sec.content}</p>` : ""}
+        ${Array.isArray(sec.bulletPoints) && sec.bulletPoints.length ? `<ul>${sec.bulletPoints.map(bp=>`<li>${bp}</li>`).join("")}</ul>` : ""}
+      </div>`;
+    });
+  }
+
+  if (Array.isArray(activeChapObj.codeExamples) && activeChapObj.codeExamples.length) {
+    activeChapObj.codeExamples.forEach(ce => {
+      body += `<div class="enhancement-card" style="margin-top:16px">
+        <h4 class="card-title">💻 ${ce.title || "Code Example"} (${ce.language || "code"})</h4>
+        <pre class="code-tree-box"><code>${ce.code}</code></pre>
+        ${ce.explanation ? `<p class="muted" style="font-size:12px;margin-top:6px">${ce.explanation}</p>` : ""}
+      </div>`;
+    });
+  }
+
+  body += getEnhancedChapterContent(p, state.currentChapter, chapterTitle, completed.length, totalChaptersCount, activeChapObj);
+
+  const noteKey = `note:${p.id}:${state.currentChapter}`;
+  const isAdmin = state.role === "ADMIN" || Boolean(state.leaderToken);
+  const editDocBtn = isAdmin ? `<button class="btn primary btn-xs" type="button" style="margin-left:12px" onclick="openAdminChapterEditorModal('${activeChapObj.id}')">✏️ Edit Chapter</button>` : ``;
+
+  $("chapterContent").innerHTML = `<section class="chapter">
     <div class="tracking-strip">
-      <span>Mode: <b>${state.publicMode?"Documentation Preview":"Tracked Learning"}</b></span>
-      ${state.publicMode ? `<span>Progress changes: <b>Disabled</b></span>` : `<span>Session Time: <span id="liveSessionTime" class="live-timer">${formatTime(state.sessionSeconds)}</span></span>`}
-      <span>Chapter ${state.currentChapter+1}/${CHAPTERS.length}</span>
+      <span>Mode: <b>${state.currentDoc?.mode || (state.publicMode ? "Documentation Preview" : "Tracked Learning")}</b></span>
+      <span>Progress changes: <b>${progressEnabled ? (state.publicMode ? "Disabled" : "Enabled") : "Disabled"}</b></span>
+      <span>Chapter ${state.currentChapter + 1}/${totalChaptersCount}</span>
     </div>
-    <h2>${chapter}</h2>${body}
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <h2 style="margin:0">${activeChapObj.mainHeading || chapterTitle}</h2>
+      ${editDocBtn}
+    </div>
+    ${body}
     ${state.publicMode ? `
       <div class="preview-information">
         <div class="preview-info-card"><b>Documentation Preview</b><span>Read all chapters without changing tracked progress.</span></div>
-        <div class="preview-info-card"><b>Tracking Disabled</b><span>Select 4 projects and use Start / Continue for chapter completion, quiz reports and time tracking.</span></div>
+        <div class="preview-info-card"><b>Tracking ${progressEnabled ? "Disabled in Preview" : "Disabled by Admin"}</b><span>Select 4 projects and use Start / Continue for chapter completion.</span></div>
       </div>` : `
       <div class="notes-section"><h3>Intern Notes</h3><textarea id="noteBox" class="notes">${localStorage.getItem(noteKey)||""}</textarea><button class="btn outline" id="saveNoteButton" type="button">Save Notes</button></div>`}
     <div class="chapter-actions">
       <button class="btn outline" id="prevChapter" ${state.currentChapter===0?"disabled":""}>← Previous</button>
-      ${state.publicMode ? `<button class="btn outline" id="backToProjectsButton">← Back to 10 Projects</button>` : `<button class="btn success" id="completeChapterButton">Mark Chapter Complete</button>`}
-      <button class="btn primary" id="nextChapter" ${state.currentChapter===CHAPTERS.length-1?"disabled":""}>Next →</button>
+      ${state.publicMode ? `<button class="btn outline" id="backToProjectsButton">← Back to Projects</button>` : `<button class="btn success" id="completeChapterButton" ${!progressEnabled?"disabled":""}>Mark Chapter Complete</button>`}
+      <button class="btn primary" id="nextChapter" ${state.currentChapter===totalChaptersCount-1?"disabled":""}>Next →</button>
     </div>
   </section>`;
 
@@ -1265,7 +1545,7 @@ function renderChapter() {
           body: JSON.stringify({
             projectId: p.id,
             chapterId: state.currentChapter,
-            chapterName: CHAPTERS[state.currentChapter],
+            chapterName: chapterTitle,
             notes: val
           })
         });
@@ -1275,13 +1555,15 @@ function renderChapter() {
         notify(`Notes saved locally: ${err.message}`);
       }
     };
-    $("completeChapterButton").onclick=completeChapter;
+    if (progressEnabled) {
+      $("completeChapterButton").onclick = completeChapter;
+    }
   } else {
-    $("backToProjectsButton").onclick=()=>show("homeView");
+    $("backToProjectsButton").onclick = () => show("homeView");
   }
-  $("prevChapter").onclick=()=>openChapter(Math.max(0,state.currentChapter-1));
-  $("nextChapter").onclick=()=>openChapter(Math.min(CHAPTERS.length-1,state.currentChapter+1));
-  if($("quizButton")) $("quizButton").onclick=submitQuiz;
+  $("prevChapter").onclick = () => openChapter(Math.max(0, state.currentChapter - 1));
+  $("nextChapter").onclick = () => openChapter(Math.min(totalChaptersCount - 1, state.currentChapter + 1));
+  if($("quizButton")) $("quizButton").onclick = submitQuiz;
 }
 
 /* INTERNSHIP NOTES CONTROLLERS */
@@ -1547,6 +1829,11 @@ async function submitProject() {
 
 async function backDashboard() {
   clearInterval(state.sessionTimer);
+  const isAdmin = state.role === "ADMIN" || Boolean(state.leaderToken);
+  if (isAdmin) {
+    await renderAdminDashboard();
+    return show("adminView");
+  }
   if(state.publicMode || !state.token) return show("homeView");
   try{
     await api(`/tracking/${state.currentProject.id}/stop`,{method:"POST"});
@@ -2038,3 +2325,383 @@ document.addEventListener("visibilitychange", () => {
     checkFacePresence();
   }
 });
+
+/* DYNAMIC DOCUMENTATION MANAGEMENT CONTROLLERS */
+let adminDocCache = null;
+let unsavedChanges = false;
+
+function markUnsavedChanges() {
+  unsavedChanges = true;
+  if ($("unsavedChangesBadge")) $("unsavedChangesBadge").style.display = "inline-block";
+}
+
+function clearUnsavedChanges() {
+  unsavedChanges = false;
+  if ($("unsavedChangesBadge")) $("unsavedChangesBadge").style.display = "none";
+}
+
+async function loadAdminDocForSelectedProject() {
+  const select = $("docAdminProjectSelect");
+  if (!select) return;
+  const projectId = select.value;
+  if (!projectId) return;
+
+  try {
+    const res = await leaderApi(`/admin/documentation/${projectId}`);
+    adminDocCache = res.documentation;
+    renderAdminChaptersTable();
+  } catch (err) {
+    notify(err.message, "error");
+  }
+}
+
+function populateDocAdminProjectSelect() {
+  const select = $("docAdminProjectSelect");
+  if (!select) return;
+  select.innerHTML = (window.PROJECTS || []).map(p => `
+    <option value="${p.id}">${p.icon || "💻"} ${p.name}</option>
+  `).join("");
+}
+
+function renderAdminChaptersTable() {
+  const container = $("adminDocChaptersTableContainer");
+  if (!container || !adminDocCache) return;
+
+  const searchQuery = ($("docAdminSearch")?.value || "").toLowerCase().trim();
+  const filterStatus = $("docAdminFilterStatus")?.value || "";
+  const filterState = $("docAdminFilterState")?.value || "";
+
+  let chapters = adminDocCache.chapters || [];
+
+  if (searchQuery) {
+    chapters = chapters.filter(c =>
+      c.title.toLowerCase().includes(searchQuery) ||
+      (c.shortDescription && c.shortDescription.toLowerCase().includes(searchQuery)) ||
+      (c.mainHeading && c.mainHeading.toLowerCase().includes(searchQuery))
+    );
+  }
+
+  if (filterStatus) {
+    chapters = chapters.filter(c => c.status === filterStatus);
+  }
+
+  if (filterState) {
+    const isE = filterState === "enabled";
+    chapters = chapters.filter(c => c.isEnabled === isE);
+  }
+
+  if (!chapters.length) {
+    container.innerHTML = `<div class="empty-notice" style="padding:24px;text-align:center;color:var(--muted)">No chapters found matching criteria.</div>`;
+    return;
+  }
+
+  container.innerHTML = `
+    <table class="table" style="width:100%;border-collapse:collapse;margin-top:8px">
+      <thead>
+        <tr style="background:var(--card2);text-align:left">
+          <th style="padding:10px;width:30px"><input type="checkbox" onchange="toggleSelectAllDocChapters(this)"></th>
+          <th style="padding:10px;width:70px">Order</th>
+          <th style="padding:10px">Chapter # & Title</th>
+          <th style="padding:10px;width:90px">Status</th>
+          <th style="padding:10px;width:90px">State</th>
+          <th style="padding:10px;width:160px">Estimation</th>
+          <th style="padding:10px;width:240px">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${chapters.map((c, i) => `
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:10px"><input type="checkbox" class="doc-chap-check" value="${c.id}"></td>
+            <td style="padding:10px">
+              <div style="display:flex;gap:4px;align-items:center">
+                <button class="btn outline btn-xs" style="padding:1px 5px" onclick="reorderAdminChapter('${c.id}', 'up')" ${i === 0 ? "disabled" : ""}>▲</button>
+                <button class="btn outline btn-xs" style="padding:1px 5px" onclick="reorderAdminChapter('${c.id}', 'down')" ${i === chapters.length - 1 ? "disabled" : ""}>▼</button>
+              </div>
+            </td>
+            <td style="padding:10px">
+              <strong>${c.chapterNumber || (i + 1)}. ${c.title}</strong>
+              <p class="muted" style="margin:2px 0 0;font-size:12px">${c.shortDescription || ""}</p>
+            </td>
+            <td style="padding:10px">
+              <span class="pill" style="font-size:11px;${c.status === 'published' ? 'background:#dcfce7;color:#166534' : 'background:#fef3c7;color:#92400e'}">
+                ${c.status === 'published' ? 'Published' : 'Draft'}
+              </span>
+            </td>
+            <td style="padding:10px">
+              <span class="pill" style="font-size:11px;${c.isEnabled !== false ? 'background:#e0f2fe;color:#0369a1' : 'background:#fee2e2;color:#991b1b'}">
+                ${c.isEnabled !== false ? 'Active' : 'Disabled'}
+              </span>
+            </td>
+            <td style="padding:10px;font-size:12px">
+              <div>📖 ${c.readingTime || '15 min'}</div>
+              <div>💻 ${c.codingTime || '2 hours'}</div>
+            </td>
+            <td style="padding:10px">
+              <div style="display:flex;gap:4px;flex-wrap:wrap">
+                <button class="btn primary btn-xs" onclick="openAdminChapterEditorModal('${c.id}')">✏️ Edit</button>
+                <button class="btn outline btn-xs" onclick="previewAdminChapter('${c.id}')">👁️ Preview</button>
+                <button class="btn outline btn-xs" onclick="duplicateAdminChapter('${c.id}')">📋 Duplicate</button>
+                <button class="btn danger btn-xs" onclick="deleteAdminChapterConfirm('${c.id}')">🗑️ Delete</button>
+              </div>
+            </td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+function toggleSelectAllDocChapters(master) {
+  document.querySelectorAll(".doc-chap-check").forEach(cb => cb.checked = master.checked);
+}
+
+function openAdminChapterEditorModal(chapId = null) {
+  clearUnsavedChanges();
+  const form = $("chapterEditorForm");
+  if (form) form.reset();
+
+  if (!adminDocCache) return notify("Select a project first.", "error");
+
+  let chap = null;
+  if (chapId) {
+    chap = (adminDocCache.chapters || []).find(c => c.id === chapId);
+  }
+
+  if (chap) {
+    if ($("chapEditId")) $("chapEditId").value = chap.id;
+    if ($("chapEditNum")) $("chapEditNum").value = chap.chapterNumber || chap.order || 1;
+    if ($("chapEditTitle")) $("chapEditTitle").value = chap.title || "";
+    if ($("chapEditStatus")) $("chapEditStatus").value = chap.status || "published";
+    if ($("chapEditShortDesc")) $("chapEditShortDesc").value = chap.shortDescription || "";
+    if ($("chapEditEnabled")) $("chapEditEnabled").value = chap.isEnabled !== false ? "true" : "false";
+    if ($("chapEditMainHeading")) $("chapEditMainHeading").value = chap.mainHeading || "";
+    if ($("chapEditIntro")) $("chapEditIntro").value = chap.introduction || "";
+    if ($("chapEditSubtopics")) $("chapEditSubtopics").value = Array.isArray(chap.importantSubtopics) ? chap.importantSubtopics.join(", ") : (chap.importantSubtopics || "");
+    if ($("chapEditOutcomes")) $("chapEditOutcomes").value = Array.isArray(chap.learningOutcomes) ? chap.learningOutcomes.join(", ") : (chap.learningOutcomes || "");
+    if ($("chapEditObjective")) $("chapEditObjective").value = chap.projectObjective || "";
+    if ($("chapEditReadingTime")) $("chapEditReadingTime").value = chap.readingTime || "15 min";
+    if ($("chapEditCodingTime")) $("chapEditCodingTime").value = chap.codingTime || "2 hours";
+    if ($("chapEditDifficulty")) $("chapEditDifficulty").value = chap.difficulty || "Intermediate";
+
+    const sec = Array.isArray(chap.sections) && chap.sections[0] ? chap.sections[0] : {};
+    if ($("chapEditSecHeading")) $("chapEditSecHeading").value = sec.heading || "";
+    if ($("chapEditSecContent")) $("chapEditSecContent").value = Array.isArray(sec.bulletPoints) ? sec.bulletPoints.join(", ") : (sec.content || "");
+
+    const code = Array.isArray(chap.codeExamples) && chap.codeExamples[0] ? chap.codeExamples[0] : {};
+    if ($("chapEditCodeTitle")) $("chapEditCodeTitle").value = code.title || "";
+    if ($("chapEditCodeLang")) $("chapEditCodeLang").value = code.language || "javascript";
+    if ($("chapEditCodeSnippet")) $("chapEditCodeSnippet").value = code.code || "";
+
+    if ($("adminChapterEditorTitle")) $("adminChapterEditorTitle").textContent = `Edit Chapter ${chap.chapterNumber}: ${chap.title}`;
+  } else {
+    if ($("chapEditId")) $("chapEditId").value = "";
+    if ($("chapEditNum")) $("chapEditNum").value = (adminDocCache.chapters || []).length + 1;
+    if ($("chapEditTitle")) $("chapEditTitle").value = "";
+    if ($("chapEditStatus")) $("chapEditStatus").value = "published";
+    if ($("chapEditEnabled")) $("chapEditEnabled").value = "true";
+    if ($("chapEditReadingTime")) $("chapEditReadingTime").value = "15 min";
+    if ($("chapEditCodingTime")) $("chapEditCodingTime").value = "2 hours";
+    if ($("chapEditDifficulty")) $("chapEditDifficulty").value = "Intermediate";
+
+    if ($("adminChapterEditorTitle")) $("adminChapterEditorTitle").textContent = "Create New Documentation Chapter";
+  }
+
+  $("adminChapterEditorModal")?.classList.add("show");
+}
+
+function closeAdminChapterEditorModal() {
+  if (unsavedChanges) {
+    if (!confirm("You have unsaved changes. Are you sure you want to close the editor?")) return;
+  }
+  clearUnsavedChanges();
+  $("adminChapterEditorModal")?.classList.remove("show");
+}
+
+async function saveAdminChapterForm(isDraft = false) {
+  if (!adminDocCache) return;
+  const projectId = adminDocCache.projectId;
+  const chapId = $("chapEditId")?.value;
+
+  const payload = {
+    chapterNumber: Number($("chapEditNum")?.value || 1),
+    title: $("chapEditTitle")?.value.trim(),
+    status: isDraft ? "draft" : ($("chapEditStatus")?.value || "published"),
+    shortDescription: $("chapEditShortDesc")?.value.trim(),
+    isEnabled: $("chapEditEnabled")?.value === "true",
+    mainHeading: $("chapEditMainHeading")?.value.trim(),
+    introduction: $("chapEditIntro")?.value.trim(),
+    importantSubtopics: $("chapEditSubtopics")?.value.split(",").map(s => s.trim()).filter(Boolean),
+    learningOutcomes: $("chapEditOutcomes")?.value.split(",").map(s => s.trim()).filter(Boolean),
+    projectObjective: $("chapEditObjective")?.value.trim(),
+    readingTime: $("chapEditReadingTime")?.value.trim() || "15 min",
+    codingTime: $("chapEditCodingTime")?.value.trim() || "2 hours",
+    difficulty: $("chapEditDifficulty")?.value || "Intermediate",
+    sections: $("chapEditSecHeading")?.value.trim() ? [{
+      heading: $("chapEditSecHeading")?.value.trim(),
+      content: $("chapEditSecContent")?.value.trim(),
+      bulletPoints: $("chapEditSecContent")?.value.split(",").map(s=>s.trim()).filter(Boolean),
+      order: 1
+    }] : [],
+    codeExamples: $("chapEditCodeSnippet")?.value.trim() ? [{
+      title: $("chapEditCodeTitle")?.value.trim() || "Code Example",
+      language: $("chapEditCodeLang")?.value.trim() || "javascript",
+      code: $("chapEditCodeSnippet")?.value.trim(),
+      explanation: "Sample snippet for implementation.",
+      order: 1
+    }] : []
+  };
+
+  if (!payload.title || !payload.mainHeading) {
+    return notify("Chapter Title and Main Heading are required.", "error");
+  }
+
+  try {
+    let res;
+    if (chapId) {
+      res = await leaderApi(`/admin/documentation/${projectId}/chapters/${chapId}`, {
+        method: "PUT",
+        body: JSON.stringify(payload)
+      });
+    } else {
+      res = await leaderApi(`/admin/documentation/${projectId}/chapters`, {
+        method: "POST",
+        body: JSON.stringify(payload)
+      });
+    }
+
+    notify(res.message || "Chapter saved successfully.");
+    clearUnsavedChanges();
+    $("adminChapterEditorModal")?.classList.remove("show");
+    await loadAdminDocForSelectedProject();
+  } catch (err) {
+    notify(err.message, "error");
+  }
+}
+
+async function deleteAdminChapterConfirm(chapId) {
+  if (!adminDocCache) return;
+  const chap = (adminDocCache.chapters || []).find(c => c.id === chapId);
+  if (!chap) return;
+
+  if (confirm(`Are you sure you want to delete Chapter ${chap.chapterNumber}: "${chap.title}"?`)) {
+    try {
+      const res = await leaderApi(`/admin/documentation/${adminDocCache.projectId}/chapters/${chapId}`, {
+        method: "DELETE"
+      });
+      notify(res.message || "Chapter deleted.");
+      await loadAdminDocForSelectedProject();
+    } catch (err) {
+      notify(err.message, "error");
+    }
+  }
+}
+
+async function reorderAdminChapter(chapId, direction) {
+  if (!adminDocCache) return;
+  const chapters = [...(adminDocCache.chapters || [])];
+  const idx = chapters.findIndex(c => c.id === chapId);
+  if (idx === -1) return;
+
+  const targetIdx = direction === "up" ? idx - 1 : idx + 1;
+  if (targetIdx < 0 || targetIdx >= chapters.length) return;
+
+  const temp = chapters[idx];
+  chapters[idx] = chapters[targetIdx];
+  chapters[targetIdx] = temp;
+
+  const chapterIds = chapters.map(c => c.id);
+
+  try {
+    const res = await leaderApi(`/admin/documentation/${adminDocCache.projectId}/reorder`, {
+      method: "PUT",
+      body: JSON.stringify({ chapterIds })
+    });
+    notify(res.message || "Reordered.");
+    await loadAdminDocForSelectedProject();
+  } catch (err) {
+    notify(err.message, "error");
+  }
+}
+
+async function duplicateAdminChapter(chapId) {
+  if (!adminDocCache) return;
+  try {
+    const res = await leaderApi(`/admin/documentation/${adminDocCache.projectId}/chapters/${chapId}/duplicate`, {
+      method: "POST"
+    });
+    notify(res.message || "Chapter duplicated.");
+    await loadAdminDocForSelectedProject();
+  } catch (err) {
+    notify(err.message, "error");
+  }
+}
+
+async function applyBulkDocAction(action) {
+  if (!adminDocCache) return;
+  const checked = [...document.querySelectorAll(".doc-chap-check:checked")].map(cb => cb.value);
+  if (!checked.length) return notify("Select at least one chapter.", "error");
+
+  if (action === "delete" && !confirm(`Are you sure you want to delete ${checked.length} selected chapters?`)) {
+    return;
+  }
+
+  try {
+    const res = await leaderApi(`/admin/documentation/${adminDocCache.projectId}/bulk`, {
+      method: "POST",
+      body: JSON.stringify({ action, chapterIds: checked })
+    });
+    notify(res.message || "Bulk action executed.");
+    await loadAdminDocForSelectedProject();
+  } catch (err) {
+    notify(err.message, "error");
+  }
+}
+
+function openDocSettingsModal() {
+  if (!adminDocCache) return notify("Select a project first.", "error");
+  if ($("docSettingTitle")) $("docSettingTitle").value = adminDocCache.projectTitle || "";
+  if ($("docSettingDesc")) $("docSettingDesc").value = adminDocCache.projectDescription || "";
+  if ($("docSettingMode")) $("docSettingMode").value = adminDocCache.mode || "Documentation Preview";
+  if ($("docSettingProgress")) $("docSettingProgress").value = adminDocCache.progressEnabled !== false ? "true" : "false";
+
+  $("docSettingsModal")?.classList.add("show");
+}
+
+async function saveDocSettingsForm() {
+  if (!adminDocCache) return;
+  const payload = {
+    projectTitle: $("docSettingTitle")?.value.trim(),
+    projectDescription: $("docSettingDesc")?.value.trim(),
+    mode: $("docSettingMode")?.value,
+    progressEnabled: $("docSettingProgress")?.value === "true"
+  };
+
+  try {
+    const res = await leaderApi(`/admin/documentation/${adminDocCache.projectId}/settings`, {
+      method: "PUT",
+      body: JSON.stringify(payload)
+    });
+    notify(res.message || "Settings saved.");
+    $("docSettingsModal")?.classList.remove("show");
+    await loadAdminDocForSelectedProject();
+  } catch (err) {
+    notify(err.message, "error");
+  }
+}
+
+function previewAdminChapter(chapId) {
+  if (!adminDocCache) return;
+  const idx = (adminDocCache.chapters || []).findIndex(c => c.id === chapId);
+  if (idx !== -1) {
+    state.currentChapter = idx;
+    openProjectDocument(adminDocCache.projectId, true);
+  }
+}
+
+function previewAdminChapterModal() {
+  if (adminDocCache) {
+    const num = Number($("chapEditNum")?.value || 1);
+    state.currentChapter = Math.max(0, num - 1);
+    openProjectDocument(adminDocCache.projectId, true);
+  }
+}

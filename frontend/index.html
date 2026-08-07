@@ -72,137 +72,318 @@
   </div>
 </section>
 
-<!-- ADMIN DASHBOARD VIEW -->
+<!-- ADMIN DASHBOARD VIEW WITH PROFESSIONAL SIDEBAR -->
 <section id="adminView" class="hidden">
-  <div class="wrap">
-    <section class="panel">
-      <div class="section-head">
-        <div>
-          <h2>Internship Admin Dashboard</h2>
-          <p class="muted">Manage student accounts, filter records, monitor progress, update status & inspect reports.</p>
+  <div class="admin-shell">
+    <!-- LEFT FIXED SIDEBAR -->
+    <aside class="admin-sidebar" id="adminSidebar">
+      <div class="sidebar-brand-box">
+        <div class="brand-logo-wrap" style="background:linear-gradient(135deg,#2563eb,#06b6d4);border-radius:10px;width:38px;height:38px;display:flex;align-items:center;justify-content:center">
+          <span style="font-size:20px">🚀</span>
         </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn success" type="button" onclick="openCreateStudentModal()">+ Create Student</button>
-          <button class="btn outline" type="button" onclick="viewExcelReport()">View Excel Data</button>
-          <button class="btn success" type="button" onclick="downloadExcelReport()">Download Excel</button>
-          <button class="btn outline" type="button" onclick="logout()">Logout</button>
+        <div class="brand-text-wrap">
+          <h3 class="brand-company-title">APARAITECH</h3>
+          <span class="brand-company-sub">Internship Admin</span>
         </div>
+        <button class="sidebar-close-btn" type="button" onclick="toggleAdminSidebar()" aria-label="Close sidebar">✕</button>
       </div>
 
-      <!-- Admin Stats Grid -->
-      <div class="admin-stats-grid">
-        <article class="admin-stat-card">
-          <span>Total Students</span>
-          <b id="adminStatTotalStudents">0</b>
-        </article>
-        <article class="admin-stat-card">
-          <span>Available Projects</span>
-          <b id="adminStatTotalProjects">10</b>
-        </article>
-        <article class="admin-stat-card">
-          <span>Active Students</span>
-          <b id="adminStatActiveStudents" style="color:var(--blue)">0</b>
-        </article>
-        <article class="admin-stat-card">
-          <span>Completed Students</span>
-          <b id="adminStatCompletedStudents" style="color:var(--green)">0</b>
-        </article>
-        <article class="admin-stat-card">
-          <span>Pending Selection</span>
-          <b id="adminStatPendingStudents" style="color:#f59e0b">0</b>
-        </article>
-      </div>
+      <nav class="sidebar-menu">
+        <div class="menu-section-label">MAIN NAVIGATION</div>
+        <a class="sidebar-link active" data-tab="overview" onclick="switchAdminTab('overview', this)">
+          <span class="link-icon">📊</span>
+          <span class="link-label">Dashboard Overview</span>
+        </a>
+        <a class="sidebar-link" data-tab="students" onclick="switchAdminTab('students', this)">
+          <span class="link-icon">👥</span>
+          <span class="link-label">Students Directory</span>
+        </a>
+        <a class="sidebar-link" data-tab="projects" onclick="switchAdminTab('projects', this)">
+          <span class="link-icon">💼</span>
+          <span class="link-label">Projects & Roadmap</span>
+        </a>
+        <a class="sidebar-link" data-tab="progress" onclick="switchAdminTab('progress', this)">
+          <span class="link-icon">📈</span>
+          <span class="link-label">Progress Tracking</span>
+        </a>
+        <a class="sidebar-link" data-tab="notes" onclick="switchAdminTab('notes', this)">
+          <span class="link-icon">📝</span>
+          <span class="link-label">Intern Notes</span>
+        </a>
+        <a class="sidebar-link" data-tab="docmgmt" onclick="switchAdminTab('docmgmt', this)">
+          <span class="link-icon">📖</span>
+          <span class="link-label">Documentation Mgmt</span>
+        </a>
+        <a class="sidebar-link" data-tab="reports" onclick="switchAdminTab('reports', this)">
+          <span class="link-icon">📗</span>
+          <span class="link-label">Excel Reports</span>
+        </a>
 
-      <!-- Charts & Visual Progress Cards -->
-      <div class="admin-charts-grid">
-        <div class="chart-card">
-          <h4>Student Status Breakdown</h4>
-          <div id="adminStatusChart"></div>
-        </div>
-        <div class="chart-card">
-          <h4>Department Distribution</h4>
-          <div id="adminDeptChart"></div>
-        </div>
-      </div>
+        <div class="menu-section-label" style="margin-top:20px">SYSTEM</div>
+        <a class="sidebar-link" data-tab="settings" onclick="switchAdminTab('settings', this)">
+          <span class="link-icon">⚙️</span>
+          <span class="link-label">System Settings</span>
+        </a>
+      </nav>
 
-      <!-- Excel Preview Section -->
-      <section id="excelPreviewSection" class="panel excel-preview-section hidden">
-        <div class="section-head">
-          <h3>Excel Report Preview</h3>
-          <button id="closeExcelPreview" class="btn outline" type="button" onclick="$('excelPreviewSection').classList.add('hidden')">Close</button>
-        </div>
-        <div id="excelPreviewTable"></div>
-      </section>
-
-      <!-- Student Filtering & Search Directory -->
-      <div class="panel" style="margin-top:16px;padding:16px">
-        <div class="section-head">
-          <h3>Registered Students Directory</h3>
-          <button class="btn outline btn-xs" type="button" onclick="renderAdminDashboard()">↻ Refresh Directory</button>
-        </div>
-        <div class="admin-filter-bar">
-          <input id="adminSearchInput" class="input" placeholder="Search by name, email, username..." oninput="filterAdminStudents()">
-          <select id="adminFilterDept" class="input" onchange="filterAdminStudents()">
-            <option value="">All Departments</option>
-            <option value="Computer Science">Computer Science</option>
-            <option value="Information Technology">Information Technology</option>
-            <option value="Electronics">Electronics</option>
-            <option value="Data Science">Data Science</option>
-          </select>
-          <select id="adminFilterYear" class="input" onchange="filterAdminStudents()">
-            <option value="">All Years</option>
-            <option value="Final Year">Final Year</option>
-            <option value="3rd Year">3rd Year</option>
-            <option value="2nd Year">2nd Year</option>
-          </select>
-          <select id="adminFilterProject" class="input" onchange="filterAdminStudents()">
-            <option value="">All Projects</option>
-            <option value="cafe-billing">Cafe Billing System</option>
-            <option value="multi-vendor">Multi-Vendor E-Commerce</option>
-            <option value="food-delivery">Food Delivery Platform</option>
-            <option value="hospital">Hospital Management</option>
-            <option value="learning">LMS Platform</option>
-            <option value="realestate">Real Estate System</option>
-            <option value="crm">CRM Suite</option>
-            <option value="jobportal">Job Portal</option>
-            <option value="inventory">Inventory System</option>
-            <option value="social">Social Network</option>
-          </select>
-          <select id="adminFilterStatus" class="input" onchange="filterAdminStudents()">
-            <option value="">All Statuses</option>
-            <option value="active">Active</option>
-            <option value="completed">Completed</option>
-            <option value="pending">Pending</option>
-            <option value="deactivated">Deactivated</option>
-          </select>
-          <button class="btn outline" type="button" onclick="resetAdminFilters()">Reset Filters</button>
-        </div>
-
-        <div id="adminStudentTableContainer" style="overflow-x:auto"></div>
-      </div>
-
-      <!-- ADMIN NOTES DIRECTORY -->
-      <section class="panel admin-notes-section" style="margin-top:20px">
-        <div class="section-head">
-          <div>
-            <h3>📝 Student Internship Notes Directory (Read-Only)</h3>
-            <p class="muted">Read-only view of all student chapter notes and updates across projects.</p>
+      <div class="sidebar-user-footer">
+        <div class="sidebar-user-card">
+          <span class="user-avatar-icon">👨‍💼</span>
+          <div class="user-details">
+            <strong id="sidebarAdminName" class="user-name-text">Team Leader / Admin</strong>
+            <small class="user-email-text">admin@aparaitech.com</small>
           </div>
-          <button class="btn outline" type="button" onclick="renderAdminNotes()">Refresh Notes</button>
         </div>
-        <div class="admin-filter-bar">
-          <input id="adminNoteSearch" class="input" placeholder="Search by student, email, note..." oninput="filterAdminNotes()">
-          <select id="adminNoteProjectFilter" class="input" onchange="filterAdminNotes()">
-            <option value="">All Projects</option>
-          </select>
-          <select id="adminNoteStudentFilter" class="input" onchange="filterAdminNotes()">
-            <option value="">All Students</option>
-          </select>
-          <button class="btn outline" type="button" onclick="resetAdminNoteFilters()">Reset</button>
+        <button class="btn logout-sidebar-btn" type="button" onclick="logout()">
+          <span>🚪</span> Logout
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN DASHBOARD CONTENT -->
+    <main class="admin-main">
+      <!-- TOP NAVBAR HEADER -->
+      <header class="admin-header">
+        <div class="header-left">
+          <button class="hamburger-menu-btn" type="button" onclick="toggleAdminSidebar()" aria-label="Toggle Sidebar Menu">
+            ☰
+          </button>
+          <div>
+            <h2 id="adminHeaderTitle" class="header-page-title">Dashboard Overview</h2>
+            <p class="header-page-sub muted">Manage student accounts, filter records, monitor progress, update status & inspect reports.</p>
+          </div>
         </div>
-        <div id="adminNotesContainer" style="overflow-x:auto"></div>
-      </section>
-    </section>
+        <div class="header-right">
+          <button class="btn success btn-sm" type="button" onclick="openCreateStudentModal()">+ Create Student</button>
+          <button class="btn outline btn-sm" type="button" onclick="viewExcelReport()">View Excel Data</button>
+          <button class="btn success btn-sm" type="button" onclick="downloadExcelReport()">Download Excel</button>
+          <button class="btn outline btn-sm" type="button" onclick="logout()">Logout</button>
+        </div>
+      </header>
+
+      <!-- ADMIN TAB SECTIONS -->
+      <div class="admin-body-container">
+        <!-- 1. DASHBOARD OVERVIEW SECTION -->
+        <section id="adminTabOverview" class="admin-tab-section active">
+          <!-- Admin Stats Grid -->
+          <div class="admin-stats-grid">
+            <article class="admin-stat-card">
+              <span>Total Students</span>
+              <b id="adminStatTotalStudents">0</b>
+            </article>
+            <article class="admin-stat-card">
+              <span>Available Projects</span>
+              <b id="adminStatTotalProjects">10</b>
+            </article>
+            <article class="admin-stat-card">
+              <span>Active Students</span>
+              <b id="adminStatActiveStudents" style="color:var(--blue)">0</b>
+            </article>
+            <article class="admin-stat-card">
+              <span>Completed Students</span>
+              <b id="adminStatCompletedStudents" style="color:var(--green)">0</b>
+            </article>
+            <article class="admin-stat-card">
+              <span>Pending Selection</span>
+              <b id="adminStatPendingStudents" style="color:#f59e0b">0</b>
+            </article>
+          </div>
+
+          <!-- Charts & Visual Progress Cards -->
+          <div class="admin-charts-grid" style="margin-top:16px">
+            <div class="chart-card">
+              <h4>Student Status Breakdown</h4>
+              <div id="adminStatusChart"></div>
+            </div>
+            <div class="chart-card">
+              <h4>Department Distribution</h4>
+              <div id="adminDeptChart"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. STUDENTS DIRECTORY SECTION -->
+        <section id="adminTabStudents" class="admin-tab-section active">
+          <div class="panel">
+            <div class="section-head">
+              <h3>Registered Students Directory</h3>
+              <button class="btn outline btn-xs" type="button" onclick="renderAdminDashboard()">↻ Refresh Directory</button>
+            </div>
+            <div class="admin-filter-bar">
+              <input id="adminSearchInput" class="input" placeholder="Search by name, email, username..." oninput="filterAdminStudents()">
+              <select id="adminFilterDept" class="input" onchange="filterAdminStudents()">
+                <option value="">All Departments</option>
+                <option value="Computer Science">Computer Science</option>
+                <option value="Information Technology">Information Technology</option>
+                <option value="Electronics">Electronics</option>
+                <option value="Data Science">Data Science</option>
+              </select>
+              <select id="adminFilterYear" class="input" onchange="filterAdminStudents()">
+                <option value="">All Years</option>
+                <option value="Final Year">Final Year</option>
+                <option value="3rd Year">3rd Year</option>
+                <option value="2nd Year">2nd Year</option>
+              </select>
+              <select id="adminFilterProject" class="input" onchange="filterAdminStudents()">
+                <option value="">All Projects</option>
+                <option value="cafe-billing">Cafe Billing System</option>
+                <option value="multi-vendor">Multi-Vendor E-Commerce</option>
+                <option value="food-delivery">Food Delivery Platform</option>
+                <option value="hospital">Hospital Management</option>
+                <option value="learning">LMS Platform</option>
+                <option value="realestate">Real Estate System</option>
+                <option value="crm">CRM Suite</option>
+                <option value="jobportal">Job Portal</option>
+                <option value="inventory">Inventory System</option>
+                <option value="social">Social Network</option>
+              </select>
+              <select id="adminFilterStatus" class="input" onchange="filterAdminStudents()">
+                <option value="">All Statuses</option>
+                <option value="active">Active</option>
+                <option value="completed">Completed</option>
+                <option value="pending">Pending</option>
+                <option value="deactivated">Deactivated</option>
+              </select>
+              <button class="btn outline" type="button" onclick="resetAdminFilters()">Reset Filters</button>
+            </div>
+
+            <div id="adminStudentTableContainer" style="overflow-x:auto"></div>
+          </div>
+        </section>
+
+        <!-- 3. PROJECTS & ROADMAP SECTION -->
+        <section id="adminTabProjects" class="admin-tab-section active">
+          <div class="panel">
+            <div class="section-head">
+              <div>
+                <h3>Available Internship Projects</h3>
+                <p class="muted" style="margin:2px 0 0">Create, edit, or remove industrial web development internship projects.</p>
+              </div>
+              <button class="btn success" type="button" onclick="openCreateProjectModal()">+ Add New Project</button>
+            </div>
+            <div id="adminProjectsGrid" class="admin-projects-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-top:16px"></div>
+          </div>
+        </section>
+
+        <!-- 4. PROGRESS TRACKING SECTION -->
+        <section id="adminTabProgress" class="admin-tab-section active">
+          <div class="panel">
+            <div class="section-head">
+              <h3>Student Progress & Work Camera Tracking</h3>
+              <button class="btn outline btn-xs" type="button" onclick="renderLeaderDashboard()">Refresh Tracking</button>
+            </div>
+            <div id="leaderStudentTable" style="overflow-x:auto"></div>
+          </div>
+        </section>
+
+        <!-- 5. INTERN NOTES SECTION -->
+        <section id="adminTabNotes" class="admin-tab-section active">
+          <section class="panel admin-notes-section">
+            <div class="section-head">
+              <div>
+                <h3>📝 Student Internship Notes Directory (Read-Only)</h3>
+                <p class="muted">Read-only view of all student chapter notes and updates across projects.</p>
+              </div>
+              <button class="btn outline" type="button" onclick="renderAdminNotes()">Refresh Notes</button>
+            </div>
+            <div class="admin-filter-bar">
+              <input id="adminNoteSearch" class="input" placeholder="Search by student, email, note..." oninput="filterAdminNotes()">
+              <select id="adminNoteProjectFilter" class="input" onchange="filterAdminNotes()">
+                <option value="">All Projects</option>
+              </select>
+              <select id="adminNoteStudentFilter" class="input" onchange="filterAdminNotes()">
+                <option value="">All Students</option>
+              </select>
+              <button class="btn outline" type="button" onclick="resetAdminNoteFilters()">Reset</button>
+            </div>
+            <div id="adminNotesContainer" style="overflow-x:auto"></div>
+          </section>
+        </section>
+
+        <!-- 6. REPORTS & EXCEL SECTION -->
+        <section id="adminTabReports" class="admin-tab-section active">
+          <section id="excelPreviewSection" class="panel excel-preview-section">
+            <div class="section-head">
+              <h3>Automatic Student Work Excel Report</h3>
+              <div style="display:flex;gap:8px">
+                <button class="btn outline" type="button" onclick="viewExcelReport()">View Excel Data</button>
+                <button class="btn success" type="button" onclick="downloadExcelReport()">Download Excel Workbook</button>
+              </div>
+            </div>
+            <p class="muted">One workbook contains student summary, selected projects, daily activity logs, camera sessions and proof records.</p>
+            <div id="excelPreviewTable" style="overflow-x:auto;margin-top:12px"></div>
+          </section>
+        </section>
+
+        <!-- 6. DOCUMENTATION MANAGEMENT SECTION -->
+        <section id="adminTabDocMgmt" class="admin-tab-section">
+          <div class="panel">
+            <div class="section-head" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+              <div>
+                <h3>📖 Dynamic Documentation Management System</h3>
+                <p class="muted" style="margin:2px 0 0">Create, edit, reorder, duplicate, publish, or disable documentation chapters dynamically.</p>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <select id="docAdminProjectSelect" class="input" style="min-width:220px" onchange="loadAdminDocForSelectedProject()">
+                  <!-- Auto populated with projects -->
+                </select>
+                <button class="btn success" type="button" onclick="openAdminChapterEditorModal()">+ Add New Chapter</button>
+                <button class="btn outline" type="button" onclick="openDocSettingsModal()">⚙️ Project Settings</button>
+              </div>
+            </div>
+
+            <!-- Filters & Bulk Actions Bar -->
+            <div style="display:flex;justify-content:space-between;align-items:center;margin:16px 0;flex-wrap:wrap;gap:10px;padding:12px;background:var(--card2);border:1px solid var(--border);border-radius:10px">
+              <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                <input id="docAdminSearch" class="input" style="max-width:200px" placeholder="Search chapters..." oninput="renderAdminChaptersTable()">
+                <select id="docAdminFilterStatus" class="input" style="max-width:140px" onchange="renderAdminChaptersTable()">
+                  <option value="">All Statuses</option>
+                  <option value="published">Published</option>
+                  <option value="draft">Draft</option>
+                </select>
+                <select id="docAdminFilterState" class="input" style="max-width:140px" onchange="renderAdminChaptersTable()">
+                  <option value="">All States</option>
+                  <option value="enabled">Enabled</option>
+                  <option value="disabled">Disabled</option>
+                </select>
+              </div>
+              <div style="display:flex;gap:6px">
+                <button class="btn outline btn-xs" type="button" onclick="applyBulkDocAction('publish')">Publish Selected</button>
+                <button class="btn outline btn-xs" type="button" onclick="applyBulkDocAction('unpublish')">Unpublish Selected</button>
+                <button class="btn danger btn-xs" type="button" onclick="applyBulkDocAction('delete')">Delete Selected</button>
+              </div>
+            </div>
+
+            <div id="adminDocChaptersTableContainer" style="overflow-x:auto"></div>
+          </div>
+        </section>
+
+        <!-- 7. SYSTEM SETTINGS SECTION -->
+        <section id="adminTabSettings" class="admin-tab-section active">
+          <div class="panel">
+            <div class="section-head">
+              <h3>System Settings & Administrator Profile</h3>
+            </div>
+            <div class="settings-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px">
+              <div class="settings-card" style="background:var(--card2);padding:16px;border-radius:12px;border:1px solid var(--border)">
+                <h4 style="margin:0 0 10px;color:var(--navy)">Administrator Details</h4>
+                <p style="margin:4px 0"><b>Role:</b> System Administrator / Team Leader</p>
+                <p style="margin:4px 0"><b>Username:</b> teamleader</p>
+                <p style="margin:4px 0"><b>Email:</b> admin@aparaitech.com</p>
+                <p style="margin:4px 0"><b>Company:</b> APARAITECH SOFTWARE COMPANY</p>
+              </div>
+              <div class="settings-card" style="background:var(--card2);padding:16px;border-radius:12px;border:1px solid var(--border)">
+                <h4 style="margin:0 0 10px;color:var(--navy)">System Configuration</h4>
+                <p style="margin:4px 0"><b>Backend Status:</b> Online (Node.js + Express)</p>
+                <p style="margin:4px 0"><b>Database:</b> MongoDB Atlas Cloud Cluster</p>
+                <p style="margin:4px 0"><b>Encryption:</b> PBKDF2 Salt-Hashing (SHA-512)</p>
+                <p style="margin:4px 0"><b>Version:</b> v1.0.0 Enterprise Build</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
   </div>
 </section>
 
@@ -308,11 +489,11 @@
 
 <!-- MODALS -->
 <div id="studentDetailModal" class="modal">
-  <div class="modalbox" style="max-width:900px">
-    <div class="student-detail-header">
+  <div class="modalbox" style="max-width:900px;padding:24px 28px">
+    <div class="student-detail-header" style="display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:14px;margin-bottom:16px;border-bottom:1px solid var(--border)">
       <div>
-        <h2 id="modalStudentName" style="margin:0">Student Profile</h2>
-        <p id="modalStudentSub" class="muted" style="margin:4px 0"></p>
+        <h2 id="modalStudentName" style="margin:0;font-size:24px;font-weight:800;color:var(--navy);line-height:1.2">Student Profile</h2>
+        <p id="modalStudentSub" class="muted" style="margin:6px 0 0;font-size:13px;line-height:1.4"></p>
       </div>
       <button class="btn outline" type="button" onclick="$('studentDetailModal').classList.remove('show')">✕ Close</button>
     </div>
@@ -386,6 +567,266 @@
       <button id="stopWorkButton" class="btn danger hidden" type="button">Stop Work</button>
     </div>
     <p class="camera-help">Camera permission works on localhost or HTTPS. Captured proof is stored in the backend.</p>
+  </div>
+</div>
+
+<!-- CREATE & EDIT PROJECT MODAL -->
+<div id="projectFormModal" class="modal">
+  <div class="modalbox" style="max-width:700px;padding:24px 28px">
+    <div class="section-head">
+      <h3 id="projectFormModalTitle">Create New Internship Project</h3>
+      <button class="btn outline" type="button" onclick="$('projectFormModal').classList.remove('show')">✕ Close</button>
+    </div>
+    <form onsubmit="saveProjectForm(); return false;" style="display:grid;gap:12px;margin-top:14px">
+      <input id="projFormId" type="hidden">
+      <div style="display:grid;grid-template-columns:3fr 1fr;gap:10px">
+        <div>
+          <label class="form-label">Project Name *</label>
+          <input id="projFormName" class="input" placeholder="e.g. AI-Powered Billing System" required>
+        </div>
+        <div>
+          <label class="form-label">Icon (Emoji) *</label>
+          <input id="projFormIcon" class="input" placeholder="e.g. 🤖" required>
+        </div>
+      </div>
+      <div>
+        <label class="form-label">Short Summary *</label>
+        <input id="projFormSummary" class="input" placeholder="Short 1-line business summary" required>
+      </div>
+      <div>
+        <label class="form-label">Full Description</label>
+        <textarea id="projFormDescription" class="input" style="height:70px" placeholder="Detailed project breakdown"></textarea>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+        <div>
+          <label class="form-label">Difficulty Level</label>
+          <select id="projFormLevel" class="input">
+            <option value="Beginner">Beginner</option>
+            <option value="Intermediate">Intermediate</option>
+            <option value="Advanced">Advanced</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Estimated Duration</label>
+          <input id="projFormDuration" class="input" placeholder="e.g. 4–6 Weeks">
+        </div>
+        <div>
+          <label class="form-label">Status</label>
+          <select id="projFormStatus" class="input">
+            <option value="active">Active (Visible to Students)</option>
+            <option value="inactive">Inactive (Admin Only)</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label class="form-label">Technologies Used (Comma Separated)</label>
+        <input id="projFormStack" class="input" placeholder="React, Node.js, Express, MongoDB, Tailwind">
+      </div>
+      <div>
+        <label class="form-label">Project Objective</label>
+        <input id="projFormObjective" class="input" placeholder="Business goal of this module">
+      </div>
+      <div>
+        <label class="form-label">Learning Outcomes (Comma Separated)</label>
+        <input id="projFormOutcomes" class="input" placeholder="Master REST APIs, State Management, Database Indexing">
+      </div>
+      <button class="btn success" type="submit" style="margin-top:10px">Save Project</button>
+    </form>
+  </div>
+</div>
+
+<!-- CHAPTER DOCUMENTATION EDIT MODAL -->
+<div id="editDocChapterModal" class="modal">
+  <div class="modalbox" style="max-width:750px;padding:24px 28px">
+    <div class="section-head">
+      <h3 id="editDocChapterTitle">Edit Chapter Documentation</h3>
+      <button class="btn outline" type="button" onclick="$('editDocChapterModal').classList.remove('show')">✕ Close</button>
+    </div>
+    <div style="display:grid;gap:12px;margin-top:14px">
+      <input id="editDocChapIndex" type="hidden">
+      <div>
+        <label class="form-label">Chapter Name / Title *</label>
+        <input id="editDocChapName" class="input" placeholder="e.g. Overview & Architecture">
+      </div>
+      <div>
+        <label class="form-label">Chapter Documentation Content (Markdown / HTML)</label>
+        <textarea id="editDocChapContent" class="input" style="height:220px;font-family:monospace;font-size:13px" placeholder="Write custom chapter instructions, code snippets, database schemas, and endpoints..."></textarea>
+      </div>
+      <div style="display:flex;justify-content:space-between">
+        <button class="btn success" type="button" onclick="saveDocChapterFromModal()">Save Chapter Documentation</button>
+        <button class="btn outline" type="button" onclick="$('editDocChapterModal').classList.remove('show')">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DYNAMIC CHAPTER EDITOR MODAL -->
+<div id="adminChapterEditorModal" class="modal">
+  <div class="modalbox" style="max-width:850px;padding:24px 28px">
+    <div class="section-head" style="display:flex;justify-content:space-between;align-items:center;padding-bottom:12px;margin-bottom:14px;border-bottom:1px solid var(--border)">
+      <div>
+        <h3 id="adminChapterEditorTitle" style="margin:0">Edit Documentation Chapter</h3>
+        <p class="muted" style="margin:4px 0 0;font-size:13px"><span id="unsavedChangesBadge" class="pill" style="display:none;background:#fef3c7;color:#92400e">⚠️ Unsaved Changes</span> Manage full chapter details, subtopics, and instructions.</p>
+      </div>
+      <button class="btn outline" type="button" onclick="closeAdminChapterEditorModal()">✕ Close</button>
+    </div>
+
+    <form id="chapterEditorForm" onsubmit="saveAdminChapterForm(); return false;" style="display:grid;gap:14px">
+      <input id="chapEditId" type="hidden">
+      
+      <!-- BASIC INFO -->
+      <div style="display:grid;grid-template-columns:1fr 3fr 1fr;gap:10px">
+        <div>
+          <label class="form-label">Chapter # *</label>
+          <input id="chapEditNum" type="number" class="input" required min="1" oninput="markUnsavedChanges()">
+        </div>
+        <div>
+          <label class="form-label">Chapter Title *</label>
+          <input id="chapEditTitle" class="input" required placeholder="e.g. Overview & System Architecture" oninput="markUnsavedChanges()">
+        </div>
+        <div>
+          <label class="form-label">Status *</label>
+          <select id="chapEditStatus" class="input" onchange="markUnsavedChanges()">
+            <option value="published">Published</option>
+            <option value="draft">Draft</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:10px">
+        <div>
+          <label class="form-label">Short Description</label>
+          <input id="chapEditShortDesc" class="input" placeholder="Brief summary of chapter requirements" oninput="markUnsavedChanges()">
+        </div>
+        <div>
+          <label class="form-label">Enable Chapter</label>
+          <select id="chapEditEnabled" class="input" onchange="markUnsavedChanges()">
+            <option value="true">Enabled (Active)</option>
+            <option value="false">Disabled (Hidden)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- MAIN HEADINGS & INTRO -->
+      <div>
+        <label class="form-label">Main Heading *</label>
+        <input id="chapEditMainHeading" class="input" required placeholder="e.g. 1. Overview & Business Architecture" oninput="markUnsavedChanges()">
+      </div>
+
+      <div>
+        <label class="form-label">Introduction / Main Content</label>
+        <textarea id="chapEditIntro" class="input" style="height:90px" placeholder="Detailed chapter introduction and business context..." oninput="markUnsavedChanges()"></textarea>
+      </div>
+
+      <!-- SUBTOPICS & OBJECTIVES -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <label class="form-label">Important Subtopics (Comma Separated)</label>
+          <textarea id="chapEditSubtopics" class="input" style="height:70px" placeholder="Business purpose, Actors & permissions, API mapping..." oninput="markUnsavedChanges()"></textarea>
+        </div>
+        <div>
+          <label class="form-label">Learning Outcomes (Comma Separated)</label>
+          <textarea id="chapEditOutcomes" class="input" style="height:70px" placeholder="RESTful API design, Database schema mapping..." oninput="markUnsavedChanges()"></textarea>
+        </div>
+      </div>
+
+      <div>
+        <label class="form-label">Project Objective</label>
+        <input id="chapEditObjective" class="input" placeholder="Specific goal for this chapter" oninput="markUnsavedChanges()">
+      </div>
+
+      <!-- ESTIMATION & DIFFICULTY -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+        <div>
+          <label class="form-label">Reading Time</label>
+          <input id="chapEditReadingTime" class="input" placeholder="e.g. 15 min" oninput="markUnsavedChanges()">
+        </div>
+        <div>
+          <label class="form-label">Coding Time</label>
+          <input id="chapEditCodingTime" class="input" placeholder="e.g. 2 hours" oninput="markUnsavedChanges()">
+        </div>
+        <div>
+          <label class="form-label">Difficulty Level</label>
+          <select id="chapEditDifficulty" class="input" onchange="markUnsavedChanges()">
+            <option value="Beginner">Beginner</option>
+            <option value="Intermediate">Intermediate</option>
+            <option value="Advanced">Advanced</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- CUSTOM SECTIONS & CODE EXAMPLES -->
+      <div>
+        <label class="form-label">Custom Section Heading & Instructions</label>
+        <input id="chapEditSecHeading" class="input" placeholder="e.g. 1. Core System Specifications" oninput="markUnsavedChanges()">
+      </div>
+      <div>
+        <label class="form-label">Custom Section Content & Bullet Points (Comma Separated)</label>
+        <textarea id="chapEditSecContent" class="input" style="height:70px" placeholder="Bullet points or instructions for candidate..." oninput="markUnsavedChanges()"></textarea>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <label class="form-label">Code Example Title</label>
+          <input id="chapEditCodeTitle" class="input" placeholder="e.g. Express Route Controller" oninput="markUnsavedChanges()">
+        </div>
+        <div>
+          <label class="form-label">Language</label>
+          <input id="chapEditCodeLang" class="input" placeholder="javascript" oninput="markUnsavedChanges()">
+        </div>
+      </div>
+      <div>
+        <label class="form-label">Code Block Snippet</label>
+        <textarea id="chapEditCodeSnippet" class="input" style="height:90px;font-family:monospace;font-size:12px" placeholder="// Write code snippet here..." oninput="markUnsavedChanges()"></textarea>
+      </div>
+
+      <!-- ACTION BUTTONS -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
+        <div style="display:flex;gap:8px">
+          <button class="btn success" type="submit">💾 Save & Publish</button>
+          <button class="btn outline" type="button" onclick="saveAdminChapterForm(true)">📄 Save as Draft</button>
+          <button class="btn outline" type="button" onclick="previewAdminChapterModal()">👁️ Preview Chapter</button>
+        </div>
+        <button class="btn danger" type="button" onclick="closeAdminChapterEditorModal()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- DOCUMENTATION PROJECT SETTINGS MODAL -->
+<div id="docSettingsModal" class="modal">
+  <div class="modalbox" style="max-width:550px;padding:24px 28px">
+    <div class="section-head">
+      <h3>Project Documentation Settings</h3>
+      <button class="btn outline" type="button" onclick="$('docSettingsModal').classList.remove('show')">✕ Close</button>
+    </div>
+    <form onsubmit="saveDocSettingsForm(); return false;" style="display:grid;gap:12px;margin-top:14px">
+      <div>
+        <label class="form-label">Project Title</label>
+        <input id="docSettingTitle" class="input" required>
+      </div>
+      <div>
+        <label class="form-label">Project Description</label>
+        <textarea id="docSettingDesc" class="input" style="height:70px"></textarea>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <label class="form-label">Documentation Mode</label>
+          <select id="docSettingMode" class="input">
+            <option value="Documentation Preview">Documentation Preview</option>
+            <option value="Tracked Learning">Tracked Learning</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Progress Tracking</label>
+          <select id="docSettingProgress" class="input">
+            <option value="true">Enabled (Allow Marking Done)</option>
+            <option value="false">Disabled (View Only)</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn success" type="submit" style="margin-top:10px">Save Settings</button>
+    </form>
   </div>
 </div>
 
