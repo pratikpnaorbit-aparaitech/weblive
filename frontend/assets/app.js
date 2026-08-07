@@ -1,7 +1,7 @@
 
 "use strict";
 
-const API = "http://localhost:5000/api";
+const API = "https://weblive-qvzp.onrender.com/api";
 const $ = id => document.getElementById(id);
 const state = {
   token: localStorage.getItem("aprToken") || "",
