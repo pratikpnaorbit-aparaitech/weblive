@@ -1381,8 +1381,6 @@ function renderChapter() {
   body += getEnhancedChapterContent(p, state.currentChapter, chapterTitle, completed.length, totalChaptersCount, activeChapObj);
 
   const noteKey = `note:${p.id}:${state.currentChapter}`;
-  const isAdmin = state.role === "ADMIN" || Boolean(state.leaderToken);
-  const editDocBtn = isAdmin ? `<button class="btn primary btn-xs" type="button" style="margin-left:12px" onclick="openAdminChapterEditorModal('${activeChapObj.id}')">✏️ Edit Chapter</button>` : ``;
 
   $("chapterContent").innerHTML = `<section class="chapter">
     <div class="tracking-strip">
@@ -1390,10 +1388,7 @@ function renderChapter() {
       <span>Progress changes: <b>${progressEnabled ? (state.publicMode ? "Disabled" : "Enabled") : "Disabled"}</b></span>
       <span>Chapter ${state.currentChapter + 1}/${totalChaptersCount}</span>
     </div>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <h2 style="margin:0">${activeChapObj.mainHeading || chapterTitle}</h2>
-      ${editDocBtn}
-    </div>
+    <h2 style="margin:0 0 12px 0">${activeChapObj.mainHeading || chapterTitle}</h2>
     ${body}
     ${state.publicMode ? `
       <div class="preview-information">
