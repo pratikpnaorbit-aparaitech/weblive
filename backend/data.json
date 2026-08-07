@@ -82,7 +82,7 @@
         "2026-08-07": 36660
       },
       "createdAt": "2026-08-06T20:15:19.759Z",
-      "updatedAt": "2026-08-07T07:18:45.916Z",
+      "updatedAt": "2026-08-07T10:51:52.029Z",
       "cameraProofs": [
         {
           "id": "proof_1786047327203",
@@ -503,6 +503,22 @@
           "type": "work_stop",
           "capturedAt": "2026-08-07T10:13:48.076Z",
           "file": "uploads/proof_usr_1786093450167_1786097628083.jpg"
+        },
+        {
+          "id": "proof_1786099969439",
+          "projectId": "food-delivery",
+          "chapterIndex": 1,
+          "type": "work_start",
+          "capturedAt": "2026-08-07T10:52:49.405Z",
+          "file": "uploads/proof_usr_1786093450167_1786099969429.jpg"
+        },
+        {
+          "id": "proof_1786099971242",
+          "projectId": "food-delivery",
+          "chapterIndex": 1,
+          "type": "work_stop",
+          "capturedAt": "2026-08-07T10:52:51.219Z",
+          "file": "uploads/proof_usr_1786093450167_1786099971240.jpg"
         }
       ],
       "cameraWorkHistory": [
@@ -535,6 +551,16 @@
           "durationSeconds": 21,
           "focusedSeconds": 19,
           "attentionPercent": 90
+        },
+        {
+          "active": false,
+          "startedAt": "2026-08-07T10:52:49.557Z",
+          "projectId": "food-delivery",
+          "chapterIndex": 1,
+          "stoppedAt": "2026-08-07T10:52:51.344Z",
+          "durationSeconds": 1,
+          "focusedSeconds": 0,
+          "attentionPercent": 0
         }
       ],
       "createdAt": "2026-08-07T09:04:10.169Z",
@@ -2128,6 +2154,149 @@
         "title": "Overview"
       },
       "createdAt": "2026-08-07T10:43:17.023Z"
+    },
+    {
+      "id": "log_1786099775765_6ausx",
+      "userId": "usr_1786093450167",
+      "action": "STUDENT_LOGIN",
+      "details": {
+        "username": "atharvtv1"
+      },
+      "createdAt": "2026-08-07T10:49:35.765Z"
+    },
+    {
+      "id": "log_1786099864051_nemcp",
+      "userId": "usr_1786093450167",
+      "action": "STUDENT_LOGIN",
+      "details": {
+        "username": "atharvtv1"
+      },
+      "createdAt": "2026-08-07T10:51:04.051Z"
+    },
+    {
+      "id": "log_1786099882723_f9hnl",
+      "userId": "leader_default",
+      "action": "ADMIN_LOGIN",
+      "details": {
+        "username": "teamleader"
+      },
+      "createdAt": "2026-08-07T10:51:22.723Z"
+    },
+    {
+      "id": "log_1786099912029_vprg6",
+      "userId": "usr_1786047319759",
+      "action": "ADMIN_UPDATE_PROGRESS",
+      "details": {
+        "projectId": "cafe-billing",
+        "percent": 100,
+        "adminId": "leader_default"
+      },
+      "createdAt": "2026-08-07T10:51:52.029Z"
+    },
+    {
+      "id": "log_1786099964771_f1v48",
+      "userId": "usr_1786093450167",
+      "action": "STUDENT_LOGIN",
+      "details": {
+        "username": "atharvtv1"
+      },
+      "createdAt": "2026-08-07T10:52:44.771Z"
+    },
+    {
+      "id": "log_1786099967056_uyrcx",
+      "userId": "usr_1786093450167",
+      "action": "TRACKING_STARTED",
+      "details": {
+        "projectId": "food-delivery"
+      },
+      "createdAt": "2026-08-07T10:52:47.056Z"
+    },
+    {
+      "id": "log_1786099969439_stycp",
+      "userId": "usr_1786093450167",
+      "action": "CAMERA_PROOF_CAPTURED",
+      "details": {
+        "projectId": "food-delivery",
+        "chapterIndex": 1,
+        "type": "work_start",
+        "file": "uploads/proof_usr_1786093450167_1786099969429.jpg"
+      },
+      "createdAt": "2026-08-07T10:52:49.439Z"
+    },
+    {
+      "id": "log_1786099969557_wl8ur",
+      "userId": "usr_1786093450167",
+      "action": "CAMERA_WORK_STARTED",
+      "details": {
+        "active": true,
+        "startedAt": "2026-08-07T10:52:49.557Z",
+        "projectId": "food-delivery",
+        "chapterIndex": 1
+      },
+      "createdAt": "2026-08-07T10:52:49.557Z"
+    },
+    {
+      "id": "log_1786099971242_p2skc",
+      "userId": "usr_1786093450167",
+      "action": "CAMERA_PROOF_CAPTURED",
+      "details": {
+        "projectId": "food-delivery",
+        "chapterIndex": 1,
+        "type": "work_stop",
+        "file": "uploads/proof_usr_1786093450167_1786099971240.jpg"
+      },
+      "createdAt": "2026-08-07T10:52:51.242Z"
+    },
+    {
+      "id": "log_1786099971345_sby6m",
+      "userId": "usr_1786093450167",
+      "action": "CAMERA_WORK_STOPPED",
+      "details": {
+        "durationSeconds": 1,
+        "focusedSeconds": 0,
+        "attentionPercent": 0,
+        "projectId": "food-delivery",
+        "chapterIndex": 1
+      },
+      "createdAt": "2026-08-07T10:52:51.345Z"
+    },
+    {
+      "id": "log_1786099977471_2m5i4",
+      "userId": "usr_1786093450167",
+      "action": "STUDENT_SAVE_NOTES",
+      "details": {
+        "projectId": "food-delivery",
+        "chapterId": 1
+      },
+      "createdAt": "2026-08-07T10:52:57.471Z"
+    },
+    {
+      "id": "log_1786099982206_23wie",
+      "userId": "usr_1786093450167",
+      "action": "STUDENT_SAVE_NOTES",
+      "details": {
+        "projectId": "food-delivery",
+        "chapterId": 1
+      },
+      "createdAt": "2026-08-07T10:53:02.206Z"
+    },
+    {
+      "id": "log_1786100096356_5fx20",
+      "userId": "leader_default",
+      "action": "ADMIN_LOGIN",
+      "details": {
+        "username": "teamleader"
+      },
+      "createdAt": "2026-08-07T10:54:56.356Z"
+    },
+    {
+      "id": "log_1786100839980_fcwou",
+      "userId": "leader_default",
+      "action": "ADMIN_LOGIN",
+      "details": {
+        "username": "teamleader"
+      },
+      "createdAt": "2026-08-07T11:07:19.981Z"
     }
   ],
   "leaders": [
@@ -2150,6 +2319,18 @@
       "notes": "First chapter intern note test!",
       "createdAt": "2026-08-07T09:21:52.930Z",
       "updatedAt": "2026-08-07T09:21:52.930Z"
+    },
+    {
+      "id": "note_1786099977471_ddyf",
+      "studentId": "usr_1786093450167",
+      "studentName": "atharvtv1",
+      "studentEmail": "atharvtv1@aparaitech.local",
+      "projectId": "food-delivery",
+      "chapterId": 1,
+      "chapterName": "Problem & Solution",
+      "notes": "gdgh",
+      "createdAt": "2026-08-07T10:52:57.471Z",
+      "updatedAt": "2026-08-07T10:53:02.205Z"
     }
   ],
   "projects": [

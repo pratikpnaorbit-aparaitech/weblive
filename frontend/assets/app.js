@@ -1,7 +1,11 @@
 
 "use strict";
 
-const API = "http://localhost:5000/api";
+const API_SERVER = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+  ? "http://localhost:5000"
+  : "https://weblive-qvzp.onrender.com";
+
+const API = `${API_SERVER}/api`;
 const $ = id => document.getElementById(id);
 const state = {
   token: localStorage.getItem("aprToken") || "",
