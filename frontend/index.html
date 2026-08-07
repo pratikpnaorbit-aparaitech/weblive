@@ -1,0 +1,392 @@
+<!doctype html><html lang="en" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Aparaitech Advanced Intern Portal</title><link rel="stylesheet" href="assets/style.css"></head><body class="on-login-page">
+<div class="top"><strong>APARAITECH · Final Web Development Intern Documentation Portal</strong><div class="actions"><span id="backendStatus" class="status">Checking backend</span><button class="btn light" onclick="show('homeView')">Home</button><button id="navLoginBtn" class="btn light" onclick="show('loginView')">Login</button><button id="navStudentDashBtn" class="btn light hidden" onclick="show('dashboardView');renderDashboard();">Student Dashboard</button><button id="navAdminDashBtn" class="btn light hidden" onclick="show('adminView');renderAdminDashboard();">Admin Dashboard</button><button id="logoutBtn" class="btn light hidden" onclick="logout()">Logout</button></div></div>
+<header class="brand"><div class="brandin"><img class="logo" src="assets/aparaitech-logo.jpeg"><div><h1>APARAITECH SOFTWARE COMPANY</h1><p>First Explore 10 Projects · Choose 4 · Complete Chapters · Pass Quiz · Submit GitHub</p></div><div class="badge">3-Month Internship Platform</div></div></header>
+
+<section id="homeView" class="hidden"><div class="wrap"><section class="hero"><article class="panel"><h2>All 10 Web Development Projects</h2><p class="muted">Explore all projects and open documentation in Preview Mode. To save chapter completion, quiz results, calendar activity and tracked time, choose exactly 4 projects and use the tracked dashboard.</p><button class="btn primary" onclick="show('selectView');renderSelection()">Choose 4 Projects for Tracking</button></article><aside class="panel"><h3>Program</h3><p><b>10</b> available projects</p><p><b>4</b> projects to complete</p><p><b>16</b> professional chapters per project</p><p><b>Quiz + Timeline + Tracking</b></p></aside></section><div style="margin:14px 0"><input id="searchInput" class="input" placeholder="Search project, stack or level..."></div><section id="advancedHomeCards" class="advanced-home-cards">
+          <article class="feature-card">
+            <span class="feature-icon">🔐</span>
+            <div><b>One-Time Project Selection</b><p>Students choose four projects once. The choice screen never appears again.</p></div>
+          </article>
+          <article class="feature-card">
+            <span class="feature-icon">📊</span>
+            <div><b>Automatic Excel Work Report</b><p>Student progress, time, camera sessions and proofs are stored in one Excel workbook.</p></div>
+          </article>
+          <article class="feature-card">
+            <span class="feature-icon">📷</span>
+            <div><b>Automatic Camera Tracking</b><p>Camera, work timer and attention tracking start when a tracked project opens.</p></div>
+          </article>
+          <article class="feature-card">
+            <span class="feature-icon">🧭</span>
+            <div><b>Sequential Learning</b><p>Only the first project is unlocked. The next project unlocks after completion.</p></div>
+          </article>
+        </section>
+        <div id="homeGrid" class="grid"></div></div></section>
+
+
+<section id="loginView" class="login-landing-section">
+  <div class="login-landing-container">
+    <div class="login-brand-header">
+      <img src="assets/aparaitech-logo.jpeg" alt="Aparaitech Logo" class="login-brand-logo">
+      <h1 class="login-company-title">APARAITECH SOFTWARE COMPANY</h1>
+      <p class="login-portal-subtitle">Student Internship Management & Tracking System</p>
+    </div>
+
+    <div class="login-card-wrapper">
+      <article class="login-modern-card">
+        <div class="login-card-header">
+          <div class="login-icon-badge">🔒</div>
+          <h3>Portal Sign In</h3>
+          <p class="muted" style="margin:2px 0 0">Access your Internship Dashboard</p>
+        </div>
+
+        <form onsubmit="unifiedLogin(); return false;" class="login-form">
+          <div class="form-group">
+            <label for="loginInput" class="form-label">Email or Username</label>
+            <div class="input-icon-wrapper">
+              <span class="input-icon">👤</span>
+              <input id="loginInput" class="input modern-input" placeholder="Enter Email or Username" autocomplete="username">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="loginPasswordInput" class="form-label">Password</label>
+            <div class="input-icon-wrapper">
+              <span class="input-icon">🔑</span>
+              <input id="loginPasswordInput" type="password" class="input modern-input" placeholder="Enter Password" autocomplete="current-password">
+            </div>
+            <p style="margin:6px 0 0;font-size:12px;color:#64748b;font-weight:600">
+              💡 Default Student Password: <b style="color:#2563eb;user-select:all">Aparaitech123@</b>
+            </p>
+          </div>
+
+          <button id="mainLoginButton" class="btn primary login-submit-btn" type="button" onclick="unifiedLogin()">
+            Sign In to Dashboard →
+          </button>
+        </form>
+
+        <div class="login-card-footer">
+          <span class="security-badge">🛡️ Secure Encrypted Authentication</span>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ADMIN DASHBOARD VIEW -->
+<section id="adminView" class="hidden">
+  <div class="wrap">
+    <section class="panel">
+      <div class="section-head">
+        <div>
+          <h2>Internship Admin Dashboard</h2>
+          <p class="muted">Manage student accounts, filter records, monitor progress, update status & inspect reports.</p>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn success" type="button" onclick="openCreateStudentModal()">+ Create Student</button>
+          <button class="btn outline" type="button" onclick="viewExcelReport()">View Excel Data</button>
+          <button class="btn success" type="button" onclick="downloadExcelReport()">Download Excel</button>
+          <button class="btn outline" type="button" onclick="logout()">Logout</button>
+        </div>
+      </div>
+
+      <!-- Admin Stats Grid -->
+      <div class="admin-stats-grid">
+        <article class="admin-stat-card">
+          <span>Total Students</span>
+          <b id="adminStatTotalStudents">0</b>
+        </article>
+        <article class="admin-stat-card">
+          <span>Available Projects</span>
+          <b id="adminStatTotalProjects">10</b>
+        </article>
+        <article class="admin-stat-card">
+          <span>Active Students</span>
+          <b id="adminStatActiveStudents" style="color:var(--blue)">0</b>
+        </article>
+        <article class="admin-stat-card">
+          <span>Completed Students</span>
+          <b id="adminStatCompletedStudents" style="color:var(--green)">0</b>
+        </article>
+        <article class="admin-stat-card">
+          <span>Pending Selection</span>
+          <b id="adminStatPendingStudents" style="color:#f59e0b">0</b>
+        </article>
+      </div>
+
+      <!-- Charts & Visual Progress Cards -->
+      <div class="admin-charts-grid">
+        <div class="chart-card">
+          <h4>Student Status Breakdown</h4>
+          <div id="adminStatusChart"></div>
+        </div>
+        <div class="chart-card">
+          <h4>Department Distribution</h4>
+          <div id="adminDeptChart"></div>
+        </div>
+      </div>
+
+      <!-- Excel Preview Section -->
+      <section id="excelPreviewSection" class="panel excel-preview-section hidden">
+        <div class="section-head">
+          <h3>Excel Report Preview</h3>
+          <button id="closeExcelPreview" class="btn outline" type="button" onclick="$('excelPreviewSection').classList.add('hidden')">Close</button>
+        </div>
+        <div id="excelPreviewTable"></div>
+      </section>
+
+      <!-- Student Filtering & Search Directory -->
+      <div class="panel" style="margin-top:16px;padding:16px">
+        <div class="section-head">
+          <h3>Registered Students Directory</h3>
+          <button class="btn outline btn-xs" type="button" onclick="renderAdminDashboard()">↻ Refresh Directory</button>
+        </div>
+        <div class="admin-filter-bar">
+          <input id="adminSearchInput" class="input" placeholder="Search by name, email, username..." oninput="filterAdminStudents()">
+          <select id="adminFilterDept" class="input" onchange="filterAdminStudents()">
+            <option value="">All Departments</option>
+            <option value="Computer Science">Computer Science</option>
+            <option value="Information Technology">Information Technology</option>
+            <option value="Electronics">Electronics</option>
+            <option value="Data Science">Data Science</option>
+          </select>
+          <select id="adminFilterYear" class="input" onchange="filterAdminStudents()">
+            <option value="">All Years</option>
+            <option value="Final Year">Final Year</option>
+            <option value="3rd Year">3rd Year</option>
+            <option value="2nd Year">2nd Year</option>
+          </select>
+          <select id="adminFilterProject" class="input" onchange="filterAdminStudents()">
+            <option value="">All Projects</option>
+            <option value="cafe-billing">Cafe Billing System</option>
+            <option value="multi-vendor">Multi-Vendor E-Commerce</option>
+            <option value="food-delivery">Food Delivery Platform</option>
+            <option value="hospital">Hospital Management</option>
+            <option value="learning">LMS Platform</option>
+            <option value="realestate">Real Estate System</option>
+            <option value="crm">CRM Suite</option>
+            <option value="jobportal">Job Portal</option>
+            <option value="inventory">Inventory System</option>
+            <option value="social">Social Network</option>
+          </select>
+          <select id="adminFilterStatus" class="input" onchange="filterAdminStudents()">
+            <option value="">All Statuses</option>
+            <option value="active">Active</option>
+            <option value="completed">Completed</option>
+            <option value="pending">Pending</option>
+            <option value="deactivated">Deactivated</option>
+          </select>
+          <button class="btn outline" type="button" onclick="resetAdminFilters()">Reset Filters</button>
+        </div>
+
+        <div id="adminStudentTableContainer" style="overflow-x:auto"></div>
+      </div>
+
+      <!-- ADMIN NOTES DIRECTORY -->
+      <section class="panel admin-notes-section" style="margin-top:20px">
+        <div class="section-head">
+          <div>
+            <h3>📝 Student Internship Notes Directory (Read-Only)</h3>
+            <p class="muted">Read-only view of all student chapter notes and updates across projects.</p>
+          </div>
+          <button class="btn outline" type="button" onclick="renderAdminNotes()">Refresh Notes</button>
+        </div>
+        <div class="admin-filter-bar">
+          <input id="adminNoteSearch" class="input" placeholder="Search by student, email, note..." oninput="filterAdminNotes()">
+          <select id="adminNoteProjectFilter" class="input" onchange="filterAdminNotes()">
+            <option value="">All Projects</option>
+          </select>
+          <select id="adminNoteStudentFilter" class="input" onchange="filterAdminNotes()">
+            <option value="">All Students</option>
+          </select>
+          <button class="btn outline" type="button" onclick="resetAdminNoteFilters()">Reset</button>
+        </div>
+        <div id="adminNotesContainer" style="overflow-x:auto"></div>
+      </section>
+    </section>
+  </div>
+</section>
+
+<!-- BACKWARD COMPATIBILITY LEADER VIEW -->
+<section id="leaderView" class="hidden">
+  <div class="wrap">
+    <section class="panel">
+      <div class="section-head">
+        <div>
+          <h2>Team Leader Dashboard</h2>
+          <p class="muted">Create students, assign four projects and monitor learning activity.</p>
+        </div>
+        <button id="leaderLogoutButton" class="btn outline" type="button" onclick="logout()">Logout</button>
+      </div>
+
+      <div class="leader-grid">
+        <article class="leader-create-card">
+          <h3>Create Student Login</h3>
+          <input id="legacyStudentName" class="input" placeholder="Student full name">
+          <input id="legacyStudentUsername" class="input" placeholder="Unique username">
+          <input id="legacyStudentEmail" class="input" placeholder="Email">
+          <input id="legacyStudentCollege" class="input" placeholder="College / Institute">
+          <p class="muted">Default password: <b>Aparitech123@</b></p>
+          <button id="createStudentButton" class="btn success" type="button" onclick="createStudentAccount()">Create Student</button>
+        </article>
+      </div>
+
+      <section id="excelReportCard" class="excel-report-card">
+          <div>
+            <span class="feature-icon">📗</span>
+            <div>
+              <h3>Automatic Student Work Excel</h3>
+              <p class="muted">One workbook contains student summary, projects, daily activity, camera sessions and proof records.</p>
+              <small id="excelReportStatus">Report refreshes whenever student data changes.</small>
+            </div>
+          </div>
+          <div class="excel-card-actions">
+            <button id="viewExcelReportButton" class="btn outline" type="button" onclick="viewExcelReport()">View Excel Data</button>
+            <button id="downloadExcelReportButton" class="btn success" type="button" onclick="downloadExcelReport()">Download Excel</button>
+          </div>
+        </section>
+        <section class="leader-student-section">
+        <div class="section-head">
+          <h3>Student Progress & Camera Tracking</h3>
+          <button id="refreshLeaderDashboard" class="btn outline" type="button" onclick="renderLeaderDashboard()">Refresh</button>
+        </div>
+        <div id="leaderStudentTable"></div>
+      </section>
+    </section>
+  </div>
+</section>
+
+<section id="selectView" class="hidden"><div class="wrap"><article class="panel"><h2>Choose Exactly 4 Projects</h2><div class="progress"><span id="selectBar"></span></div><p id="selectText">0 of 4 selected</p><div id="selectionGrid" class="grid"></div><button class="btn success" style="margin-top:15px" onclick="saveSelection()">Save 4 Projects</button></article></div></section>
+
+<section id="dashboardView" class="hidden"><div class="wrap"><article class="panel"><h2 id="welcome">Welcome</h2><p id="profileText" class="muted"></p><p>Complete every chapter, pass the project quiz, submit a valid GitHub repository URL, then the next selected project unlocks automatically.</p></article><div class="stats"><div class="panel stat"><b id="completedStat">0</b>Completed</div><div class="panel stat"><b id="pendingStat">4</b>Pending</div><div class="panel stat"><b id="overallStat">0%</b>Overall</div><div class="panel stat"><b id="githubStat">0</b>GitHub Submitted</div></div><div class="advanced-dashboard-grid">
+      <section class="panel">
+        <div class="section-head"><h2>Selected Project Roadmap</h2><span class="muted">Projects unlock one by one</span></div>
+        <div id="roadmap" class="timeline"></div>
+      </section>
+      <aside class="panel">
+        <div class="section-head"><h2>Activity Calendar</h2><button class="btn outline" id="todayButton" type="button">Today</button></div>
+        <div class="calendar-head">
+          <button class="btn outline" id="prevMonth" type="button">←</button>
+          <strong id="calendarTitle"></strong>
+          <button class="btn outline" id="nextMonth" type="button">→</button>
+        </div>
+        <div class="calendar-week"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div>
+        <div id="calendarGrid" class="calendar-grid"></div>
+      </aside>
+    </div>
+    <section class="panel report-section">
+      <div class="section-head">
+        <div><h2>Completion & Quiz Report</h2><p class="muted">Chapter, quiz, submission and time summary.</p></div>
+      </div>
+      <div id="reportTable"></div>
+    </section>
+
+    <!-- STUDENT NOTES SECTION -->
+    <section class="panel student-notes-section" style="margin-top:20px">
+      <div class="section-head">
+        <div>
+          <h2>📝 My Internship Notes</h2>
+          <p class="muted">All your saved chapter notes, ideas, and learning records.</p>
+        </div>
+        <button class="btn outline" type="button" onclick="renderStudentNotes()">Refresh Notes</button>
+      </div>
+      <div class="admin-filter-bar">
+        <input id="studentNoteSearch" class="input" placeholder="Search your notes..." oninput="filterStudentNotes()">
+        <select id="studentNoteProjectFilter" class="input" onchange="filterStudentNotes()">
+          <option value="">All Projects</option>
+        </select>
+        <select id="studentNoteChapterFilter" class="input" onchange="filterStudentNotes()">
+          <option value="">All Chapters</option>
+        </select>
+        <button class="btn outline" type="button" onclick="resetStudentNoteFilters()">Reset</button>
+      </div>
+      <div id="studentNotesGrid" class="student-notes-grid" style="margin-top:14px"></div>
+    </section>
+  </div>
+</section>
+
+<section id="docView" class="hidden"><div class="doclayout"><aside class="sidebar"><button class="btn outline" onclick="backDashboard()">← Dashboard</button><h3 id="projectTitle"></h3><div id="chapterList"></div></aside><main class="main"><div id="chapterContent"></div></main></div></section>
+
+<!-- MODALS -->
+<div id="studentDetailModal" class="modal">
+  <div class="modalbox" style="max-width:900px">
+    <div class="student-detail-header">
+      <div>
+        <h2 id="modalStudentName" style="margin:0">Student Profile</h2>
+        <p id="modalStudentSub" class="muted" style="margin:4px 0"></p>
+      </div>
+      <button class="btn outline" type="button" onclick="$('studentDetailModal').classList.remove('show')">✕ Close</button>
+    </div>
+    <div id="modalStudentBody"></div>
+  </div>
+</div>
+
+<div id="createStudentModal" class="modal">
+  <div class="modalbox" style="max-width:540px">
+    <div class="section-head">
+      <h3>Create New Student Account</h3>
+      <button class="btn outline" type="button" onclick="$('createStudentModal').classList.remove('show')">✕ Close</button>
+    </div>
+    <div style="display:grid;gap:10px;margin-top:14px">
+      <input id="newStudentName" class="input" placeholder="Full Student Name">
+      <input id="newStudentUsername" class="input" placeholder="Unique Username">
+      <input id="newStudentEmail" class="input" placeholder="Student Email Address">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <select id="newStudentDept" class="input">
+          <option value="Computer Science">Computer Science</option>
+          <option value="Information Technology">Information Technology</option>
+          <option value="Electronics">Electronics</option>
+          <option value="Data Science">Data Science</option>
+        </select>
+        <select id="newStudentYear" class="input">
+          <option value="Final Year">Final Year</option>
+          <option value="3rd Year">3rd Year</option>
+          <option value="2nd Year">2nd Year</option>
+        </select>
+      </div>
+      <input id="newStudentCollege" class="input" placeholder="College / Institute">
+      <p class="muted" style="margin:4px 0;font-size:12px">Default Password: <b>Aparitech123@</b></p>
+      <button class="btn success" type="button" onclick="createStudentFromModal()">Create Account</button>
+    </div>
+  </div>
+</div>
+
+<div id="previewModal" class="modal"><div id="previewBody" class="modalbox"></div></div><div id="toast" class="toast"></div>
+<footer class="footer">© 2026 Aparaitech Software Company · Final Web Development Intern Documentation Portal</footer>
+
+<script src="assets/projects.js"></script><script src="assets/app.js"></script>
+<div id="cameraWidget" class="camera-widget collapsed">
+  <div class="camera-header">
+    <div>
+      <strong>📷 Work Camera</strong>
+      <small id="cameraStatus">Camera stopped</small>
+    </div>
+    <button id="cameraTogglePanel" class="camera-icon-button" type="button" title="Open camera panel">⌃</button>
+  </div>
+  <div class="camera-body">
+    <div class="camera-preview-wrap">
+      <video id="workCameraVideo" autoplay muted playsinline></video>
+      <canvas id="workCameraCanvas" class="hidden"></canvas>
+      <div id="cameraPlaceholder" class="camera-placeholder">Camera preview</div>
+      <span id="workLiveBadge" class="work-live-badge hidden">● WORKING</span>
+    </div>
+    <div class="camera-metrics">
+      <div><span>Current work</span><b id="cameraWorkTimer">0h 0m 0s</b></div>
+      <div><span>Total work</span><b id="cameraTotalTimer">0h 0m 0s</b></div>
+      <div><span>Focused time</span><b id="cameraFocusedTimer">0h 0m 0s</b></div>
+      <div><span>Attention</span><b id="cameraAttentionPercent">0%</b></div>
+    </div>
+    <div class="attention-row">
+      <span id="attentionIndicator" class="attention-dot idle"></span>
+      <span id="attentionText">Attention tracking inactive</span>
+    </div>
+    <div class="camera-controls">
+      <button id="startCameraButton" class="btn primary" type="button">Start Camera</button>
+      <button id="startWorkButton" class="btn success" type="button" disabled>Start Work</button>
+      <button id="captureProofButton" class="btn outline" type="button" disabled>Capture Proof</button>
+      <button id="stopWorkButton" class="btn danger hidden" type="button">Stop Work</button>
+    </div>
+    <p class="camera-help">Camera permission works on localhost or HTTPS. Captured proof is stored in the backend.</p>
+  </div>
+</div>
+
+</body></html>

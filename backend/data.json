@@ -1,0 +1,1877 @@
+{
+  "users": [
+    {
+      "id": "usr_1786047319759",
+      "name": "pratik",
+      "email": "pratikumeshpawar@gmail.com",
+      "college": "",
+      "selectedProjects": [
+        "cafe-billing",
+        "multi-vendor",
+        "food-delivery",
+        "hospital"
+      ],
+      "progress": {
+        "cafe-billing": {
+          "status": "ready_for_submission",
+          "completedChapters": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "percent": 100,
+          "githubUrl": "",
+          "submissionNote": "",
+          "submittedAt": null,
+          "timeSpentSeconds": 36660,
+          "activeStartedAt": "2026-08-07T06:37:22.129Z",
+          "quizPassed": false,
+          "quizScore": 0
+        },
+        "multi-vendor": {
+          "status": "locked",
+          "completedChapters": [],
+          "percent": 0,
+          "githubUrl": "",
+          "submissionNote": "",
+          "submittedAt": null,
+          "timeSpentSeconds": 0,
+          "activeStartedAt": null,
+          "quizPassed": false,
+          "quizScore": 0
+        },
+        "food-delivery": {
+          "status": "locked",
+          "completedChapters": [],
+          "percent": 0,
+          "githubUrl": "",
+          "submissionNote": "",
+          "submittedAt": null,
+          "timeSpentSeconds": 0,
+          "activeStartedAt": null,
+          "quizPassed": false,
+          "quizScore": 0
+        },
+        "hospital": {
+          "status": "locked",
+          "completedChapters": [],
+          "percent": 0,
+          "githubUrl": "",
+          "submissionNote": "",
+          "submittedAt": null,
+          "timeSpentSeconds": 0,
+          "activeStartedAt": null,
+          "quizPassed": false,
+          "quizScore": 0
+        }
+      },
+      "dailyActivity": {
+        "2026-08-07": 36660
+      },
+      "createdAt": "2026-08-06T20:15:19.759Z",
+      "updatedAt": "2026-08-07T07:18:45.916Z",
+      "cameraProofs": [
+        {
+          "id": "proof_1786047327203",
+          "projectId": "cafe-billing",
+          "chapterIndex": 0,
+          "type": "work_start",
+          "capturedAt": "2026-08-06T20:15:27.193Z",
+          "file": "uploads/proof_usr_1786047319759_1786047327202.jpg"
+        },
+        {
+          "id": "proof_1786083525530",
+          "projectId": "cafe-billing",
+          "chapterIndex": 0,
+          "type": "work_start",
+          "capturedAt": "2026-08-07T06:18:45.512Z",
+          "file": "uploads/proof_usr_1786047319759_1786083525523.jpg"
+        },
+        {
+          "id": "proof_1786083525917",
+          "projectId": "cafe-billing",
+          "chapterIndex": 0,
+          "type": "work_stop",
+          "capturedAt": "2026-08-07T06:18:45.912Z",
+          "file": "uploads/proof_usr_1786047319759_1786083525916.jpg"
+        },
+        {
+          "id": "proof_1786083533087",
+          "projectId": "cafe-billing",
+          "chapterIndex": 0,
+          "type": "work_start",
+          "capturedAt": "2026-08-07T06:18:53.076Z",
+          "file": "uploads/proof_usr_1786047319759_1786083533083.jpg"
+        },
+        {
+          "id": "proof_1786083539633",
+          "projectId": "cafe-billing",
+          "chapterIndex": 0,
+          "type": "work_stop",
+          "capturedAt": "2026-08-07T06:18:59.626Z",
+          "file": "uploads/proof_usr_1786047319759_1786083539632.jpg"
+        },
+        {
+          "id": "proof_1786083547935",
+          "projectId": "cafe-billing",
+          "chapterIndex": 0,
+          "type": "work_start",
+          "capturedAt": "2026-08-07T06:19:07.928Z",
+          "file": "uploads/proof_usr_1786047319759_1786083547934.jpg"
+        },
+        {
+          "id": "proof_1786083862602",
+          "projectId": "cafe-billing",
+          "chapterIndex": 0,
+          "type": "work_start",
+          "capturedAt": "2026-08-07T06:24:22.566Z",
+          "file": "uploads/proof_usr_1786047319759_1786083862584.jpg"
+        },
+        {
+          "id": "proof_1786083907875",
+          "projectId": "cafe-billing",
+          "chapterIndex": 0,
+          "type": "work_stop",
+          "capturedAt": "2026-08-07T06:25:07.851Z",
+          "file": "uploads/proof_usr_1786047319759_1786083907870.jpg"
+        },
+        {
+          "id": "proof_1786083912001",
+          "projectId": "cafe-billing",
+          "chapterIndex": 0,
+          "type": "work_start",
+          "capturedAt": "2026-08-07T06:25:11.986Z",
+          "file": "uploads/proof_usr_1786047319759_1786083911997.jpg"
+        },
+        {
+          "id": "proof_1786084018248",
+          "projectId": "cafe-billing",
+          "chapterIndex": 0,
+          "type": "work_stop",
+          "capturedAt": "2026-08-07T06:26:58.217Z",
+          "file": "uploads/proof_usr_1786047319759_1786084018243.jpg"
+        },
+        {
+          "id": "proof_1786084643326",
+          "projectId": "cafe-billing",
+          "chapterIndex": 0,
+          "type": "work_start",
+          "capturedAt": "2026-08-07T06:37:23.310Z",
+          "file": "uploads/proof_usr_1786047319759_1786084643324.jpg"
+        },
+        {
+          "id": "proof_1786084875993",
+          "projectId": "cafe-billing",
+          "chapterIndex": 10,
+          "type": "work_stop",
+          "capturedAt": "2026-08-07T06:41:15.961Z",
+          "file": "uploads/proof_usr_1786047319759_1786084875989.jpg"
+        }
+      ],
+      "cameraWorkSession": null,
+      "cameraWorkHistory": [
+        {
+          "active": false,
+          "startedAt": "2026-08-07T06:18:45.545Z",
+          "projectId": "cafe-billing",
+          "chapterIndex": 0,
+          "stoppedAt": "2026-08-07T06:18:45.925Z",
+          "durationSeconds": 0,
+          "focusedSeconds": 0,
+          "attentionPercent": 0
+        },
+        {
+          "active": false,
+          "startedAt": "2026-08-07T06:18:53.095Z",
+          "projectId": "cafe-billing",
+          "chapterIndex": 0,
+          "stoppedAt": "2026-08-07T06:18:59.648Z",
+          "durationSeconds": 6,
+          "focusedSeconds": 6,
+          "attentionPercent": 100
+        },
+        {
+          "active": false,
+          "startedAt": "2026-08-07T06:24:22.729Z",
+          "projectId": "cafe-billing",
+          "chapterIndex": 0,
+          "stoppedAt": "2026-08-07T06:25:07.896Z",
+          "durationSeconds": 45,
+          "focusedSeconds": 43,
+          "attentionPercent": 96
+        },
+        {
+          "active": false,
+          "startedAt": "2026-08-07T06:25:12.167Z",
+          "projectId": "cafe-billing",
+          "chapterIndex": 0,
+          "stoppedAt": "2026-08-07T06:26:58.279Z",
+          "durationSeconds": 106,
+          "focusedSeconds": 103,
+          "attentionPercent": 97
+        },
+        {
+          "active": false,
+          "startedAt": "2026-08-07T06:37:23.365Z",
+          "projectId": "cafe-billing",
+          "chapterIndex": 10,
+          "stoppedAt": "2026-08-07T06:41:16.015Z",
+          "durationSeconds": 232,
+          "focusedSeconds": 230,
+          "attentionPercent": 99
+        }
+      ],
+      "status": "completed",
+      "role": "STUDENT",
+      "department": "Computer Science",
+      "year": "Final Year"
+    },
+    {
+      "id": "usr_1786086991563",
+      "name": "krushna",
+      "username": "krish",
+      "password": "9b953a44173af305fe286d03c6f75bc0:3c4b2872624c761572b264e3b3095bddd8c13d3414caf1ee175fe166daac93bf21feeb43c426ec990c5f04065f01451c49acf6066b6a4b7954073ab4c34b1e94",
+      "email": "rathodkrushna963@gmail.com",
+      "college": "tgpcet",
+      "department": "Computer Science",
+      "year": "Final Year",
+      "status": "pending",
+      "role": "STUDENT",
+      "selectedProjects": [
+        "cafe-billing",
+        "multi-vendor",
+        "food-delivery",
+        "hospital"
+      ],
+      "progress": {
+        "cafe-billing": {
+          "status": "available",
+          "completedChapters": [],
+          "percent": 0,
+          "githubUrl": "",
+          "submissionNote": "",
+          "submittedAt": null,
+          "timeSpentSeconds": 0,
+          "activeStartedAt": "2026-08-07T07:35:35.307Z",
+          "quizPassed": false,
+          "quizScore": 0
+        },
+        "multi-vendor": {
+          "status": "locked",
+          "completedChapters": [],
+          "percent": 0,
+          "githubUrl": "",
+          "submissionNote": "",
+          "submittedAt": null,
+          "timeSpentSeconds": 0,
+          "activeStartedAt": null,
+          "quizPassed": false,
+          "quizScore": 0
+        },
+        "food-delivery": {
+          "status": "locked",
+          "completedChapters": [],
+          "percent": 0,
+          "githubUrl": "",
+          "submissionNote": "",
+          "submittedAt": null,
+          "timeSpentSeconds": 0,
+          "activeStartedAt": null,
+          "quizPassed": false,
+          "quizScore": 0
+        },
+        "hospital": {
+          "status": "locked",
+          "completedChapters": [],
+          "percent": 0,
+          "githubUrl": "",
+          "submissionNote": "",
+          "submittedAt": null,
+          "timeSpentSeconds": 0,
+          "activeStartedAt": null,
+          "quizPassed": false,
+          "quizScore": 0
+        }
+      },
+      "dailyActivity": {},
+      "cameraProofs": [
+        {
+          "id": "proof_1786088138340",
+          "projectId": "cafe-billing",
+          "chapterIndex": 0,
+          "type": "work_start",
+          "capturedAt": "2026-08-07T07:35:38.306Z",
+          "file": "uploads/proof_usr_1786086991563_1786088138323.jpg"
+        }
+      ],
+      "cameraWorkHistory": [],
+      "createdBy": "leader_default",
+      "createdAt": "2026-08-07T07:16:31.568Z",
+      "updatedAt": "2026-08-07T07:16:31.568Z",
+      "cameraWorkSession": {
+        "active": true,
+        "startedAt": "2026-08-07T07:35:38.401Z",
+        "projectId": "cafe-billing",
+        "chapterIndex": 0
+      }
+    },
+    {
+      "id": "usr_1786093412246",
+      "name": "atharv",
+      "username": "athartv1",
+      "password": "a896489bd6c101f3a425bca548236900:de88e1d08d1be1d88aa60cbfaa5b3ae87ff0fbb58dd57d46e59c3974ce111f24730e36c0fe3c3dfd046b9b38b6e5dffb6dcd19b150390fda734d05aa5383944c",
+      "email": "atharvatole4@gmail.com",
+      "college": "tg",
+      "department": "Computer Science",
+      "year": "Final Year",
+      "status": "pending",
+      "role": "STUDENT",
+      "selectedProjects": [],
+      "progress": {},
+      "dailyActivity": {},
+      "cameraProofs": [],
+      "cameraWorkHistory": [],
+      "createdBy": "leader_default",
+      "createdAt": "2026-08-07T09:03:32.252Z",
+      "updatedAt": "2026-08-07T09:03:32.252Z"
+    },
+    {
+      "id": "usr_1786093450167",
+      "name": "atharvtv1",
+      "username": "atharvtv1",
+      "email": "atharvtv1@aparaitech.local",
+      "password": "76cd93a2accf9ee90efc26d106b0ba6d:a45083394a65f5279ea5ddc56d50de1d6d2450db4d99a1ededc8284ff65fe73af65e9bfbd5c17735fb173bc934e0450f46dbb8bf142307bf50599b4db5b0645f",
+      "college": "",
+      "department": "Computer Science",
+      "year": "Final Year",
+      "status": "pending",
+      "role": "STUDENT",
+      "selectedProjects": [
+        "food-delivery",
+        "hospital",
+        "college",
+        "job-portal"
+      ],
+      "progress": {
+        "food-delivery": {
+          "status": "available",
+          "completedChapters": [
+            0
+          ],
+          "percent": 6,
+          "githubUrl": "",
+          "submissionNote": "",
+          "submittedAt": null,
+          "timeSpentSeconds": 777,
+          "activeStartedAt": null,
+          "quizPassed": false,
+          "quizScore": 0
+        },
+        "hospital": {
+          "status": "locked",
+          "completedChapters": [],
+          "percent": 0,
+          "githubUrl": "",
+          "submissionNote": "",
+          "submittedAt": null,
+          "timeSpentSeconds": 0,
+          "activeStartedAt": null,
+          "quizPassed": false,
+          "quizScore": 0
+        },
+        "college": {
+          "status": "locked",
+          "completedChapters": [],
+          "percent": 0,
+          "githubUrl": "",
+          "submissionNote": "",
+          "submittedAt": null,
+          "timeSpentSeconds": 0,
+          "activeStartedAt": null,
+          "quizPassed": false,
+          "quizScore": 0
+        },
+        "job-portal": {
+          "status": "locked",
+          "completedChapters": [],
+          "percent": 0,
+          "githubUrl": "",
+          "submissionNote": "",
+          "submittedAt": null,
+          "timeSpentSeconds": 0,
+          "activeStartedAt": null,
+          "quizPassed": false,
+          "quizScore": 0
+        }
+      },
+      "dailyActivity": {
+        "2026-08-07": 777
+      },
+      "cameraProofs": [
+        {
+          "id": "proof_1786093474056",
+          "projectId": "food-delivery",
+          "chapterIndex": 0,
+          "type": "work_start",
+          "capturedAt": "2026-08-07T09:04:34.033Z",
+          "file": "uploads/proof_usr_1786093450167_1786093474048.jpg"
+        },
+        {
+          "id": "proof_1786093475565",
+          "projectId": "food-delivery",
+          "chapterIndex": 0,
+          "type": "work_stop",
+          "capturedAt": "2026-08-07T09:04:35.543Z",
+          "file": "uploads/proof_usr_1786093450167_1786093475560.jpg"
+        },
+        {
+          "id": "proof_1786093844519",
+          "projectId": "food-delivery",
+          "chapterIndex": 0,
+          "type": "work_start",
+          "capturedAt": "2026-08-07T09:10:44.497Z",
+          "file": "uploads/proof_usr_1786093450167_1786093844516.jpg"
+        },
+        {
+          "id": "proof_1786093886500",
+          "projectId": "food-delivery",
+          "chapterIndex": 15,
+          "type": "work_stop",
+          "capturedAt": "2026-08-07T09:11:26.479Z",
+          "file": "uploads/proof_usr_1786093450167_1786093886496.jpg"
+        },
+        {
+          "id": "proof_1786094230338",
+          "projectId": "food-delivery",
+          "chapterIndex": 0,
+          "type": "work_start",
+          "capturedAt": "2026-08-07T09:17:10.314Z",
+          "file": "uploads/proof_usr_1786093450167_1786094230336.jpg"
+        }
+      ],
+      "cameraWorkHistory": [
+        {
+          "active": false,
+          "startedAt": "2026-08-07T09:04:34.086Z",
+          "projectId": "food-delivery",
+          "chapterIndex": 0,
+          "stoppedAt": "2026-08-07T09:04:35.597Z",
+          "durationSeconds": 1,
+          "focusedSeconds": 0,
+          "attentionPercent": 0
+        },
+        {
+          "active": false,
+          "startedAt": "2026-08-07T09:10:44.537Z",
+          "projectId": "food-delivery",
+          "chapterIndex": 15,
+          "stoppedAt": "2026-08-07T09:11:26.587Z",
+          "durationSeconds": 42,
+          "focusedSeconds": 40,
+          "attentionPercent": 95
+        }
+      ],
+      "createdAt": "2026-08-07T09:04:10.169Z",
+      "updatedAt": "2026-08-07T09:04:10.169Z",
+      "cameraWorkSession": {
+        "active": true,
+        "startedAt": "2026-08-07T09:17:10.361Z",
+        "projectId": "food-delivery",
+        "chapterIndex": 0
+      }
+    }
+  ],
+  "auditLogs": [
+    {
+      "id": "log_1786047319759_ywfkb",
+      "userId": "usr_1786047319759",
+      "action": "CANDIDATE_CREATED",
+      "details": {},
+      "createdAt": "2026-08-06T20:15:19.759Z"
+    },
+    {
+      "id": "log_1786047319847_p229c",
+      "userId": "usr_1786047319759",
+      "action": "STUDENT_PROJECT_SELECTION_LOCKED",
+      "details": {
+        "projectIds": [
+          "cafe-billing",
+          "multi-vendor",
+          "food-delivery",
+          "hospital"
+        ]
+      },
+      "createdAt": "2026-08-06T20:15:19.847Z"
+    },
+    {
+      "id": "log_1786047326213_ydhj7",
+      "userId": "usr_1786047319759",
+      "action": "TRACKING_STARTED",
+      "details": {
+        "projectId": "cafe-billing"
+      },
+      "createdAt": "2026-08-06T20:15:26.213Z"
+    },
+    {
+      "id": "log_1786047327203_6p8ch",
+      "userId": "usr_1786047319759",
+      "action": "CAMERA_PROOF_CAPTURED",
+      "details": {
+        "projectId": "cafe-billing",
+        "chapterIndex": 0,
+        "type": "work_start",
+        "file": "uploads/proof_usr_1786047319759_1786047327202.jpg"
+      },
+      "createdAt": "2026-08-06T20:15:27.203Z"
+    },
+    {
+      "id": "log_1786047327215_rp0z0",
+      "userId": "usr_1786047319759",
+      "action": "CAMERA_WORK_STARTED",
+      "details": {
+        "active": true,
+        "startedAt": "2026-08-06T20:15:27.215Z",
+        "projectId": "cafe-billing",
+        "chapterIndex": 0
+      },
+      "createdAt": "2026-08-06T20:15:27.215Z"
+    },
+    {
+      "id": "log_1786047524714_770rl",
+      "userId": "usr_1786047319759",
+      "action": "TRACKING_STARTED",
+      "details": {
+        "projectId": "cafe-billing"
+      },
+      "createdAt": "2026-08-06T20:18:44.714Z"
+    },
+    {
+      "id": "log_1786047532955_yaq9u",
+      "userId": "usr_1786047319759",
+      "action": "CHAPTER_COMPLETED",
+      "details": {
+        "projectId": "cafe-billing",
+        "chapter": 0,
+        "percent": 6
+      },
+      "createdAt": "2026-08-06T20:18:52.955Z"
+    },
+    {
+      "id": "log_1786047538757_6zw9s",
+      "userId": "usr_1786047319759",
+      "action": "CHAPTER_COMPLETED",
+      "details": {
+        "projectId": "cafe-billing",
+        "chapter": 1,
+        "percent": 13
+      },
+      "createdAt": "2026-08-06T20:18:58.757Z"
+    },
+    {
+      "id": "log_1786047541364_yuzea",
+      "userId": "usr_1786047319759",
+      "action": "CHAPTER_COMPLETED",
+      "details": {
+        "projectId": "cafe-billing",
+        "chapter": 2,
+        "percent": 19
+      },
+      "createdAt": "2026-08-06T20:19:01.364Z"
+    },
+    {
+      "id": "log_1786047542505_ymv37",
+      "userId": "usr_1786047319759",
+      "action": "CHAPTER_COMPLETED",
+      "details": {
+        "projectId": "cafe-billing",
+        "chapter": 3,
+        "percent": 25
+      },
+      "createdAt": "2026-08-06T20:19:02.506Z"
+    },
+    {
+      "id": "log_1786047545845_1mblu",
+      "userId": "usr_1786047319759",
+      "action": "CHAPTER_COMPLETED",
+      "details": {
+        "projectId": "cafe-billing",
+        "chapter": 4,
+        "percent": 31
+      },
+      "createdAt": "2026-08-06T20:19:05.845Z"
+    },
+    {
+      "id": "log_1786047547181_dmr22",
+      "userId": "usr_1786047319759",
+      "action": "CHAPTER_COMPLETED",
+      "details": {
+        "projectId": "cafe-billing",
+        "chapter": 5,
+        "percent": 38
+      },
+      "createdAt": "2026-08-06T20:19:07.181Z"
+    },
+    {
+      "id": "log_1786047551169_elpvo",
+      "userId": "usr_1786047319759",
+      "action": "CHAPTER_COMPLETED",
+      "details": {
+        "projectId": "cafe-billing",
+        "chapter": 6,
+        "percent": 44
+      },
+      "createdAt": "2026-08-06T20:19:11.169Z"
+    },
+    {
+      "id": "log_1786047552695_3iec6",
+      "userId": "usr_1786047319759",
+      "action": "CHAPTER_COMPLETED",
+      "details": {
+        "projectId": "cafe-billing",
+        "chapter": 7,
+        "percent": 50
+      },
+      "createdAt": "2026-08-06T20:19:12.695Z"
+    },
+    {
+      "id": "log_1786047553808_fkohk",
+      "userId": "usr_1786047319759",
+      "action": "CHAPTER_COMPLETED",
+      "details": {
+        "projectId": "cafe-billing",
+        "chapter": 8,
+        "percent": 56
+      },
+      "createdAt": "2026-08-06T20:19:13.808Z"
+    },
+    {
+      "id": "log_1786047556046_8ihr9",
+      "userId": "usr_1786047319759",
+      "action": "CHAPTER_COMPLETED",
+      "details": {
+        "projectId": "cafe-billing",
+        "chapter": 9,
+        "percent": 63
+      },
+      "createdAt": "2026-08-06T20:19:16.046Z"
+    },
+    {
+      "id": "log_1786047557053_in28a",
+      "userId": "usr_1786047319759",
+      "action": "CHAPTER_COMPLETED",
+      "details": {
+        "projectId": "cafe-billing",
+        "chapter": 10,
+        "percent": 69
+      },
+      "createdAt": "2026-08-06T20:19:17.053Z"
+    },
+    {
+      "id": "log_1786047559597_ilv7l",
+      "userId": "usr_1786047319759",
+      "action": "CHAPTER_COMPLETED",
+      "details": {
+        "projectId": "cafe-billing",
+        "chapter": 11,
+        "percent": 75
+      },
+      "createdAt": "2026-08-06T20:19:19.597Z"
+    },
+    {
+      "id": "log_1786047561611_coc3p",
+      "userId": "usr_1786047319759",
+      "action": "CHAPTER_COMPLETED",
+      "details": {
+        "projectId": "cafe-billing",
+        "chapter": 12,
+        "percent": 81
+      },
+      "createdAt": "2026-08-06T20:19:21.611Z"
+    },
+    {
+      "id": "log_1786047563428_8h0rm",
+      "userId": "usr_1786047319759",
+      "action": "CHAPTER_COMPLETED",
+      "details": {
+        "projectId": "cafe-billing",
+        "chapter": 13,
+        "percent": 88
+      },
+      "createdAt": "2026-08-06T20:19:23.428Z"
+    },
+    {
+      "id": "log_1786047566288_otv8c",
+      "userId": "usr_1786047319759",
+      "action": "CHAPTER_COMPLETED",
+      "details": {
+        "projectId": "cafe-billing",
+        "chapter": 14,
+        "percent": 94
+      },
+      "createdAt": "2026-08-06T20:19:26.288Z"
+    },
+    {
+      "id": "log_1786047568492_ryfse",
+      "userId": "usr_1786047319759",
+      "action": "CHAPTER_COMPLETED",
+      "details": {
+        "projectId": "cafe-billing",
+        "chapter": 15,
+        "percent": 100
+      },
+      "createdAt": "2026-08-06T20:19:28.492Z"
+    },
+    {
+      "id": "log_1786047645129_s66yf",
+      "userId": "usr_1786047319759",
+      "action": "CHAPTER_COMPLETED",
+      "details": {
+        "projectId": "cafe-billing",
+        "chapter": 15,
+        "percent": 100
+      },
+      "createdAt": "2026-08-06T20:20:45.129Z"
+    },
+    {
+      "id": "log_1786083499872_xprqd",
+      "userId": "usr_1786047319759",
+      "action": "LOGIN",
+      "details": {},
+      "createdAt": "2026-08-07T06:18:19.872Z"
+    },
+    {
+      "id": "log_1786083521372_hisb0",
+      "userId": "usr_1786047319759",
+      "action": "TRACKING_STARTED",
+      "details": {
+        "projectId": "cafe-billing"
+      },
+      "createdAt": "2026-08-07T06:18:41.372Z"
+    },
+    {
+      "id": "log_1786083525530_76234",
+      "userId": "usr_1786047319759",
+      "action": "CAMERA_PROOF_CAPTURED",
+      "details": {
+        "projectId": "cafe-billing",
+        "chapterIndex": 0,
+        "type": "work_start",
+        "file": "uploads/proof_usr_1786047319759_1786083525523.jpg"
+      },
+      "createdAt": "2026-08-07T06:18:45.530Z"
+    },
+    {
+      "id": "log_1786083525545_m4dwg",
+      "userId": "usr_1786047319759",
+      "action": "CAMERA_WORK_STARTED",
+      "details": {
+        "active": true,
+        "startedAt": "2026-08-07T06:18:45.545Z",
+        "projectId": "cafe-billing",
+        "chapterIndex": 0
+      },
+      "createdAt": "2026-08-07T06:18:45.545Z"
+    },
+    {
+      "id": "log_1786083525917_a879e",
+      "userId": "usr_1786047319759",
+      "action": "CAMERA_PROOF_CAPTURED",
+      "details": {
+        "projectId": "cafe-billing",
+        "chapterIndex": 0,
+        "type": "work_stop",
+        "file": "uploads/proof_usr_1786047319759_1786083525916.jpg"
+      },
+      "createdAt": "2026-08-07T06:18:45.917Z"
+    },
+    {
+      "id": "log_1786083525925_15dc8",
+      "userId": "usr_1786047319759",
+      "action": "CAMERA_WORK_STOPPED",
+      "details": {
+        "durationSeconds": 0,
+        "focusedSeconds": 0,
+        "attentionPercent": 0,
+        "projectId": "cafe-billing",
+        "chapterIndex": 0
+      },
+      "createdAt": "2026-08-07T06:18:45.925Z"
+    },
+    {
+      "id": "log_1786083533087_gv6nd",
+      "userId": "usr_1786047319759",
+      "action": "CAMERA_PROOF_CAPTURED",
+      "details": {
+        "projectId": "cafe-billing",
+        "chapterIndex": 0,
+        "type": "work_start",
+        "file": "uploads/proof_usr_1786047319759_1786083533083.jpg"
+      },
+      "createdAt": "2026-08-07T06:18:53.087Z"
+    },
+    {
+      "id": "log_1786083533096_xgdad",
+      "userId": "usr_1786047319759",
+      "action": "CAMERA_WORK_STARTED",
+      "details": {
+        "active": true,
+        "startedAt": "2026-08-07T06:18:53.095Z",
+        "projectId": "cafe-billing",
+        "chapterIndex": 0
+      },
+      "createdAt": "2026-08-07T06:18:53.096Z"
+    },
+    {
+      "id": "log_1786083539633_wlrr1",
+      "userId": "usr_1786047319759",
+      "action": "CAMERA_PROOF_CAPTURED",
+      "details": {
+        "projectId": "cafe-billing",
+        "chapterIndex": 0,
+        "type": "work_stop",
+        "file": "uploads/proof_usr_1786047319759_1786083539632.jpg"
+      },
+      "createdAt": "2026-08-07T06:18:59.633Z"
+    },
+    {
+      "id": "log_1786083539648_oqix8",
+      "userId": "usr_1786047319759",
+      "action": "CAMERA_WORK_STOPPED",
+      "details": {
+        "durationSeconds": 6,
+        "focusedSeconds": 6,
+        "attentionPercent": 100,
+        "projectId": "cafe-billing",
+        "chapterIndex": 0
+      },
+      "createdAt": "2026-08-07T06:18:59.648Z"
+    },
+    {
+      "id": "log_1786083547935_ff4y3",
+      "userId": "usr_1786047319759",
+      "action": "CAMERA_PROOF_CAPTURED",
+      "details": {
+        "projectId": "cafe-billing",
+        "chapterIndex": 0,
+        "type": "work_start",
+        "file": "uploads/proof_usr_1786047319759_1786083547934.jpg"
+      },
+      "createdAt": "2026-08-07T06:19:07.936Z"
+    },
+    {
+      "id": "log_1786083547949_qklve",
+      "userId": "usr_1786047319759",
+      "action": "CAMERA_WORK_STARTED",
+      "details": {
+        "active": true,
+        "startedAt": "2026-08-07T06:19:07.949Z",
+        "projectId": "cafe-billing",
+        "chapterIndex": 0
+      },
+      "createdAt": "2026-08-07T06:19:07.949Z"
+    },
+    {
+      "id": "log_1786083594495_ka99o",
+      "userId": "usr_1786047319759",
+      "action": "CHAPTER_COMPLETED",
+      "details": {
+        "projectId": "cafe-billing",
+        "chapter": 15,
+        "percent": 100
+      },
+      "createdAt": "2026-08-07T06:19:54.495Z"
+    },
+    {
+      "id": "log_1786083804815_pdgx5",
+      "userId": "usr_1786047319759",
+      "action": "LOGIN",
+      "details": {},
+      "createdAt": "2026-08-07T06:23:24.816Z"
+    },
+    {
+      "id": "log_1786083858867_8wfo7",
+      "userId": "usr_1786047319759",
+      "action": "TRACKING_STARTED",
+      "details": {
+        "projectId": "cafe-billing"
+      },
+      "createdAt": "2026-08-07T06:24:18.867Z"
+    },
+    {
+      "id": "log_1786083862603_stj8u",
+      "userId": "usr_1786047319759",
+      "action": "CAMERA_PROOF_CAPTURED",
+      "details": {
+        "projectId": "cafe-billing",
+        "chapterIndex": 0,
+        "type": "work_start",
+        "file": "uploads/proof_usr_1786047319759_1786083862584.jpg"
+      },
+      "createdAt": "2026-08-07T06:24:22.603Z"
+    },
+    {
+      "id": "log_1786083862729_auatg",
+      "userId": "usr_1786047319759",
+      "action": "CAMERA_WORK_STARTED",
+      "details": {
+        "active": true,
+        "startedAt": "2026-08-07T06:24:22.729Z",
+        "projectId": "cafe-billing",
+        "chapterIndex": 0
+      },
+      "createdAt": "2026-08-07T06:24:22.729Z"
+    },
+    {
+      "id": "log_1786083907875_el6du",
+      "userId": "usr_1786047319759",
+      "action": "CAMERA_PROOF_CAPTURED",
+      "details": {
+        "projectId": "cafe-billing",
+        "chapterIndex": 0,
+        "type": "work_stop",
+        "file": "uploads/proof_usr_1786047319759_1786083907870.jpg"
+      },
+      "createdAt": "2026-08-07T06:25:07.875Z"
+    },
+    {
+      "id": "log_1786083907896_5q0a4",
+      "userId": "usr_1786047319759",
+      "action": "CAMERA_WORK_STOPPED",
+      "details": {
+        "durationSeconds": 45,
+        "focusedSeconds": 43,
+        "attentionPercent": 96,
+        "projectId": "cafe-billing",
+        "chapterIndex": 0
+      },
+      "createdAt": "2026-08-07T06:25:07.896Z"
+    },
+    {
+      "id": "log_1786083912001_b1tb3",
+      "userId": "usr_1786047319759",
+      "action": "CAMERA_PROOF_CAPTURED",
+      "details": {
+        "projectId": "cafe-billing",
+        "chapterIndex": 0,
+        "type": "work_start",
+        "file": "uploads/proof_usr_1786047319759_1786083911997.jpg"
+      },
+      "createdAt": "2026-08-07T06:25:12.001Z"
+    },
+    {
+      "id": "log_1786083912167_xww84",
+      "userId": "usr_1786047319759",
+      "action": "CAMERA_WORK_STARTED",
+      "details": {
+        "active": true,
+        "startedAt": "2026-08-07T06:25:12.167Z",
+        "projectId": "cafe-billing",
+        "chapterIndex": 0
+      },
+      "createdAt": "2026-08-07T06:25:12.168Z"
+    },
+    {
+      "id": "log_1786083938756_mfcfy",
+      "userId": "usr_1786047319759",
+      "action": "CHAPTER_COMPLETED",
+      "details": {
+        "projectId": "cafe-billing",
+        "chapter": 15,
+        "percent": 100
+      },
+      "createdAt": "2026-08-07T06:25:38.756Z"
+    },
+    {
+      "id": "log_1786083966837_d8rjj",
+      "userId": "usr_1786047319759",
+      "action": "TRACKING_STOPPED",
+      "details": {
+        "projectId": "cafe-billing",
+        "seconds": 36640,
+        "total": 36640
+      },
+      "createdAt": "2026-08-07T06:26:06.837Z"
+    },
+    {
+      "id": "log_1786083991213_hbote",
+      "userId": "usr_1786047319759",
+      "action": "TRACKING_STARTED",
+      "details": {
+        "projectId": "cafe-billing"
+      },
+      "createdAt": "2026-08-07T06:26:31.213Z"
+    },
+    {
+      "id": "log_1786083996387_4k1fs",
+      "userId": "usr_1786047319759",
+      "action": "TRACKING_STOPPED",
+      "details": {
+        "projectId": "cafe-billing",
+        "seconds": 5,
+        "total": 36645
+      },
+      "createdAt": "2026-08-07T06:26:36.387Z"
+    },
+    {
+      "id": "log_1786084012135_3dq3s",
+      "userId": "usr_1786047319759",
+      "action": "TRACKING_STARTED",
+      "details": {
+        "projectId": "cafe-billing"
+      },
+      "createdAt": "2026-08-07T06:26:52.135Z"
+    },
+    {
+      "id": "log_1786084018248_5ocrq",
+      "userId": "usr_1786047319759",
+      "action": "CAMERA_PROOF_CAPTURED",
+      "details": {
+        "projectId": "cafe-billing",
+        "chapterIndex": 0,
+        "type": "work_stop",
+        "file": "uploads/proof_usr_1786047319759_1786084018243.jpg"
+      },
+      "createdAt": "2026-08-07T06:26:58.248Z"
+    },
+    {
+      "id": "log_1786084018279_92tfl",
+      "userId": "usr_1786047319759",
+      "action": "CAMERA_WORK_STOPPED",
+      "details": {
+        "durationSeconds": 106,
+        "focusedSeconds": 103,
+        "attentionPercent": 97,
+        "projectId": "cafe-billing",
+        "chapterIndex": 0
+      },
+      "createdAt": "2026-08-07T06:26:58.280Z"
+    },
+    {
+      "id": "log_1786084027437_vqjie",
+      "userId": "usr_1786047319759",
+      "action": "TRACKING_STOPPED",
+      "details": {
+        "projectId": "cafe-billing",
+        "seconds": 15,
+        "total": 36660
+      },
+      "createdAt": "2026-08-07T06:27:07.437Z"
+    },
+    {
+      "id": "log_1786084642129_mtwfe",
+      "userId": "usr_1786047319759",
+      "action": "TRACKING_STARTED",
+      "details": {
+        "projectId": "cafe-billing"
+      },
+      "createdAt": "2026-08-07T06:37:22.130Z"
+    },
+    {
+      "id": "log_1786084643327_eufz8",
+      "userId": "usr_1786047319759",
+      "action": "CAMERA_PROOF_CAPTURED",
+      "details": {
+        "projectId": "cafe-billing",
+        "chapterIndex": 0,
+        "type": "work_start",
+        "file": "uploads/proof_usr_1786047319759_1786084643324.jpg"
+      },
+      "createdAt": "2026-08-07T06:37:23.327Z"
+    },
+    {
+      "id": "log_1786084643365_7h30i",
+      "userId": "usr_1786047319759",
+      "action": "CAMERA_WORK_STARTED",
+      "details": {
+        "active": true,
+        "startedAt": "2026-08-07T06:37:23.365Z",
+        "projectId": "cafe-billing",
+        "chapterIndex": 0
+      },
+      "createdAt": "2026-08-07T06:37:23.365Z"
+    },
+    {
+      "id": "log_1786084670593_r43ei",
+      "userId": "usr_1786047319759",
+      "action": "CHAPTER_COMPLETED",
+      "details": {
+        "projectId": "cafe-billing",
+        "chapter": 0,
+        "percent": 100
+      },
+      "createdAt": "2026-08-07T06:37:50.593Z"
+    },
+    {
+      "id": "log_1786084768272_c6evk",
+      "userId": "usr_1786047319759",
+      "action": "TRACKING_STARTED",
+      "details": {
+        "projectId": "cafe-billing"
+      },
+      "createdAt": "2026-08-07T06:39:28.272Z"
+    },
+    {
+      "id": "log_1786084800050_urh5h",
+      "userId": "usr_1786047319759",
+      "action": "CHAPTER_COMPLETED",
+      "details": {
+        "projectId": "cafe-billing",
+        "chapter": 0,
+        "percent": 100
+      },
+      "createdAt": "2026-08-07T06:40:00.050Z"
+    },
+    {
+      "id": "log_1786084875993_l22ip",
+      "userId": "usr_1786047319759",
+      "action": "CAMERA_PROOF_CAPTURED",
+      "details": {
+        "projectId": "cafe-billing",
+        "chapterIndex": 10,
+        "type": "work_stop",
+        "file": "uploads/proof_usr_1786047319759_1786084875989.jpg"
+      },
+      "createdAt": "2026-08-07T06:41:15.993Z"
+    },
+    {
+      "id": "log_1786084876015_uy9sv",
+      "userId": "usr_1786047319759",
+      "action": "CAMERA_WORK_STOPPED",
+      "details": {
+        "durationSeconds": 232,
+        "focusedSeconds": 230,
+        "attentionPercent": 99,
+        "projectId": "cafe-billing",
+        "chapterIndex": 10
+      },
+      "createdAt": "2026-08-07T06:41:16.015Z"
+    },
+    {
+      "id": "log_1786086714091_mb6hd",
+      "userId": "leader_default",
+      "action": "ADMIN_LOGIN",
+      "details": {
+        "username": "teamleader"
+      },
+      "createdAt": "2026-08-07T07:11:54.091Z"
+    },
+    {
+      "id": "log_1786086728860_v4qcq",
+      "userId": "usr_1786047319759",
+      "action": "ADMIN_CHANGE_STATUS",
+      "details": {
+        "status": "completed",
+        "adminId": "leader_default"
+      },
+      "createdAt": "2026-08-07T07:12:08.860Z"
+    },
+    {
+      "id": "log_1786086748283_j9udk",
+      "userId": "usr_1786047319759",
+      "action": "ADMIN_UPDATE_PROGRESS",
+      "details": {
+        "projectId": "cafe-billing",
+        "percent": 100,
+        "adminId": "leader_default"
+      },
+      "createdAt": "2026-08-07T07:12:28.283Z"
+    },
+    {
+      "id": "log_1786086938402_o600w",
+      "userId": "leader_default",
+      "action": "ADMIN_LOGIN",
+      "details": {
+        "username": "teamleader"
+      },
+      "createdAt": "2026-08-07T07:15:38.403Z"
+    },
+    {
+      "id": "log_1786086973056_kf5yy",
+      "userId": "leader_default",
+      "action": "ADMIN_LOGIN",
+      "details": {
+        "username": "teamleader"
+      },
+      "createdAt": "2026-08-07T07:16:13.056Z"
+    },
+    {
+      "id": "log_1786086991568_oqwjr",
+      "userId": "usr_1786086991563",
+      "action": "STUDENT_ACCOUNT_CREATED",
+      "details": {
+        "username": "krish",
+        "leaderId": "leader_default"
+      },
+      "createdAt": "2026-08-07T07:16:31.568Z"
+    },
+    {
+      "id": "log_1786087075087_l8mpe",
+      "userId": "leader_default",
+      "action": "ADMIN_LOGIN",
+      "details": {
+        "username": "teamleader"
+      },
+      "createdAt": "2026-08-07T07:17:55.087Z"
+    },
+    {
+      "id": "log_1786087112798_iu9gl",
+      "userId": "usr_1786047319759",
+      "action": "ADMIN_UPDATE_PROGRESS",
+      "details": {
+        "projectId": "cafe-billing",
+        "percent": 25,
+        "adminId": "leader_default"
+      },
+      "createdAt": "2026-08-07T07:18:32.798Z"
+    },
+    {
+      "id": "log_1786087125916_8uo6u",
+      "userId": "usr_1786047319759",
+      "action": "ADMIN_UPDATE_PROGRESS",
+      "details": {
+        "projectId": "cafe-billing",
+        "percent": 100,
+        "adminId": "leader_default"
+      },
+      "createdAt": "2026-08-07T07:18:45.916Z"
+    },
+    {
+      "id": "log_1786087217528_svp91",
+      "userId": "leader_default",
+      "action": "ADMIN_LOGIN",
+      "details": {
+        "username": "teamleader"
+      },
+      "createdAt": "2026-08-07T07:20:17.528Z"
+    },
+    {
+      "id": "log_1786087902750_4dzb1",
+      "userId": "usr_1786086991563",
+      "action": "STUDENT_LOGIN",
+      "details": {
+        "username": "krish"
+      },
+      "createdAt": "2026-08-07T07:31:42.750Z"
+    },
+    {
+      "id": "log_1786087909370_4zlwg",
+      "userId": "usr_1786086991563",
+      "action": "STUDENT_LOGIN",
+      "details": {
+        "username": "krish"
+      },
+      "createdAt": "2026-08-07T07:31:49.370Z"
+    },
+    {
+      "id": "log_1786087909441_9mv9x",
+      "userId": "usr_1786086991563",
+      "action": "STUDENT_LOGIN",
+      "details": {
+        "username": "krish"
+      },
+      "createdAt": "2026-08-07T07:31:49.441Z"
+    },
+    {
+      "id": "log_1786087909453_9r8am",
+      "userId": "usr_1786086991563",
+      "action": "STUDENT_LOGIN",
+      "details": {
+        "username": "krish"
+      },
+      "createdAt": "2026-08-07T07:31:49.453Z"
+    },
+    {
+      "id": "log_1786087909495_9xjsh",
+      "userId": "leader_default",
+      "action": "ADMIN_LOGIN",
+      "details": {
+        "username": "teamleader"
+      },
+      "createdAt": "2026-08-07T07:31:49.495Z"
+    },
+    {
+      "id": "log_1786087909522_5sjan",
+      "userId": "usr_1786087909519",
+      "action": "STUDENT_AUTO_REGISTERED",
+      "details": {
+        "username": "admin"
+      },
+      "createdAt": "2026-08-07T07:31:49.522Z"
+    },
+    {
+      "id": "log_1786087909524_mrpic",
+      "userId": "usr_1786087909519",
+      "action": "STUDENT_LOGIN",
+      "details": {
+        "username": "admin"
+      },
+      "createdAt": "2026-08-07T07:31:49.524Z"
+    },
+    {
+      "id": "log_1786087941500_oqnwt",
+      "userId": "usr_1786086991563",
+      "action": "STUDENT_LOGIN",
+      "details": {
+        "username": "krish"
+      },
+      "createdAt": "2026-08-07T07:32:21.500Z"
+    },
+    {
+      "id": "log_1786087941596_gnblf",
+      "userId": "usr_1786086991563",
+      "action": "STUDENT_LOGIN",
+      "details": {
+        "username": "krish"
+      },
+      "createdAt": "2026-08-07T07:32:21.596Z"
+    },
+    {
+      "id": "log_1786087941615_lmcps",
+      "userId": "usr_1786086991563",
+      "action": "STUDENT_LOGIN",
+      "details": {
+        "username": "krish"
+      },
+      "createdAt": "2026-08-07T07:32:21.615Z"
+    },
+    {
+      "id": "log_1786087941676_gc5bf",
+      "userId": "leader_default",
+      "action": "ADMIN_LOGIN",
+      "details": {
+        "username": "teamleader"
+      },
+      "createdAt": "2026-08-07T07:32:21.676Z"
+    },
+    {
+      "id": "log_1786087941715_wqizw",
+      "userId": "leader_default",
+      "action": "ADMIN_LOGIN",
+      "details": {
+        "username": "teamleader"
+      },
+      "createdAt": "2026-08-07T07:32:21.715Z"
+    },
+    {
+      "id": "log_1786087941752_0qlbl",
+      "userId": "leader_default",
+      "action": "ADMIN_LOGIN",
+      "details": {
+        "username": "teamleader"
+      },
+      "createdAt": "2026-08-07T07:32:21.752Z"
+    },
+    {
+      "id": "log_1786087958286_bu0xh",
+      "userId": "usr_1786086991563",
+      "action": "STUDENT_LOGIN",
+      "details": {
+        "username": "krish"
+      },
+      "createdAt": "2026-08-07T07:32:38.286Z"
+    },
+    {
+      "id": "log_1786087971481_5o0pw",
+      "userId": "usr_1786086991563",
+      "action": "STUDENT_PROJECT_SELECTION_LOCKED",
+      "details": {
+        "projectIds": [
+          "cafe-billing",
+          "multi-vendor",
+          "food-delivery",
+          "hospital"
+        ]
+      },
+      "createdAt": "2026-08-07T07:32:51.481Z"
+    },
+    {
+      "id": "log_1786088030154_zx2n8",
+      "userId": "leader_default",
+      "action": "ADMIN_LOGIN",
+      "details": {
+        "username": "teamleader"
+      },
+      "createdAt": "2026-08-07T07:33:50.154Z"
+    },
+    {
+      "id": "log_1786088069190_wkc1o",
+      "userId": "leader_default",
+      "action": "ADMIN_LOGIN",
+      "details": {
+        "username": "teamleader"
+      },
+      "createdAt": "2026-08-07T07:34:29.190Z"
+    },
+    {
+      "id": "log_1786088088287_ymbtz",
+      "userId": "leader_default",
+      "action": "ADMIN_LOGIN",
+      "details": {
+        "username": "teamleader"
+      },
+      "createdAt": "2026-08-07T07:34:48.287Z"
+    },
+    {
+      "id": "log_1786088124006_9djr2",
+      "userId": "usr_1786086991563",
+      "action": "STUDENT_LOGIN",
+      "details": {
+        "username": "krish"
+      },
+      "createdAt": "2026-08-07T07:35:24.006Z"
+    },
+    {
+      "id": "log_1786088135308_3e0cv",
+      "userId": "usr_1786086991563",
+      "action": "TRACKING_STARTED",
+      "details": {
+        "projectId": "cafe-billing"
+      },
+      "createdAt": "2026-08-07T07:35:35.308Z"
+    },
+    {
+      "id": "log_1786088138340_7iyv6",
+      "userId": "usr_1786086991563",
+      "action": "CAMERA_PROOF_CAPTURED",
+      "details": {
+        "projectId": "cafe-billing",
+        "chapterIndex": 0,
+        "type": "work_start",
+        "file": "uploads/proof_usr_1786086991563_1786088138323.jpg"
+      },
+      "createdAt": "2026-08-07T07:35:38.340Z"
+    },
+    {
+      "id": "log_1786088138401_ushnp",
+      "userId": "usr_1786086991563",
+      "action": "CAMERA_WORK_STARTED",
+      "details": {
+        "active": true,
+        "startedAt": "2026-08-07T07:35:38.401Z",
+        "projectId": "cafe-billing",
+        "chapterIndex": 0
+      },
+      "createdAt": "2026-08-07T07:35:38.401Z"
+    },
+    {
+      "id": "log_1786092693096_5fnql",
+      "userId": "usr_1786086991563",
+      "action": "STUDENT_LOGIN",
+      "details": {
+        "username": "krish"
+      },
+      "createdAt": "2026-08-07T08:51:33.097Z"
+    },
+    {
+      "id": "log_1786092847575_ce1m8",
+      "userId": "usr_1786086991563",
+      "action": "STUDENT_LOGIN",
+      "details": {
+        "username": "krish"
+      },
+      "createdAt": "2026-08-07T08:54:07.575Z"
+    },
+    {
+      "id": "log_1786093062322_tncnx",
+      "userId": "usr_1786086991563",
+      "action": "STUDENT_LOGIN",
+      "details": {
+        "username": "krish"
+      },
+      "createdAt": "2026-08-07T08:57:42.322Z"
+    },
+    {
+      "id": "log_1786093206826_iz5w0",
+      "userId": "usr_1786086991563",
+      "action": "STUDENT_LOGIN",
+      "details": {
+        "username": "krish"
+      },
+      "createdAt": "2026-08-07T09:00:06.826Z"
+    },
+    {
+      "id": "log_1786093370049_915nb",
+      "userId": "usr_1786086991563",
+      "action": "STUDENT_LOGIN",
+      "details": {
+        "username": "krish"
+      },
+      "createdAt": "2026-08-07T09:02:50.050Z"
+    },
+    {
+      "id": "log_1786093385852_ecmbo",
+      "userId": "leader_default",
+      "action": "ADMIN_LOGIN",
+      "details": {
+        "username": "teamleader"
+      },
+      "createdAt": "2026-08-07T09:03:05.852Z"
+    },
+    {
+      "id": "log_1786093412252_lc3ev",
+      "userId": "usr_1786093412246",
+      "action": "STUDENT_ACCOUNT_CREATED",
+      "details": {
+        "username": "athartv1",
+        "leaderId": "leader_default"
+      },
+      "createdAt": "2026-08-07T09:03:32.252Z"
+    },
+    {
+      "id": "log_1786093425469_oimf8",
+      "userId": "usr_1786087909519",
+      "action": "ADMIN_DELETE_STUDENT",
+      "details": {
+        "username": "admin",
+        "adminId": "leader_default"
+      },
+      "createdAt": "2026-08-07T09:03:45.470Z"
+    },
+    {
+      "id": "log_1786093450169_rvsm2",
+      "userId": "usr_1786093450167",
+      "action": "STUDENT_AUTO_REGISTERED",
+      "details": {
+        "username": "atharvtv1"
+      },
+      "createdAt": "2026-08-07T09:04:10.169Z"
+    },
+    {
+      "id": "log_1786093450173_zjxcm",
+      "userId": "usr_1786093450167",
+      "action": "STUDENT_LOGIN",
+      "details": {
+        "username": "atharvtv1"
+      },
+      "createdAt": "2026-08-07T09:04:10.173Z"
+    },
+    {
+      "id": "log_1786093468495_uzijk",
+      "userId": "usr_1786093450167",
+      "action": "STUDENT_PROJECT_SELECTION_LOCKED",
+      "details": {
+        "projectIds": [
+          "food-delivery",
+          "hospital",
+          "college",
+          "job-portal"
+        ]
+      },
+      "createdAt": "2026-08-07T09:04:28.495Z"
+    },
+    {
+      "id": "log_1786093471886_oo3gg",
+      "userId": "usr_1786093450167",
+      "action": "TRACKING_STARTED",
+      "details": {
+        "projectId": "food-delivery"
+      },
+      "createdAt": "2026-08-07T09:04:31.886Z"
+    },
+    {
+      "id": "log_1786093474056_7fcwn",
+      "userId": "usr_1786093450167",
+      "action": "CAMERA_PROOF_CAPTURED",
+      "details": {
+        "projectId": "food-delivery",
+        "chapterIndex": 0,
+        "type": "work_start",
+        "file": "uploads/proof_usr_1786093450167_1786093474048.jpg"
+      },
+      "createdAt": "2026-08-07T09:04:34.056Z"
+    },
+    {
+      "id": "log_1786093474086_68ny5",
+      "userId": "usr_1786093450167",
+      "action": "CAMERA_WORK_STARTED",
+      "details": {
+        "active": true,
+        "startedAt": "2026-08-07T09:04:34.086Z",
+        "projectId": "food-delivery",
+        "chapterIndex": 0
+      },
+      "createdAt": "2026-08-07T09:04:34.086Z"
+    },
+    {
+      "id": "log_1786093475566_o698t",
+      "userId": "usr_1786093450167",
+      "action": "CAMERA_PROOF_CAPTURED",
+      "details": {
+        "projectId": "food-delivery",
+        "chapterIndex": 0,
+        "type": "work_stop",
+        "file": "uploads/proof_usr_1786093450167_1786093475560.jpg"
+      },
+      "createdAt": "2026-08-07T09:04:35.566Z"
+    },
+    {
+      "id": "log_1786093475597_h4ra4",
+      "userId": "usr_1786093450167",
+      "action": "CAMERA_WORK_STOPPED",
+      "details": {
+        "durationSeconds": 1,
+        "focusedSeconds": 0,
+        "attentionPercent": 0,
+        "projectId": "food-delivery",
+        "chapterIndex": 0
+      },
+      "createdAt": "2026-08-07T09:04:35.597Z"
+    },
+    {
+      "id": "log_1786093842394_lxsmi",
+      "userId": "usr_1786093450167",
+      "action": "TRACKING_STARTED",
+      "details": {
+        "projectId": "food-delivery"
+      },
+      "createdAt": "2026-08-07T09:10:42.394Z"
+    },
+    {
+      "id": "log_1786093844519_ofd8g",
+      "userId": "usr_1786093450167",
+      "action": "CAMERA_PROOF_CAPTURED",
+      "details": {
+        "projectId": "food-delivery",
+        "chapterIndex": 0,
+        "type": "work_start",
+        "file": "uploads/proof_usr_1786093450167_1786093844516.jpg"
+      },
+      "createdAt": "2026-08-07T09:10:44.519Z"
+    },
+    {
+      "id": "log_1786093844537_uer1e",
+      "userId": "usr_1786093450167",
+      "action": "CAMERA_WORK_STARTED",
+      "details": {
+        "active": true,
+        "startedAt": "2026-08-07T09:10:44.537Z",
+        "projectId": "food-delivery",
+        "chapterIndex": 0
+      },
+      "createdAt": "2026-08-07T09:10:44.537Z"
+    },
+    {
+      "id": "log_1786093860196_wv5fr",
+      "userId": "usr_1786093450167",
+      "action": "QUIZ_ATTEMPT",
+      "details": {
+        "projectId": "food-delivery",
+        "passed": true,
+        "score": 100
+      },
+      "createdAt": "2026-08-07T09:11:00.196Z"
+    },
+    {
+      "id": "log_1786093864379_3kbol",
+      "userId": "usr_1786093450167",
+      "action": "QUIZ_ATTEMPT",
+      "details": {
+        "projectId": "food-delivery",
+        "passed": false,
+        "score": 0
+      },
+      "createdAt": "2026-08-07T09:11:04.379Z"
+    },
+    {
+      "id": "log_1786093886500_k514h",
+      "userId": "usr_1786093450167",
+      "action": "CAMERA_PROOF_CAPTURED",
+      "details": {
+        "projectId": "food-delivery",
+        "chapterIndex": 15,
+        "type": "work_stop",
+        "file": "uploads/proof_usr_1786093450167_1786093886496.jpg"
+      },
+      "createdAt": "2026-08-07T09:11:26.500Z"
+    },
+    {
+      "id": "log_1786093886588_6nury",
+      "userId": "usr_1786093450167",
+      "action": "CAMERA_WORK_STOPPED",
+      "details": {
+        "durationSeconds": 42,
+        "focusedSeconds": 40,
+        "attentionPercent": 95,
+        "projectId": "food-delivery",
+        "chapterIndex": 15
+      },
+      "createdAt": "2026-08-07T09:11:26.588Z"
+    },
+    {
+      "id": "log_1786094212644_0uxkc",
+      "userId": "usr_1786093450167",
+      "action": "TRACKING_STOPPED",
+      "details": {
+        "projectId": "food-delivery",
+        "seconds": 740,
+        "total": 740
+      },
+      "createdAt": "2026-08-07T09:16:52.644Z"
+    },
+    {
+      "id": "log_1786094228249_n5ocp",
+      "userId": "usr_1786093450167",
+      "action": "TRACKING_STARTED",
+      "details": {
+        "projectId": "food-delivery"
+      },
+      "createdAt": "2026-08-07T09:17:08.249Z"
+    },
+    {
+      "id": "log_1786094230338_1yie0",
+      "userId": "usr_1786093450167",
+      "action": "CAMERA_PROOF_CAPTURED",
+      "details": {
+        "projectId": "food-delivery",
+        "chapterIndex": 0,
+        "type": "work_start",
+        "file": "uploads/proof_usr_1786093450167_1786094230336.jpg"
+      },
+      "createdAt": "2026-08-07T09:17:10.338Z"
+    },
+    {
+      "id": "log_1786094230362_q8y7v",
+      "userId": "usr_1786093450167",
+      "action": "CAMERA_WORK_STARTED",
+      "details": {
+        "active": true,
+        "startedAt": "2026-08-07T09:17:10.361Z",
+        "projectId": "food-delivery",
+        "chapterIndex": 0
+      },
+      "createdAt": "2026-08-07T09:17:10.362Z"
+    },
+    {
+      "id": "log_1786094255000_kzs6r",
+      "userId": "usr_1786093450167",
+      "action": "TRACKING_STOPPED",
+      "details": {
+        "projectId": "food-delivery",
+        "seconds": 26,
+        "total": 766
+      },
+      "createdAt": "2026-08-07T09:17:35.000Z"
+    },
+    {
+      "id": "log_1786094283840_znssq",
+      "userId": "usr_1786093450167",
+      "action": "TRACKING_STARTED",
+      "details": {
+        "projectId": "food-delivery"
+      },
+      "createdAt": "2026-08-07T09:18:03.840Z"
+    },
+    {
+      "id": "log_1786094291640_vb247",
+      "userId": "usr_1786093450167",
+      "action": "CHAPTER_COMPLETED",
+      "details": {
+        "projectId": "food-delivery",
+        "chapter": 0,
+        "percent": 6
+      },
+      "createdAt": "2026-08-07T09:18:11.640Z"
+    },
+    {
+      "id": "log_1786094295551_j6e7i",
+      "userId": "usr_1786093450167",
+      "action": "TRACKING_STOPPED",
+      "details": {
+        "projectId": "food-delivery",
+        "seconds": 11,
+        "total": 777
+      },
+      "createdAt": "2026-08-07T09:18:15.551Z"
+    },
+    {
+      "id": "log_1786094356221_ki66r",
+      "userId": "leader_default",
+      "action": "ADMIN_LOGIN",
+      "details": {
+        "username": "teamleader"
+      },
+      "createdAt": "2026-08-07T09:19:16.221Z"
+    },
+    {
+      "id": "log_1786094404577_6h9a7",
+      "userId": "usr_1786093450167",
+      "action": "STUDENT_LOGIN",
+      "details": {
+        "username": "atharvtv1"
+      },
+      "createdAt": "2026-08-07T09:20:04.577Z"
+    },
+    {
+      "id": "log_1786094512820_r5rc1",
+      "userId": "usr_1786086991563",
+      "action": "STUDENT_LOGIN",
+      "details": {
+        "username": "krish"
+      },
+      "createdAt": "2026-08-07T09:21:52.820Z"
+    },
+    {
+      "id": "log_1786094512930_uyg9r",
+      "userId": "usr_1786086991563",
+      "action": "STUDENT_SAVE_NOTES",
+      "details": {
+        "projectId": "food-delivery",
+        "chapterId": 0
+      },
+      "createdAt": "2026-08-07T09:21:52.930Z"
+    },
+    {
+      "id": "log_1786094530453_ebhb3",
+      "userId": "usr_1786093450167",
+      "action": "STUDENT_LOGIN",
+      "details": {
+        "username": "atharvtv1"
+      },
+      "createdAt": "2026-08-07T09:22:10.453Z"
+    },
+    {
+      "id": "log_1786094569954_iawps",
+      "userId": "leader_default",
+      "action": "ADMIN_LOGIN",
+      "details": {
+        "username": "teamleader"
+      },
+      "createdAt": "2026-08-07T09:22:49.954Z"
+    }
+  ],
+  "leaders": [
+    {
+      "id": "leader_default",
+      "username": "teamleader",
+      "password": "62bc8e62827762f8f9680ae579809faa:d31708ba3066a7e7353b090cb9087c1cd440103c132b7fda1b0e39a19b3c8e5672187473b6674c165b1e20edeb731fad23b1bbc64c9827106ffe2d4a134f337f",
+      "name": "Team Leader"
+    }
+  ],
+  "notes": [
+    {
+      "id": "note_1786094512930_p73l",
+      "studentId": "usr_1786086991563",
+      "studentName": "krushna",
+      "studentEmail": "rathodkrushna963@gmail.com",
+      "projectId": "food-delivery",
+      "chapterId": 0,
+      "chapterName": "Overview",
+      "notes": "First chapter intern note test!",
+      "createdAt": "2026-08-07T09:21:52.930Z",
+      "updatedAt": "2026-08-07T09:21:52.930Z"
+    }
+  ]
+}
