@@ -1,11 +1,9 @@
 
 "use strict";
 
-const API_SERVER = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
-  ? "http://localhost:5000"
-  : "https://weblive-qvzp.onrender.com";
-
-const API = `${API_SERVER}/api`;
+const API = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || !window.location.hostname)
+  ? "http://localhost:5000/api"
+  : "/api";
 const $ = id => document.getElementById(id);
 const state = {
   token: localStorage.getItem("aprToken") || "",
@@ -88,6 +86,11 @@ function show(id) {
     notify("Admin credentials required to access the Admin Panel.", "error");
     id = "loginView";
   }
+  
+  if (state.token && state.role === "STUDENT" && id === "selectView" && (state.user?.selectedProjects || []).length === 4) {
+    id = "dashboardView";
+    renderDashboard();
+  }
 
   ["homeView","loginView","adminView","leaderView","selectView","dashboardView","docView"].forEach(viewId => $(viewId)?.classList.add("hidden"));
   $(id)?.classList.remove("hidden");
@@ -95,23 +98,43 @@ function show(id) {
   document.body.classList.toggle("on-admin-page", id === "adminView");
   window.scrollTo({ top: 0, behavior: "smooth" });
   updateNav();
+
+  if (id === "homeView") {
+    renderHome();
+  }
 }
 
-function renderHome(query = "") {
-  const q = query.toLowerCase().trim();
-  $("homeGrid").innerHTML = PROJECTS
-    .filter(p => [p.name,p.stack,p.level,p.summary,...p.modules].join(" ").toLowerCase().includes(q))
-    .map((p, i) => `
-      <article class="panel project direct-project-card" style="animation-delay:${i*35}ms">
-        <span class="pill">Project ${i+1} of 10</span><span class="pill">${p.level}</span>
-        <h3>${p.icon} ${p.name}</h3><p class="muted">${p.summary}</p>
-        <p><span class="pill">${p.duration}</span><span class="pill">${p.stack}</span></p>
-        <div class="cardfoot">
-          <span>${p.modules.slice(0,3).join(" · ")}</span>
-          <button class="btn primary preview-project" data-id="${p.id}" type="button">Preview Documentation</button>
-        </div>
-      </article>`).join("");
-  document.querySelectorAll(".preview-project").forEach(btn => btn.onclick = () => window.openPreviewProjectSafe(btn.dataset.id));
+async function renderHome() {
+  await loadProjects();
+
+  const normalize = s => String(s || "").trim().toLowerCase();
+  const isStudent = state.role === "STUDENT" || Boolean(state.token && !state.leaderToken);
+  const studentDomain = isStudent ? (state.user?.domain || "Web Development") : null;
+
+  let projects = window.PROJECTS || [];
+  if (studentDomain) {
+    projects = projects.filter(p => normalize(p.domain || "Web Development") === normalize(studentDomain));
+  }
+
+  const count = projects.length || 10;
+  const domainLabel = studentDomain ? studentDomain : "Internship";
+
+  // Dynamic UI Heading Updates
+  if ($("topPortalTitle")) {
+    $("topPortalTitle").textContent = `APARAITECH · ${domainLabel} Intern Documentation Portal`;
+  }
+  if ($("brandSubtext")) {
+    $("brandSubtext").textContent = `Explore ${domainLabel} Internship Program · Choose 4 Projects · Complete Chapters · Pass Quiz · Submit GitHub`;
+  }
+  if ($("homeHeroHeading")) {
+    $("homeHeroHeading").textContent = `APARAITECH ${domainLabel} Internship Program`;
+  }
+  if ($("homeHeroSubtext")) {
+    $("homeHeroSubtext").textContent = `Welcome to your ${domainLabel} Internship Portal. To track your chapter completion, quiz results, work sessions, camera proofs, and time, click below to select your 4 projects.`;
+  }
+  if ($("homeStatAvailableCount")) {
+    $("homeStatAvailableCount").textContent = count;
+  }
 }
 
 async function unifiedLogin() {
@@ -331,10 +354,86 @@ function switchAdminTab(tabName, clickedEl) {
   }
 }
 
+async function loadDomains() {
+  try {
+    const res = await api("/domains");
+    if (res?.domains && Array.isArray(res.domains) && res.domains.length) {
+      window.DOMAINS = res.domains;
+    }
+  } catch (err) {
+    console.warn("Could not load dynamic domains, using default domains:", err.message);
+  }
+
+  const domains = window.DOMAINS || [
+    "Web Development",
+    "Cyber Security",
+    "Artificial Intelligence (AI/ML)",
+    "Cloud Computing"
+  ];
+
+  // 1. Update Admin Filter Dropdown
+  const filterSelect = $("adminProjectDomainFilter");
+  if (filterSelect) {
+    const currentVal = filterSelect.value;
+    filterSelect.innerHTML = `<option value="">All Domains</option>` +
+      domains.map(d => `<option value="${d}">${d}</option>`).join("");
+    if (domains.includes(currentVal)) filterSelect.value = currentVal;
+  }
+
+  // 2. Update Create/Edit Project Modal Select
+  const projDomainSelect = $("projFormDomain");
+  if (projDomainSelect) {
+    const currentVal = projDomainSelect.value;
+    projDomainSelect.innerHTML = domains.map(d => `<option value="${d}">${d}</option>`).join("");
+    if (domains.includes(currentVal)) projDomainSelect.value = currentVal;
+  }
+
+  // 3. Update Create Student Modal Select
+  const studentDomainSelect = $("newStudentDomain");
+  if (studentDomainSelect) {
+    const currentVal = studentDomainSelect.value;
+    studentDomainSelect.innerHTML = domains.map(d => `<option value="${d}">${d}</option>`).join("");
+    if (domains.includes(currentVal)) studentDomainSelect.value = currentVal;
+  }
+}
+
+function openAddDomainModal() {
+  if ($("newDomainNameInput")) $("newDomainNameInput").value = "";
+  $("addDomainModal")?.classList.add("show");
+}
+
+async function saveNewDomainForm() {
+  const domainName = $("newDomainNameInput")?.value.trim();
+  if (!domainName) {
+    return notify("Domain name is required.", "error");
+  }
+
+  try {
+    const res = await leaderApi("/admin/domains", {
+      method: "POST",
+      body: JSON.stringify({ name: domainName })
+    });
+
+    notify(res.message || `Domain "${domainName}" added successfully!`);
+    $("addDomainModal")?.classList.remove("show");
+
+    if (res?.domains) {
+      window.DOMAINS = res.domains;
+    }
+    await loadDomains();
+    await renderAdminProjectsGrid();
+  } catch (err) {
+    notify(err.message, "error");
+  }
+}
+
 async function loadProjects() {
   try {
-    const res = await api("/projects");
-    if (res?.projects && res.projects.length) {
+    const isAdmin = state.role === "ADMIN" || Boolean(state.leaderToken);
+    const fetchFunc = isAdmin ? leaderApi : api;
+    const path = isAdmin ? "/projects?all=true" : "/projects";
+    const res = await fetchFunc(path);
+    if (res?.projects && Array.isArray(res.projects) && res.projects.length) {
       window.PROJECTS = res.projects;
     }
   } catch (err) {
@@ -343,13 +442,27 @@ async function loadProjects() {
 }
 
 async function renderAdminProjectsGrid() {
+  await loadDomains();
   await loadProjects();
   const grid = $("adminProjectsGrid");
   if (!grid) return;
 
   const isAdmin = state.role === "ADMIN" || Boolean(state.leaderToken);
+  const filterDomain = $("adminProjectDomainFilter")?.value || "";
 
-  grid.innerHTML = (window.PROJECTS || []).map(p => {
+  const normalize = s => String(s || "").trim().toLowerCase();
+
+  let projects = window.PROJECTS || [];
+  if (filterDomain) {
+    projects = projects.filter(p => normalize(p.domain || "Web Development") === normalize(filterDomain));
+  }
+
+  if (!projects.length) {
+    grid.innerHTML = `<div class="empty-notice" style="padding:24px;text-align:center;color:var(--muted);grid-column:1/-1">No projects found matching selected domain criteria.</div>`;
+    return;
+  }
+
+  grid.innerHTML = projects.map(p => {
     const statusBadgeClass = p.status === "inactive" ? "background:#fef3c7;color:#92400e" : "background:#dcfce7;color:#166534";
     const statusText = p.status === "inactive" ? "Inactive" : "Active";
 
@@ -358,12 +471,13 @@ async function renderAdminProjectsGrid() {
         <div>
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
             <span style="font-size:32px">${p.icon || "💻"}</span>
-            <div style="display:flex;gap:6px">
-              <span class="pill" style="font-size:11px">${p.level || "Intermediate"}</span>
+            <div style="display:flex;gap:4px;flex-wrap:wrap">
+              <span class="pill" style="font-size:11px;background:#e0f2fe;color:#0369a1">${p.domain || "Web Development"}</span>
+              <span class="pill" style="font-size:11px">${p.level || p.difficulty || "Intermediate"}</span>
               <span class="pill" style="font-size:11px;${statusBadgeClass}">${statusText}</span>
             </div>
           </div>
-          <h4 style="margin:0 0 6px;color:var(--navy);font-size:16px">${p.name}</h4>
+          <h4 style="margin:0 0 6px;color:var(--navy);font-size:16px">${p.name || p.title}</h4>
           <p class="muted" style="font-size:13px;line-height:1.4;margin:0 0 12px">${p.summary}</p>
           <div style="margin-bottom:12px">
             <small class="muted" style="display:block;margin-bottom:4px"><b>Stack:</b> ${p.stack || "Full Stack Web"}</small>
@@ -390,6 +504,7 @@ function openCreateProjectModal() {
   if ($("projFormIcon")) $("projFormIcon").value = "💻";
   if ($("projFormSummary")) $("projFormSummary").value = "";
   if ($("projFormDescription")) $("projFormDescription").value = "";
+  if ($("projFormDomain")) $("projFormDomain").value = "Web Development";
   if ($("projFormLevel")) $("projFormLevel").value = "Intermediate";
   if ($("projFormDuration")) $("projFormDuration").value = "4–6 Weeks";
   if ($("projFormStatus")) $("projFormStatus").value = "active";
@@ -406,18 +521,19 @@ function openEditProjectModal(projectId) {
   if (!p) return notify("Project not found.", "error");
 
   if ($("projFormId")) $("projFormId").value = p.id;
-  if ($("projFormName")) $("projFormName").value = p.name || "";
+  if ($("projFormName")) $("projFormName").value = p.name || p.title || "";
   if ($("projFormIcon")) $("projFormIcon").value = p.icon || "💻";
   if ($("projFormSummary")) $("projFormSummary").value = p.summary || "";
   if ($("projFormDescription")) $("projFormDescription").value = p.description || p.summary || "";
-  if ($("projFormLevel")) $("projFormLevel").value = p.level || "Intermediate";
+  if ($("projFormDomain")) $("projFormDomain").value = p.domain || "Web Development";
+  if ($("projFormLevel")) $("projFormLevel").value = p.level || p.difficulty || "Intermediate";
   if ($("projFormDuration")) $("projFormDuration").value = p.duration || "4–6 Weeks";
   if ($("projFormStatus")) $("projFormStatus").value = p.status || "active";
   if ($("projFormStack")) $("projFormStack").value = p.stack || "";
   if ($("projFormObjective")) $("projFormObjective").value = p.objective || "";
   if ($("projFormOutcomes")) $("projFormOutcomes").value = Array.isArray(p.outcomes) ? p.outcomes.join(", ") : (p.outcomes || "");
 
-  if ($("projectFormModalTitle")) $("projectFormModalTitle").textContent = `Edit Project: ${p.name}`;
+  if ($("projectFormModalTitle")) $("projectFormModalTitle").textContent = `Edit Project: ${p.name || p.title}`;
   $("projectFormModal")?.classList.add("show");
 }
 
@@ -428,7 +544,9 @@ async function saveProjectForm() {
     icon: $("projFormIcon")?.value.trim(),
     summary: $("projFormSummary")?.value.trim(),
     description: $("projFormDescription")?.value.trim(),
-    level: $("projFormLevel")?.value,
+    domain: $("projFormDomain")?.value || "Web Development",
+    level: $("projFormLevel")?.value || "Intermediate",
+    difficulty: $("projFormLevel")?.value || "Intermediate",
     duration: $("projFormDuration")?.value.trim(),
     status: $("projFormStatus")?.value,
     stack: $("projFormStack")?.value.trim(),
@@ -816,6 +934,7 @@ async function createStudentFromModal() {
     name: $("newStudentName").value.trim(),
     username: $("newStudentUsername").value.trim(),
     email: $("newStudentEmail").value.trim(),
+    domain: $("newStudentDomain")?.value || "Web Development",
     department: $("newStudentDept").value,
     year: $("newStudentYear").value,
     college: $("newStudentCollege").value.trim()
@@ -828,7 +947,7 @@ async function createStudentFromModal() {
       method: "POST",
       body: JSON.stringify(payload)
     });
-    notify(`Student account created for @${data.student.username}!`);
+    notify(`Student account created for @${data.student.username} (${data.student.domain})!`);
     ["newStudentName", "newStudentUsername", "newStudentEmail", "newStudentCollege"].forEach(id => $(id) && ($(id).value = ""));
     $("createStudentModal").classList.remove("show");
     await renderAdminDashboard();
@@ -843,6 +962,133 @@ function switchLoginMode(mode) {
   $("credsInfoPanel")?.classList.toggle("hidden", isUnified);
   $("singleLoginTab")?.classList.toggle("active", isUnified);
   $("credsInfoTab")?.classList.toggle("active", !isUnified);
+}
+
+async function renderSelection() {
+  if (state.token && !state.user) {
+    try { await loadMe(); } catch (e) {}
+  }
+  await loadProjects();
+
+  if ((state.user?.selectedProjects || []).length === 4) {
+    await renderDashboard();
+    show("dashboardView");
+    notify("Your four projects are already selected and locked.");
+    return;
+  }
+  state.selected = [];
+
+  const userDomain = state.user?.domain || "Web Development";
+  const normalize = s => String(s || "").trim().toLowerCase();
+
+  const domainProjects = (window.PROJECTS || []).filter(p => normalize(p.domain || "Web Development") === normalize(userDomain));
+
+  const container = $("selectionGrid");
+  if (!container) return;
+
+  if (!domainProjects.length) {
+    container.innerHTML = `
+      <div class="empty-notice" style="padding:32px;text-align:center;grid-column:1/-1;background:var(--card2);border:1px solid var(--border);border-radius:12px">
+        <h3 style="margin:0 0 8px;color:var(--navy)">No projects are currently available for your domain.</h3>
+        <p class="muted" style="margin:0">Assigned Domain: <b>${userDomain}</b>. Please contact your administrator to add projects for this domain.</p>
+      </div>
+    `;
+    updateSelect();
+    return;
+  }
+
+  container.innerHTML = domainProjects.map(p => `
+    <article class="panel project" id="selection-${p.id}">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span class="pill">${p.level || p.difficulty || 'Intermediate'}</span>
+        <span class="pill" style="background:#e0f2fe;color:#0369a1">${p.domain || 'Web Development'}</span>
+      </div>
+      <h3>${p.icon || '💻'} ${p.name || p.title}</h3>
+      <p class="muted">${p.summary}</p>
+      <label><input class="choose" type="checkbox" value="${p.id}"> Choose Project</label>
+    </article>`).join("");
+
+  document.querySelectorAll(".choose").forEach(box => box.onchange = () => pick(box));
+  updateSelect();
+}
+
+function pick(box) {
+  const checked = [...document.querySelectorAll(".choose:checked")];
+  if (box.checked && checked.length > 4) {
+    box.checked = false;
+    notify("You can select maximum 4 projects.", "error");
+  }
+  state.selected = [...document.querySelectorAll(".choose:checked")].map(x => x.value);
+  PROJECTS.forEach(p => $("selection-"+p.id)?.classList.toggle("selected", state.selected.includes(p.id)));
+  updateSelect();
+}
+
+function updateSelect() {
+  $("selectText").textContent = `${state.selected.length} of 4 selected`;
+  $("selectBar").style.width = `${state.selected.length/4*100}%`;
+}
+
+async function ensureCandidate() {
+  if (state.token) return true;
+  const name = prompt("Candidate name:", "Intern");
+  if (name === null) return false;
+  const email = prompt("Candidate email:", `intern-${Date.now()}@aparaitech.local`);
+  if (email === null) return false;
+  try {
+    const data = await api("/auth/login", {
+      method:"POST",
+      body:JSON.stringify({ name:name||"Intern", email:email||`intern-${Date.now()}@aparaitech.local`, college:"", password:"Aparaitech123@" })
+    });
+    state.token = data.token;
+    state.user = data.user;
+    localStorage.setItem("aprToken", state.token);
+    return true;
+  } catch (e) { notify(e.message,"error"); return false; }
+}
+
+async function saveSelection() {
+  if (state.selected.length !== 4) return notify("Select exactly 4 projects.","error");
+  if (!(await ensureCandidate())) return;
+  try {
+    const data = await api("/intern/selection", { method:"POST", body:JSON.stringify({ projectIds:state.selected }) });
+    state.user = data.user;
+    await renderDashboard();
+    show("dashboardView");
+    notify("Four projects saved. Project 1 is unlocked.");
+  } catch (e) { notify(e.message,"error"); }
+}
+
+async function loadMe() {
+  const data = await api("/intern/me");
+  state.user = data.user;
+  return data.user;
+}
+
+function formatTime(seconds) {
+  return `${Math.floor(seconds/3600)}h ${Math.floor((seconds%3600)/60)}m`;
+}
+
+function statusBadge(status) {
+  const label = (status || "locked").replaceAll("_"," ");
+  return `<span class="status-badge status-${status || "locked"}">${label}</span>`;
+}
+
+async function renderDashboard() {
+  const user = await loadMe();
+  const progress = user.progress || {};
+  $("welcome").textContent = `Welcome, ${user.name}`;
+  $("profileText").textContent = `${user.email}${user.college ? " · "+user.college : ""}`;
+
+  let completed=0, github=0, total=0, totalTime=0;
+  $("roadmap").innerHTML = user.selectedProjects.map((id,index) => {
+    const project = PROJECTS.find(p => p.id===id);
+    const item = progress[id] || {};
+    if (item.status==="completed") completed++;
+    if (item.githubUrl) github++;
+    total += item.percent || 0;
+    totalTime += item.timeSpentSeconds || 0;
+    return ``; // ... remainder of function
+  });
 }
 
 async function renderLeaderDashboard() {
@@ -946,86 +1192,6 @@ async function downloadExcelReport() {
 
 function leaderLogout() {
   logout();
-}
-
-
-
-function renderSelection() {
-  if ((state.user?.selectedProjects || []).length === 4) {
-    renderDashboard().then(() => show("dashboardView"));
-    notify("Your four projects are already selected and locked.");
-    return;
-  }
-  state.selected = [];
-  $("selectionGrid").innerHTML = PROJECTS.map(p => `
-    <article class="panel project" id="selection-${p.id}">
-      <span class="pill">${p.level}</span><h3>${p.icon} ${p.name}</h3>
-      <p class="muted">${p.summary}</p>
-      <label><input class="choose" type="checkbox" value="${p.id}"> Choose Project</label>
-    </article>`).join("");
-  document.querySelectorAll(".choose").forEach(box => box.onchange = () => pick(box));
-  updateSelect();
-}
-
-function pick(box) {
-  const checked = [...document.querySelectorAll(".choose:checked")];
-  if (box.checked && checked.length > 4) {
-    box.checked = false;
-    notify("You can select maximum 4 projects.", "error");
-  }
-  state.selected = [...document.querySelectorAll(".choose:checked")].map(x => x.value);
-  PROJECTS.forEach(p => $("selection-"+p.id)?.classList.toggle("selected", state.selected.includes(p.id)));
-  updateSelect();
-}
-
-function updateSelect() {
-  $("selectText").textContent = `${state.selected.length} of 4 selected`;
-  $("selectBar").style.width = `${state.selected.length/4*100}%`;
-}
-
-async function ensureCandidate() {
-  if (state.token) return true;
-  const name = prompt("Candidate name:", "Intern");
-  if (name === null) return false;
-  const email = prompt("Candidate email:", `intern-${Date.now()}@aparaitech.local`);
-  if (email === null) return false;
-  try {
-    const data = await api("/auth/login", {
-      method:"POST",
-      body:JSON.stringify({ name:name||"Intern", email:email||`intern-${Date.now()}@aparaitech.local`, college:"", password:"Aparaitech123@" })
-    });
-    state.token = data.token;
-    state.user = data.user;
-    localStorage.setItem("aprToken", state.token);
-    return true;
-  } catch (e) { notify(e.message,"error"); return false; }
-}
-
-async function saveSelection() {
-  if (state.selected.length !== 4) return notify("Select exactly 4 projects.","error");
-  if (!(await ensureCandidate())) return;
-  try {
-    const data = await api("/intern/selection", { method:"POST", body:JSON.stringify({ projectIds:state.selected }) });
-    state.user = data.user;
-    await renderDashboard();
-    show("dashboardView");
-    notify("Four projects saved. Project 1 is unlocked.");
-  } catch (e) { notify(e.message,"error"); }
-}
-
-async function loadMe() {
-  const data = await api("/intern/me");
-  state.user = data.user;
-  return data.user;
-}
-
-function formatTime(seconds) {
-  return `${Math.floor(seconds/3600)}h ${Math.floor((seconds%3600)/60)}m`;
-}
-
-function statusBadge(status) {
-  const label = (status || "locked").replaceAll("_"," ");
-  return `<span class="status-badge status-${status || "locked"}">${label}</span>`;
 }
 
 async function renderDashboard() {
@@ -2166,6 +2332,7 @@ window.addEventListener("beforeunload", () => {
 
 async function initApp() {
   initializeCameraWidget();
+  await loadDomains();
   const isLogged = Boolean(state.token || state.leaderToken);
   const role = state.role || (state.leaderToken ? "ADMIN" : (state.token ? "STUDENT" : ""));
 

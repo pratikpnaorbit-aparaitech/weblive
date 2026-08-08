@@ -1,8 +1,8 @@
 <!doctype html><html lang="en" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Aparaitech Advanced Intern Portal</title><link rel="stylesheet" href="assets/style.css"></head><body class="on-login-page">
-<div class="top"><strong>APARAITECH · Final Web Development Intern Documentation Portal</strong><div class="actions"><span id="backendStatus" class="status">Checking backend</span><button class="btn light" onclick="show('homeView')">Home</button><button id="navLoginBtn" class="btn light" onclick="show('loginView')">Login</button><button id="navStudentDashBtn" class="btn light hidden" onclick="show('dashboardView');renderDashboard();">Student Dashboard</button><button id="navAdminDashBtn" class="btn light hidden" onclick="show('adminView');renderAdminDashboard();">Admin Dashboard</button><button id="logoutBtn" class="btn light hidden" onclick="logout()">Logout</button></div></div>
-<header class="brand"><div class="brandin"><img class="logo" src="assets/aparaitech-logo.jpeg"><div><h1>APARAITECH SOFTWARE COMPANY</h1><p>First Explore 10 Projects · Choose 4 · Complete Chapters · Pass Quiz · Submit GitHub</p></div><div class="badge">3-Month Internship Platform</div></div></header>
+<div class="top"><strong id="topPortalTitle">APARAITECH · Intern Documentation Portal</strong><div class="actions"><span id="backendStatus" class="status">Checking backend</span><button class="btn light" onclick="show('homeView')">Home</button><button id="navLoginBtn" class="btn light" onclick="show('loginView')">Login</button><button id="navStudentDashBtn" class="btn light hidden" onclick="show('dashboardView');renderDashboard();">Student Dashboard</button><button id="navAdminDashBtn" class="btn light hidden" onclick="show('adminView');renderAdminDashboard();">Admin Dashboard</button><button id="logoutBtn" class="btn light hidden" onclick="logout()">Logout</button></div></div>
+<header class="brand"><div class="brandin"><img class="logo" src="assets/aparaitech-logo.jpeg"><div><h1>APARAITECH SOFTWARE COMPANY</h1><p id="brandSubtext">First Explore Projects · Choose 4 · Complete Chapters · Pass Quiz · Submit GitHub</p></div><div class="badge">3-Month Internship Platform</div></div></header>
 
-<section id="homeView" class="hidden"><div class="wrap"><section class="hero"><article class="panel"><h2>All 10 Web Development Projects</h2><p class="muted">Explore all projects and open documentation in Preview Mode. To save chapter completion, quiz results, calendar activity and tracked time, choose exactly 4 projects and use the tracked dashboard.</p><button class="btn primary" onclick="show('selectView');renderSelection()">Choose 4 Projects for Tracking</button></article><aside class="panel"><h3>Program</h3><p><b>10</b> available projects</p><p><b>4</b> projects to complete</p><p><b>16</b> professional chapters per project</p><p><b>Quiz + Timeline + Tracking</b></p></aside></section><div style="margin:14px 0"><input id="searchInput" class="input" placeholder="Search project, stack or level..."></div><section id="advancedHomeCards" class="advanced-home-cards">
+<section id="homeView" class="hidden"><div class="wrap"><section class="hero"><article class="panel"><h2 id="homeHeroHeading">APARAITECH Internship Program</h2><p id="homeHeroSubtext" class="muted">Welcome to your Internship Portal. To track your chapter completion, quiz results, work sessions, camera proofs, and time, click below to select your 4 projects.</p><button class="btn primary" onclick="show('selectView');renderSelection()">Choose 4 Projects for Tracking</button></article><aside class="panel"><h3>Program</h3><p><b id="homeStatAvailableCount">10</b> available projects</p><p><b>4</b> projects to complete</p><p><b>16</b> professional chapters per project</p><p><b>Quiz + Timeline + Tracking</b></p></aside></section><section id="advancedHomeCards" class="advanced-home-cards">
           <article class="feature-card">
             <span class="feature-icon">🔐</span>
             <div><b>One-Time Project Selection</b><p>Students choose four projects once. The choice screen never appears again.</p></div>
@@ -19,8 +19,7 @@
             <span class="feature-icon">🧭</span>
             <div><b>Sequential Learning</b><p>Only the first project is unlocked. The next project unlocks after completion.</p></div>
           </article>
-        </section>
-        <div id="homeGrid" class="grid"></div></div></section>
+        </section></div></section>
 
 
 <section id="loginView" class="login-landing-section">
@@ -257,9 +256,18 @@
             <div class="section-head">
               <div>
                 <h3>Available Internship Projects</h3>
-                <p class="muted" style="margin:2px 0 0">Create, edit, or remove industrial web development internship projects.</p>
+                <p class="muted" style="margin:2px 0 0">Create, edit, or remove internship projects across all domains.</p>
               </div>
-              <button class="btn success" type="button" onclick="openCreateProjectModal()">+ Add New Project</button>
+              <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+                <button class="btn primary" type="button" onclick="openAddDomainModal()">+ Add New Domain</button>
+                <button class="btn success" type="button" onclick="openCreateProjectModal()">+ Add New Project</button>
+              </div>
+            </div>
+            <div class="admin-filter-bar" style="margin-top:14px;display:flex;gap:10px;align-items:center">
+              <label style="font-size:13px;font-weight:600;color:var(--text)">Filter by Domain:</label>
+              <select id="adminProjectDomainFilter" class="input" style="max-width:280px" onchange="renderAdminProjectsGrid()">
+                <option value="">All Domains</option>
+              </select>
             </div>
             <div id="adminProjectsGrid" class="admin-projects-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-top:16px"></div>
           </div>
@@ -511,6 +519,15 @@
       <input id="newStudentName" class="input" placeholder="Full Student Name">
       <input id="newStudentUsername" class="input" placeholder="Unique Username">
       <input id="newStudentEmail" class="input" placeholder="Student Email Address">
+      <div>
+        <label class="form-label" style="font-size:12px;font-weight:600;display:block;margin-bottom:4px">Assign Student Domain *</label>
+        <select id="newStudentDomain" class="input">
+          <option value="Web Development">Web Development</option>
+          <option value="Cyber Security">Cyber Security</option>
+          <option value="Artificial Intelligence (AI/ML)">Artificial Intelligence (AI/ML)</option>
+          <option value="Cloud Computing">Cloud Computing</option>
+        </select>
+      </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <select id="newStudentDept" class="input">
           <option value="Computer Science">Computer Science</option>
@@ -528,6 +545,27 @@
       <p class="muted" style="margin:4px 0;font-size:12px">Default Password: <b>Aparitech123@</b></p>
       <button class="btn success" type="button" onclick="createStudentFromModal()">Create Account</button>
     </div>
+  </div>
+</div>
+
+<!-- ADD NEW DOMAIN MODAL -->
+<div id="addDomainModal" class="modal">
+  <div class="modalbox" style="max-width:480px;padding:24px 28px">
+    <div class="section-head">
+      <h3>Add New Internship Domain</h3>
+      <button class="btn outline" type="button" onclick="$('addDomainModal').classList.remove('show')">✕ Close</button>
+    </div>
+    <form onsubmit="saveNewDomainForm(); return false;" style="display:grid;gap:14px;margin-top:14px">
+      <div>
+        <label class="form-label">Domain Name *</label>
+        <input id="newDomainNameInput" class="input" placeholder="e.g. DevOps & Infrastructure" required>
+        <small class="muted" style="display:block;margin-top:6px;line-height:1.4">New domains will automatically appear in Student Domain Assignment, Project Creation, and Filter Dropdowns.</small>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:6px">
+        <button class="btn outline" type="button" onclick="$('addDomainModal').classList.remove('show')">Cancel</button>
+        <button class="btn success" type="submit">+ Save Domain</button>
+      </div>
+    </form>
   </div>
 </div>
 
@@ -558,21 +596,15 @@
     </div>
     <div class="attention-row">
       <span id="attentionIndicator" class="attention-dot idle"></span>
-      <span id="attentionText">Attention tracking inactive</span>
+      <span id="attentionStateLabel">Idle</span>
     </div>
-    <div class="camera-controls">
-      <button id="startCameraButton" class="btn primary" type="button">Start Camera</button>
-      <button id="startWorkButton" class="btn success" type="button" disabled>Start Work</button>
-      <button id="captureProofButton" class="btn outline" type="button" disabled>Capture Proof</button>
-      <button id="stopWorkButton" class="btn danger hidden" type="button">Stop Work</button>
-    </div>
-    <p class="camera-help">Camera permission works on localhost or HTTPS. Captured proof is stored in the backend.</p>
+    <button id="cameraToggleStream" class="btn primary btn-xs full-width" type="button">Start Camera</button>
   </div>
 </div>
 
 <!-- CREATE & EDIT PROJECT MODAL -->
 <div id="projectFormModal" class="modal">
-  <div class="modalbox" style="max-width:700px;padding:24px 28px">
+  <div class="modalbox" style="max-width:750px;padding:24px 28px">
     <div class="section-head">
       <h3 id="projectFormModalTitle">Create New Internship Project</h3>
       <button class="btn outline" type="button" onclick="$('projectFormModal').classList.remove('show')">✕ Close</button>
@@ -582,11 +614,11 @@
       <div style="display:grid;grid-template-columns:3fr 1fr;gap:10px">
         <div>
           <label class="form-label">Project Name *</label>
-          <input id="projFormName" class="input" placeholder="e.g. AI-Powered Billing System" required>
+          <input id="projFormName" class="input" placeholder="e.g. AI-Powered Security Log Analyzer" required>
         </div>
         <div>
           <label class="form-label">Icon (Emoji) *</label>
-          <input id="projFormIcon" class="input" placeholder="e.g. 🤖" required>
+          <input id="projFormIcon" class="input" placeholder="e.g. 🛡️" required>
         </div>
       </div>
       <div>
@@ -597,9 +629,18 @@
         <label class="form-label">Full Description</label>
         <textarea id="projFormDescription" class="input" style="height:70px" placeholder="Detailed project breakdown"></textarea>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px">
         <div>
-          <label class="form-label">Difficulty Level</label>
+          <label class="form-label">Domain *</label>
+          <select id="projFormDomain" class="input">
+            <option value="Web Development">Web Development</option>
+            <option value="Cyber Security">Cyber Security</option>
+            <option value="Artificial Intelligence (AI/ML)">Artificial Intelligence (AI/ML)</option>
+            <option value="Cloud Computing">Cloud Computing</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Difficulty Level *</label>
           <select id="projFormLevel" class="input">
             <option value="Beginner">Beginner</option>
             <option value="Intermediate">Intermediate</option>
@@ -613,8 +654,8 @@
         <div>
           <label class="form-label">Status</label>
           <select id="projFormStatus" class="input">
-            <option value="active">Active (Visible to Students)</option>
-            <option value="inactive">Inactive (Admin Only)</option>
+            <option value="active">Active (Visible)</option>
+            <option value="inactive">Inactive (Hidden)</option>
           </select>
         </div>
       </div>

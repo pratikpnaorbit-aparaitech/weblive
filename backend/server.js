@@ -56,6 +56,7 @@ if (MONGODB_URI) {
 
 app.use(cors());
 app.use(express.json({limit:"12mb"}));
+app.use(express.static(path.join(__dirname, "../frontend")));
 
 function hashPassword(password, salt){
   if(!salt) salt=crypto.randomBytes(16).toString("hex");
@@ -73,17 +74,38 @@ function verifyPassword(password, storedPassword){
   return password===storedPassword;
 }
 
+const DEFAULT_DOMAINS = [
+  "Web Development",
+  "Cyber Security",
+  "Artificial Intelligence (AI/ML)",
+  "Cloud Computing"
+];
+const DOMAINS = DEFAULT_DOMAINS;
+
 const DEFAULT_PROJECTS = [
-  { id: "cafe-billing", name: "Cafe Billing System", icon: "☕", level: "Intermediate", duration: "4–6 Weeks", stack: "React, Node.js, Express, MongoDB", summary: "Complete cafe POS, KOT, table ordering, billing, inventory, payments and reports.", modules: ["Authentication", "Dashboard", "Menu", "POS Billing", "Tables", "KOT", "Payments", "Inventory", "Customers", "Reports"], status: "active", difficulty: "Intermediate", objective: "Automate cafe operations & POS transactions.", outcomes: ["POS architecture", "Real-time orders", "KOT printing"], customChapters: [] },
-  { id: "multi-vendor", name: "Multi-Vendor E-Commerce Platform", icon: "🛍️", level: "Advanced", duration: "6–8 Weeks", stack: "React, Node.js, Express, MongoDB", summary: "Vendors, products, cart, checkout, commissions, returns and payouts.", modules: ["Vendors", "KYC", "Products", "Variants", "Cart", "Checkout", "Orders", "Commission", "Payouts", "Reviews"], status: "active", difficulty: "Advanced", objective: "Multi-tenant e-commerce platform.", outcomes: ["Vendor management", "Payout engine", "Cart & checkout"], customChapters: [] },
-  { id: "food-delivery", name: "Food Delivery & Restaurant Management", icon: "🍔", level: "Advanced", duration: "6–8 Weeks", stack: "React, Node.js, Express, MongoDB, Maps", summary: "Restaurants, ordering, delivery assignment, live tracking and settlements.", modules: ["Restaurants", "Menus", "Cart", "Orders", "Restaurant Panel", "Delivery", "Tracking", "Coupons", "Payments", "Settlements"], status: "active", difficulty: "Advanced", objective: "End-to-end food ordering platform.", outcomes: ["Geo-tracking", "Order dispatch", "Commission engine"], customChapters: [] },
-  { id: "hospital", name: "Hospital & Doctor Appointment System", icon: "🏥", level: "Intermediate", duration: "5–7 Weeks", stack: "React, Node.js, Express, MongoDB", summary: "Doctors, patients, schedules, appointments, prescriptions and billing.", modules: ["Patients", "Doctors", "Departments", "Schedules", "Appointments", "Medical Records", "Prescriptions", "Billing", "Notifications", "Reports"], status: "active", difficulty: "Intermediate", objective: "Clinical workflow & patient care booking.", outcomes: ["Doctor scheduling", "EHR records", "Prescription PDF"], customChapters: [] },
-  { id: "college", name: "College / Institute Management System", icon: "🎓", level: "Advanced", duration: "7–9 Weeks", stack: "React, Node.js, Express, MongoDB", summary: "Admissions, attendance, fees, exams, results, library and notices.", modules: ["Admissions", "Students", "Faculty", "Courses", "Attendance", "Timetable", "Fees", "Exams", "Results", "Library"], status: "active", difficulty: "Advanced", objective: "Higher education ERP platform.", outcomes: ["Course management", "Fee gateways", "Examination engine"], customChapters: [] },
-  { id: "job-portal", name: "Job Portal & Recruitment Management", icon: "💼", level: "Advanced", duration: "6–8 Weeks", stack: "React, Node.js, Express, MongoDB", summary: "Jobs, candidates, applications, interviews, feedback and offers.", modules: ["Candidates", "Employers", "Jobs", "Resume", "Applications", "Shortlisting", "Interviews", "Feedback", "Offers", "Analytics"], status: "active", difficulty: "Advanced", objective: "Recruitment & Applicant Tracking System (ATS).", outcomes: ["Resume parser", "Interview scheduler", "Job matching"], customChapters: [] },
-  { id: "real-estate", name: "Real Estate Property Platform", icon: "🏠", level: "Intermediate", duration: "5–7 Weeks", stack: "React, Node.js, Express, MongoDB, Maps", summary: "Properties, agents, enquiries, site visits, leads and bookings.", modules: ["Properties", "Agents", "Search", "Maps", "Enquiries", "Visits", "Lead CRM", "Bookings", "Documents", "Reports"], status: "active", difficulty: "Intermediate", objective: "Property listing & agent lead management.", outcomes: ["Map integration", "Lead CRM", "Virtual tours"], customChapters: [] },
-  { id: "agriculture", name: "Agriculture & Livestock Marketplace", icon: "🌾", level: "Advanced", duration: "7–9 Weeks", stack: "React, Node.js, Express, MongoDB", summary: "Farmers, buyers, crops, livestock, orders, payments and transport.", modules: ["Farmers", "Verification", "Crops", "Livestock", "Marketplace", "Orders", "Payments", "Transport", "Ratings", "Reports"], status: "active", difficulty: "Advanced", objective: "Direct B2B farm marketplace.", outcomes: ["Crop auctions", "Logistics mapping", "Escrow payments"], customChapters: [] },
-  { id: "inventory", name: "Inventory & Business Management", icon: "📦", level: "Advanced", duration: "6–8 Weeks", stack: "React, Node.js, Express, MongoDB", summary: "Purchases, sales, stock, suppliers, customers, expenses and reports.", modules: ["Products", "Categories", "Suppliers", "Customers", "Purchases", "Sales", "Stock Ledger", "Expenses", "Payments", "Reports"], status: "active", difficulty: "Advanced", objective: "Enterprise inventory & warehouse tracking.", outcomes: ["Stock auditing", "Purchase orders", "GST invoicing"], customChapters: [] },
-  { id: "employee-task", name: "Live Project & Employee Task Portal", icon: "✅", level: "Advanced", duration: "6–8 Weeks", stack: "React, Node.js, Express, MongoDB", summary: "Projects, employees, tasks, attendance, reports and performance.", modules: ["Employees", "Projects", "Tasks", "Task Updates", "Daily Reports", "Attendance", "Duty Tracking", "Approvals", "Notifications", "Performance"], status: "active", difficulty: "Advanced", objective: "Agile task management & employee portal.", outcomes: ["Kanban boards", "Timesheet tracking", "Sprint velocity"], customChapters: [] }
+  // --- WEB DEVELOPMENT DOMAIN ---
+  { id: "cafe-billing", name: "Cafe Billing System", title: "Cafe Billing System", icon: "☕", domain: "Web Development", level: "Intermediate", difficulty: "Intermediate", duration: "4–6 Weeks", stack: "React, Node.js, Express, MongoDB", summary: "Complete cafe POS, KOT, table ordering, billing, inventory, payments and reports.", modules: ["Authentication", "Dashboard", "Menu", "POS Billing", "Tables", "KOT", "Payments", "Inventory", "Customers", "Reports"], status: "active", objective: "Automate cafe operations & POS transactions.", outcomes: ["POS architecture", "Real-time orders", "KOT printing"], customChapters: [] },
+  { id: "multi-vendor", name: "Multi-Vendor E-Commerce Platform", title: "Multi-Vendor E-Commerce Platform", icon: "🛍️", domain: "Web Development", level: "Advanced", difficulty: "Advanced", duration: "6–8 Weeks", stack: "React, Node.js, Express, MongoDB", summary: "Vendors, products, cart, checkout, commissions, returns and payouts.", modules: ["Vendors", "KYC", "Products", "Variants", "Cart", "Checkout", "Orders", "Commission", "Payouts", "Reviews"], status: "active", objective: "Multi-tenant e-commerce platform.", outcomes: ["Vendor management", "Payout engine", "Cart & checkout"], customChapters: [] },
+  { id: "food-delivery", name: "Food Delivery & Restaurant Management", title: "Food Delivery & Restaurant Management", icon: "🍔", domain: "Web Development", level: "Advanced", difficulty: "Advanced", duration: "6–8 Weeks", stack: "React, Node.js, Express, MongoDB, Maps", summary: "Restaurants, ordering, delivery assignment, live tracking and settlements.", modules: ["Restaurants", "Menus", "Cart", "Orders", "Restaurant Panel", "Delivery", "Tracking", "Coupons", "Payments", "Settlements"], status: "active", objective: "End-to-end food ordering platform.", outcomes: ["Geo-tracking", "Order dispatch", "Commission engine"], customChapters: [] },
+  { id: "hospital", name: "Hospital & Doctor Appointment System", title: "Hospital & Doctor Appointment System", icon: "🏥", domain: "Web Development", level: "Intermediate", difficulty: "Intermediate", duration: "5–7 Weeks", stack: "React, Node.js, Express, MongoDB", summary: "Doctors, patients, schedules, appointments, prescriptions and billing.", modules: ["Patients", "Doctors", "Departments", "Schedules", "Appointments", "Medical Records", "Prescriptions", "Billing", "Notifications", "Reports"], status: "active", objective: "Clinical workflow & patient care booking.", outcomes: ["Doctor scheduling", "EHR records", "Prescription PDF"], customChapters: [] },
+  { id: "college", name: "College / Institute Management System", title: "College / Institute Management System", icon: "🎓", domain: "Web Development", level: "Advanced", difficulty: "Advanced", duration: "7–9 Weeks", stack: "React, Node.js, Express, MongoDB", summary: "Admissions, attendance, fees, exams, results, library and notices.", modules: ["Admissions", "Students", "Faculty", "Courses", "Attendance", "Timetable", "Fees", "Exams", "Results", "Library"], status: "active", objective: "Higher education ERP platform.", outcomes: ["Course management", "Fee gateways", "Examination engine"], customChapters: [] },
+  { id: "job-portal", name: "Job Portal & Recruitment Management", title: "Job Portal & Recruitment Management", icon: "💼", domain: "Web Development", level: "Advanced", difficulty: "Advanced", duration: "6–8 Weeks", stack: "React, Node.js, Express, MongoDB", summary: "Jobs, candidates, applications, interviews, feedback and offers.", modules: ["Candidates", "Employers", "Jobs", "Resume", "Applications", "Shortlisting", "Interviews", "Feedback", "Offers", "Analytics"], status: "active", objective: "Recruitment & Applicant Tracking System (ATS).", outcomes: ["Resume parser", "Interview scheduler", "Job matching"], customChapters: [] },
+  { id: "real-estate", name: "Real Estate Property Platform", title: "Real Estate Property Platform", icon: "🏠", domain: "Web Development", level: "Intermediate", difficulty: "Intermediate", duration: "5–7 Weeks", stack: "React, Node.js, Express, MongoDB, Maps", summary: "Properties, agents, enquiries, site visits, leads and bookings.", modules: ["Properties", "Agents", "Search", "Maps", "Enquiries", "Visits", "Lead CRM", "Bookings", "Documents", "Reports"], status: "active", objective: "Property listing & agent lead management.", outcomes: ["Map integration", "Lead CRM", "Virtual tours"], customChapters: [] },
+  { id: "agriculture", name: "Agriculture & Livestock Marketplace", title: "Agriculture & Livestock Marketplace", icon: "🌾", domain: "Web Development", level: "Advanced", difficulty: "Advanced", duration: "7–9 Weeks", stack: "React, Node.js, Express, MongoDB", summary: "Farmers, buyers, crops, livestock, orders, payments and transport.", modules: ["Farmers", "Verification", "Crops", "Livestock", "Marketplace", "Orders", "Payments", "Transport", "Ratings", "Reports"], status: "active", objective: "Direct B2B farm marketplace.", outcomes: ["Crop auctions", "Logistics mapping", "Escrow payments"], customChapters: [] },
+  { id: "inventory", name: "Inventory & Business Management", title: "Inventory & Business Management", icon: "📦", domain: "Web Development", level: "Advanced", difficulty: "Advanced", duration: "6–8 Weeks", stack: "React, Node.js, Express, MongoDB", summary: "Purchases, sales, stock, suppliers, customers, expenses and reports.", modules: ["Products", "Categories", "Suppliers", "Customers", "Purchases", "Sales", "Stock Ledger", "Expenses", "Payments", "Reports"], status: "active", objective: "Enterprise inventory & warehouse tracking.", outcomes: ["Stock auditing", "Purchase orders", "GST invoicing"], customChapters: [] },
+  { id: "employee-task", name: "Live Project & Employee Task Portal", title: "Live Project & Employee Task Portal", icon: "✅", domain: "Web Development", level: "Advanced", difficulty: "Advanced", duration: "6–8 Weeks", stack: "React, Node.js, Express, MongoDB", summary: "Projects, employees, tasks, attendance, reports and performance.", modules: ["Employees", "Projects", "Tasks", "Task Updates", "Daily Reports", "Attendance", "Duty Tracking", "Approvals", "Notifications", "Performance"], status: "active", objective: "Agile task management & employee portal.", outcomes: ["Kanban boards", "Timesheet tracking", "Sprint velocity"], customChapters: [] },
+
+  // --- CYBER SECURITY DOMAIN ---
+  { id: "cs-phishing-risk", name: "Phishing Awareness & Email Risk Detection System", title: "Phishing Awareness & Email Risk Detection System", icon: "🎣", domain: "Cyber Security", level: "Beginner", difficulty: "Beginner", duration: "4–6 Weeks", stack: "Node.js, Express, MongoDB, Cyber Security, NLP", summary: "Develop a web-based system that analyzes submitted email content for common phishing warning signs, generates an explainable risk score, and improves users' cybersecurity awareness.", description: "Develop a web-based system that analyzes submitted email content for common phishing warning signs, generates an explainable risk score, and improves users' cybersecurity awareness.", modules: ["Email Parsing", "Header Inspection", "Phishing Heuristics", "Risk Engine", "Educational Feedback", "Audit Logs"], status: "active", objective: "Analyze email content for phishing warning signs and generate explainable risk scores.", outcomes: ["Phishing pattern recognition", "Email header analysis", "Security awareness training"], customChapters: [] },
+  { id: "cs-password-safety", name: "Password Security & Account Safety System", title: "Password Security & Account Safety System", icon: "🔑", domain: "Cyber Security", level: "Beginner", difficulty: "Beginner", duration: "4–6 Weeks", stack: "React, Node.js, Express, Cryptography", summary: "Develop a security platform that evaluates password strength safely, validates password policies, promotes secure authentication practices, and provides account-security awareness.", description: "Develop a security platform that evaluates password strength safely, validates password policies, promotes secure authentication practices, and provides account-security awareness.", modules: ["Entropy Evaluator", "Pwned API Checker", "Policy Validator", "Security Advisor", "User Safety Dashboard"], status: "active", objective: "Safely evaluate password strength, validate policies, and promote account security.", outcomes: ["Entropy calculation", "Breach database checking", "Authentication security"], customChapters: [] },
+  { id: "cs-secure-upload", name: "Secure File Upload & Document Verification System", title: "Secure File Upload & Document Verification System", icon: "📁", domain: "Cyber Security", level: "Beginner", difficulty: "Beginner", duration: "4–6 Weeks", stack: "Node.js, Express, ClamAV, Crypto, MongoDB", summary: "Develop a secure file-management platform that validates uploaded documents, verifies file integrity, controls access, and maintains an audit history.", description: "Develop a secure file-management platform that validates uploaded documents, verifies file integrity, controls access, and maintains an audit history.", modules: ["MIME Type Inspection", "Malware Scanning", "SHA-256 Hashing", "Role Access Control", "Upload Audit Trails"], status: "active", objective: "Validate uploaded documents, verify integrity using cryptographic hashes, and log audit history.", outcomes: ["File signature verification", "Cryptographic hashing", "Malware scanning integration"], customChapters: [] },
+  { id: "cs-incident-response", name: "Cyber Security Incident Reporting & Response System", title: "Cyber Security Incident Reporting & Response System", icon: "🚨", domain: "Cyber Security", level: "Intermediate", difficulty: "Intermediate", duration: "5–7 Weeks", stack: "React, Node.js, Express, MongoDB", summary: "Develop a centralized platform where users can report security incidents and authorized security teams can classify, assign, investigate, track, and resolve them.", description: "Develop a centralized platform where users can report security incidents and authorized security teams can classify, assign, investigate, track, and resolve them.", modules: ["Incident Portal", "Severity Categorization", "SOC Assignment", "Investigation Timeline", "Resolution Workflows"], status: "active", objective: "Centralized incident intake, classification, assignment, and resolution tracking.", outcomes: ["Incident management lifecycle", "Threat classification", "SLA response tracking"], customChapters: [] },
+  { id: "cs-app-sec-monitor", name: "Web Application Security Monitoring System", title: "Web Application Security Monitoring System", icon: "🛡️", domain: "Cyber Security", level: "Intermediate", difficulty: "Intermediate", duration: "5–7 Weeks", stack: "React, Node.js, Express, MongoDB, Webhooks", summary: "Develop a defensive monitoring platform that analyzes authorized application logs, identifies unusual security-related events, generates alerts, and presents security analytics through a dashboard.", description: "Develop a defensive monitoring platform that analyzes authorized application logs, identifies unusual security-related events, generates alerts, and presents security analytics through a dashboard.", modules: ["Log Ingestion", "WAF Event Parser", "Anomaly Detection", "Real-Time Alerts", "Security Dashboard"], status: "active", objective: "Analyze application logs, detect anomalous security events, and present real-time security dashboards.", outcomes: ["Log parsing & correlation", "SIEM dashboard design", "Real-time threat alerting"], customChapters: [] },
+  { id: "cs-rbac-audit", name: "Role-Based Access Control & Audit Management System", title: "Role-Based Access Control & Audit Management System", icon: "🔐", domain: "Cyber Security", level: "Intermediate", difficulty: "Intermediate", duration: "5–7 Weeks", stack: "Node.js, Express, JWT, RBAC, MongoDB", summary: "Develop a centralized access-management platform that controls application features according to user roles and permissions while maintaining detailed audit records of sensitive activities.", description: "Develop a centralized access-management platform that controls application features according to user roles and permissions while maintaining detailed audit records of sensitive activities.", modules: ["Role & Permission Matrix", "JWT Token Claims", "Resource Guard", "Immutable Audit Logger", "Compliance Inspector"], status: "active", objective: "Control feature access using granular roles/permissions and maintain immutable audit trails.", outcomes: ["Granular RBAC design", "JWT claim verification", "Immutable audit logging"], customChapters: [] },
+  { id: "cs-soc-alert-triage", name: "SOC Security Event Monitoring & Alert Triage Platform", title: "SOC Security Event Monitoring & Alert Triage Platform", icon: "📊", domain: "Cyber Security", level: "Advanced", difficulty: "Advanced", duration: "6–8 Weeks", stack: "React, Node.js, Express, WebSockets, MongoDB", summary: "Develop a Security Operations Center platform that processes authorized or simulated security events, applies detection rules, prioritizes alerts, and supports analyst investigation and incident management.", description: "Develop a Security Operations Center platform that processes authorized or simulated security events, applies detection rules, prioritizes alerts, and supports analyst investigation and incident management.", modules: ["Event Stream Processing", "Rule Engine", "Alert Triage Queue", "Analyst Workbench", "Incident Case Builder"], status: "active", objective: "Process security event telemetry, execute rule engines, prioritize alerts, and manage SOC workflows.", outcomes: ["SIEM/SOC architecture", "Alert correlation rules", "Analyst workflow optimization"], customChapters: [] },
+  { id: "cs-ai-log-analysis", name: "AI-Assisted Cyber Security Log Analysis System", title: "AI-Assisted Cyber Security Log Analysis System", icon: "🤖", domain: "Cyber Security", level: "Advanced", difficulty: "Advanced", duration: "6–8 Weeks", stack: "React, Node.js, Express, TensorFlow/ML, MongoDB", summary: "Develop an AI-assisted defensive security platform that analyzes authorized security logs, identifies unusual patterns, summarizes alerts, calculates explainable risk scores, and assists analysts with incident investigation.", description: "Develop an AI-assisted defensive security platform that analyzes authorized security logs, identifies unusual patterns, summarizes alerts, calculates explainable risk scores, and assists analysts with incident investigation.", modules: ["Security Log Collector", "ML Anomaly Detector", "Risk Scoring Engine", "AI Summary Generator", "Analyst Copilot"], status: "active", objective: "AI-driven log analysis, anomaly detection, explainable risk scoring, and threat summarization.", outcomes: ["Machine learning anomaly detection", "Explainable AI risk scoring", "Automated threat intelligence"], customChapters: [] },
+  { id: "cs-zerotrust-compliance", name: "Zero-Trust Access & Device Compliance Management System", title: "Zero-Trust Access & Device Compliance Management System", icon: "🛡️", domain: "Cyber Security", level: "Advanced", difficulty: "Advanced", duration: "6–8 Weeks", stack: "React, Node.js, Express, Certificate Auth, MongoDB", summary: "Develop a zero-trust security platform that evaluates identity, roles, session context, and device-compliance signals before granting access to protected organizational resources.", description: "Develop a zero-trust security platform that evaluates identity, roles, session context, and device-compliance signals before granting access to protected organizational resources.", modules: ["Identity Evaluator", "Device Telemetry Inspector", "Contextual Policy Engine", "Adaptive Auth Gateway", "Access Audit Log"], status: "active", objective: "Evaluate identity, session context, and device compliance signals continuously before granting access.", outcomes: ["Zero-trust architecture", "Device posture verification", "Adaptive authentication"], customChapters: [] },
+  { id: "cs-threat-intel-command", name: "Enterprise Cyber Security Incident Command & Threat Intelligence Platform", title: "Enterprise Cyber Security Incident Command & Threat Intelligence Platform", icon: "⚔️", domain: "Cyber Security", level: "Advanced", difficulty: "Advanced", duration: "7–9 Weeks", stack: "React, Node.js, Express, STIX/TAXII, MongoDB", summary: "Develop an enterprise security platform that integrates authorized security events, threat-intelligence records, assets, alerts, incidents, investigation workflows, response activities, and management reporting.", description: "Develop an enterprise security platform that integrates authorized security events, threat-intelligence records, assets, alerts, incidents, investigation workflows, response activities, and management reporting.", modules: ["Threat Intel Feeds", "Asset Inventory", "Incident Command Center", "Playbook Execution Engine", "Executive Threat Metrics"], status: "active", objective: "Integrate threat intelligence feeds, asset inventories, automated playbooks, and incident command metrics.", outcomes: ["Threat intelligence feeds (STIX/TAXII)", "Automated SOAR playbooks", "Executive security reporting"], customChapters: [] }
 ];
 
 const DEFAULT_CHAPTER_TITLES = [
@@ -569,10 +591,34 @@ function read(){
   try{
     const db = JSON.parse(fs.readFileSync(FILE,"utf8"));
     db.notes = Array.isArray(db.notes) ? db.notes : [];
-    db.projects = Array.isArray(db.projects) && db.projects.length ? db.projects : DEFAULT_PROJECTS;
+    db.projects = Array.isArray(db.projects) && db.projects.length ? db.projects : [...DEFAULT_PROJECTS];
     db.documentation = Array.isArray(db.documentation) ? db.documentation : [];
+    db.domains = Array.isArray(db.domains) && db.domains.length ? db.domains : [...DEFAULT_DOMAINS];
+
+    DEFAULT_DOMAINS.forEach(d => {
+      if (!db.domains.includes(d)) db.domains.push(d);
+    });
+
+    DEFAULT_PROJECTS.forEach(defP => {
+      let existing = db.projects.find(p => p.id === defP.id);
+      if (!existing) {
+        db.projects.push({ ...defP });
+      } else {
+        if (defP.domain) {
+          existing.domain = defP.domain;
+        }
+        if (defP.level) {
+          existing.level = defP.level;
+          existing.difficulty = defP.level;
+        }
+      }
+    });
 
     db.projects.forEach(p => {
+      p.domain = p.domain || "Web Development";
+      p.level = p.level || p.difficulty || "Intermediate";
+      p.difficulty = p.difficulty || p.level || "Intermediate";
+
       let doc = db.documentation.find(d => d.projectId === p.id);
       if (!doc) {
         doc = getDefaultDocumentationForProject(p);
@@ -580,11 +626,13 @@ function read(){
       }
     });
 
+    (db.users || []).forEach(u => normalizeUser(u));
+
     return db;
   }
   catch{
     const defaultDoc = DEFAULT_PROJECTS.map(p => getDefaultDocumentationForProject(p));
-    return {users:[], leaders:[], auditLogs:[], notes:[], projects: DEFAULT_PROJECTS, documentation: defaultDoc};
+    return {users:[], leaders:[], auditLogs:[], notes:[], projects: DEFAULT_PROJECTS, domains: DEFAULT_DOMAINS, documentation: defaultDoc};
   }
 }
 function write(db){
@@ -593,6 +641,7 @@ function write(db){
   db.auditLogs=Array.isArray(db.auditLogs)?db.auditLogs:[];
   db.notes=Array.isArray(db.notes)?db.notes:[];
   db.projects=Array.isArray(db.projects)?db.projects:DEFAULT_PROJECTS;
+  db.domains=Array.isArray(db.domains)&&db.domains.length?db.domains:DEFAULT_DOMAINS;
   db.documentation=Array.isArray(db.documentation)?db.documentation:[];
   fs.writeFileSync(FILE,JSON.stringify(db,null,2));
   queueExcelReport(db);
@@ -823,6 +872,7 @@ function normalizeUser(u){
   u.role=u.role||"STUDENT";
   u.department=u.department||"Computer Science";
   u.year=u.year||"Final Year";
+  u.domain=u.domain||"Web Development";
   u.selectedProjects=Array.isArray(u.selectedProjects)?u.selectedProjects:[];
   u.progress=u.progress&&typeof u.progress==="object"?u.progress:{};
   u.dailyActivity=u.dailyActivity&&typeof u.dailyActivity==="object"?u.dailyActivity:{};
@@ -939,7 +989,7 @@ app.post("/api/auth/leader-login",(req,res)=>{
 });
 
 app.post("/api/auth/login",(req,res)=>{
-  const{login,username,email,password,name,college=""}=req.body||{};
+  const{login,username,email,password,name,college="",domain=""}=req.body||{};
   const userQuery = String(login || username || email || "").trim();
 
   // If candidate quick register fallback without password
@@ -947,10 +997,11 @@ app.post("/api/auth/login",(req,res)=>{
     const db=read(),normalized=(email||login).toLowerCase().trim();
     let u=db.users.find(x=>x.email===normalized || x.username===normalized || x.name===normalized);
     if(!u){
-      u={id:"usr_"+Date.now(),name:name?name.trim():"Intern",email:normalized,username:normalized.split("@")[0],password:hashPassword(STUDENT_DEFAULT_PASSWORD),college:college.trim(),selectedProjects:[],progress:{},dailyActivity:{},createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
+      u={id:"usr_"+Date.now(),name:name?name.trim():"Intern",email:normalized,username:normalized.split("@")[0],password:hashPassword(STUDENT_DEFAULT_PASSWORD),domain:domain.trim()||"Web Development",college:college.trim(),selectedProjects:[],progress:{},dailyActivity:{},createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
       db.users.push(u);log(db,u.id,"CANDIDATE_CREATED");
     } else {
       if(name) u.name=name.trim();
+      if(domain) u.domain=domain.trim();
       u.updatedAt=new Date().toISOString();log(db,u.id,"LOGIN");
     }
     normalizeUser(u);write(db);
@@ -1053,7 +1104,7 @@ app.post("/api/auth/login",(req,res)=>{
 });
 
 app.post("/api/leader/students",leaderAuth,(req,res)=>{
-  const{name,username,email="",college="",department="Computer Science",year="Final Year"}=req.body||{};
+  const{name,username,email="",college="",department="Computer Science",year="Final Year",domain="Web Development"}=req.body||{};
   if(!name||!username)return res.status(400).json({message:"Student name and username are required."});
   const db=read();
   db.users=Array.isArray(db.users)?db.users:[];
@@ -1066,6 +1117,7 @@ app.post("/api/leader/students",leaderAuth,(req,res)=>{
     username:String(username).trim(),
     password:hashPassword(STUDENT_DEFAULT_PASSWORD),
     email:String(email).trim().toLowerCase(),
+    domain:String(domain||"Web Development").trim(),
     college:String(college).trim(),
     department:String(department).trim(),
     year:String(year).trim(),
@@ -1578,20 +1630,95 @@ app.get("/api/admin/candidates",(req,res)=>{
 
 // PROJECT MANAGEMENT API ENDPOINTS
 
-// 1. Get all projects (public for students, full list for admins)
+// 1. Get all projects (secure domain-filtered for students, full list for admins & public domain view)
 app.get("/api/projects", (req, res) => {
   const db = read();
   let list = db.projects || DEFAULT_PROJECTS;
-  const isLeader = req.headers["authorization"] && req.headers["authorization"].includes("Bearer");
-  if (!isLeader) {
-    list = list.filter(p => p.status !== "inactive");
+
+  const normalizeDomain = (d) => String(d || "").trim().toLowerCase();
+
+  let token = null;
+  const authHeader = req.headers["authorization"];
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    token = authHeader.split(" ")[1];
   }
-  res.json({ projects: list });
+
+  let userDomain = null;
+  let isAdmin = false;
+
+  if (req.headers["x-admin-password"] === PASSWORD || req.headers["authorization"] === `Bearer ${PASSWORD}`) {
+    isAdmin = true;
+  }
+
+  if (token && !isAdmin) {
+    try {
+      const decoded = jwt.verify(token, SECRET);
+      if (decoded.role === "ADMIN" || decoded.leaderId) {
+        isAdmin = true;
+      } else if (decoded.userId) {
+        const user = db.users.find(u => u.id === decoded.userId);
+        if (user) {
+          if (user.role === "ADMIN") {
+            isAdmin = true;
+          } else {
+            userDomain = user.domain || "Web Development";
+          }
+        }
+      }
+    } catch (e) {
+      // Invalid or expired token
+    }
+  }
+
+  const requestedDomain = req.query.domain;
+  const showAll = req.query.all === "true" || isAdmin;
+
+  if (!showAll) {
+    // Non-admin / student call: only active projects for the student's assigned domain
+    list = list.filter(p => p.status !== "inactive");
+    const effectiveDomain = userDomain || requestedDomain || "Web Development";
+    list = list.filter(p => normalizeDomain(p.domain || "Web Development") === normalizeDomain(effectiveDomain));
+  } else if (requestedDomain && String(requestedDomain).trim() !== "") {
+    // Admin with domain filter
+    list = list.filter(p => normalizeDomain(p.domain || "Web Development") === normalizeDomain(requestedDomain));
+  }
+
+  res.json({ projects: list, userDomain: userDomain || requestedDomain || null, isAdmin });
+});
+
+// DOMAIN MANAGEMENT API ENDPOINTS
+app.get("/api/domains", (req, res) => {
+  const db = read();
+  res.json({ domains: db.domains || DEFAULT_DOMAINS });
+});
+
+app.post("/api/admin/domains", adminAuth, (req, res) => {
+  const { name, domainName } = req.body || {};
+  const newDomain = String(name || domainName || "").trim();
+
+  if (!newDomain) {
+    return res.status(400).json({ message: "Domain name is required." });
+  }
+
+  const db = read();
+  db.domains = Array.isArray(db.domains) && db.domains.length ? db.domains : [...DEFAULT_DOMAINS];
+
+  const norm = s => String(s || "").trim().toLowerCase();
+  const exists = db.domains.some(d => norm(d) === norm(newDomain));
+  if (exists) {
+    return res.status(409).json({ message: `Domain "${newDomain}" already exists.`, domains: db.domains });
+  }
+
+  db.domains.push(newDomain);
+  log(db, req.admin.username || "admin", "ADMIN_CREATE_DOMAIN", { domain: newDomain });
+  write(db);
+
+  res.json({ message: `New domain "${newDomain}" added successfully.`, domain: newDomain, domains: db.domains });
 });
 
 // 2. Admin: Add New Project
 app.post("/api/admin/projects", adminAuth, (req, res) => {
-  const { name, icon, summary, description, level, duration, stack, modules, status, difficulty, objective, outcomes } = req.body || {};
+  const { name, icon, summary, description, domain, level, duration, stack, modules, status, difficulty, objective, outcomes } = req.body || {};
   if (!name || !summary) {
     return res.status(400).json({ message: "Project Name and Summary are required." });
   }
@@ -1605,15 +1732,17 @@ app.post("/api/admin/projects", adminAuth, (req, res) => {
   const newProject = {
     id,
     name,
+    title: name,
     icon: icon || "💻",
+    domain: domain || "Web Development",
     summary,
     description: description || summary,
-    level: level || "Intermediate",
+    level: level || difficulty || "Intermediate",
+    difficulty: difficulty || level || "Intermediate",
     duration: duration || "4–6 Weeks",
     stack: stack || "React, Node.js, Express, MongoDB",
     modules: Array.isArray(modules) ? modules : (modules ? String(modules).split(",").map(s=>s.trim()) : ["Overview", "Authentication", "Dashboard", "Modules", "Testing", "Deployment"]),
     status: status || "active",
-    difficulty: difficulty || level || "Intermediate",
     objective: objective || "Build production-grade web application module.",
     outcomes: Array.isArray(outcomes) ? outcomes : (outcomes ? String(outcomes).split(",").map(s=>s.trim()) : ["Full-stack architecture", "REST API integration"]),
     customChapters: [],
@@ -1622,7 +1751,7 @@ app.post("/api/admin/projects", adminAuth, (req, res) => {
   };
 
   db.projects.push(newProject);
-  log(db, req.admin.username || "admin", "ADMIN_CREATE_PROJECT", { projectId: id, name });
+  log(db, req.admin.username || "admin", "ADMIN_CREATE_PROJECT", { projectId: id, name, domain: newProject.domain });
   write(db);
   res.json({ message: "New project created successfully.", project: newProject });
 });
@@ -1639,24 +1768,25 @@ app.put("/api/admin/projects/:id", adminAuth, (req, res) => {
   }
 
   const p = db.projects[projectIndex];
-  const { name, icon, summary, description, level, duration, stack, modules, status, difficulty, objective, outcomes, customChapters } = req.body || {};
+  const { name, icon, summary, description, domain, level, duration, stack, modules, status, difficulty, objective, outcomes, customChapters } = req.body || {};
 
-  if (name) p.name = name;
+  if (name) { p.name = name; p.title = name; }
   if (icon) p.icon = icon;
+  if (domain) p.domain = domain;
   if (summary) p.summary = summary;
   if (description !== undefined) p.description = description;
-  if (level) p.level = level;
+  if (level) { p.level = level; p.difficulty = level; }
+  if (difficulty) { p.difficulty = difficulty; p.level = difficulty; }
   if (duration) p.duration = duration;
   if (stack) p.stack = stack;
   if (status) p.status = status;
-  if (difficulty) p.difficulty = difficulty;
   if (objective) p.objective = objective;
   if (modules !== undefined) p.modules = Array.isArray(modules) ? modules : String(modules).split(",").map(s=>s.trim());
   if (outcomes !== undefined) p.outcomes = Array.isArray(outcomes) ? outcomes : String(outcomes).split(",").map(s=>s.trim());
   if (customChapters !== undefined) p.customChapters = customChapters;
   p.updatedAt = new Date().toISOString();
 
-  log(db, req.admin.username || "admin", "ADMIN_UPDATE_PROJECT", { projectId: id });
+  log(db, req.admin.username || "admin", "ADMIN_UPDATE_PROJECT", { projectId: id, domain: p.domain });
   write(db);
   res.json({ message: "Project updated successfully.", project: p });
 });
