@@ -2,8 +2,7 @@
 "use strict";
 
 const API = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || !window.location.hostname)
-  ? "https://weblive-qvzp.onrender.com/api"
-  : "/api";
+  ? "https://weblive-qvzp.onrender.com/api";
 const $ = id => document.getElementById(id);
 const state = {
   token: localStorage.getItem("aprToken") || "",
