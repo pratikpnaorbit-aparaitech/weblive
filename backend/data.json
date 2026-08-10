@@ -59,6 +59,33 @@
         "username": "krushna1"
       },
       "createdAt": "2026-08-10T06:46:16.363Z"
+    },
+    {
+      "id": "log_1786344697878_hrldx",
+      "userId": "leader_default",
+      "action": "ADMIN_LOGIN",
+      "details": {
+        "username": "teamleader"
+      },
+      "createdAt": "2026-08-10T06:51:37.878Z"
+    },
+    {
+      "id": "log_1786344739771_3909k",
+      "userId": "usr_1786344357964",
+      "action": "STUDENT_LOGIN",
+      "details": {
+        "username": "krushna1"
+      },
+      "createdAt": "2026-08-10T06:52:19.771Z"
+    },
+    {
+      "id": "log_1786351368471_daa4h",
+      "userId": "usr_1786344357964",
+      "action": "STUDENT_LOGIN",
+      "details": {
+        "username": "krushna1"
+      },
+      "createdAt": "2026-08-10T08:42:48.471Z"
     }
   ],
   "leaders": [
@@ -75,7 +102,7 @@
       "id": "cafe-billing",
       "name": "Cafe Billing System",
       "icon": "☕",
-      "level": "Intermediate",
+      "level": "Easy",
       "duration": "4–6 Weeks",
       "stack": "React, Node.js, Express, MongoDB",
       "summary": "Complete cafe POS, KOT, table ordering, billing, inventory, payments and reports.",
@@ -92,7 +119,7 @@
         "Reports"
       ],
       "status": "active",
-      "difficulty": "Intermediate",
+      "difficulty": "Easy",
       "objective": "Automate cafe operations & POS transactions.",
       "outcomes": [
         "POS architecture",
@@ -106,7 +133,7 @@
       "id": "multi-vendor",
       "name": "Multi-Vendor E-Commerce Platform",
       "icon": "🛍️",
-      "level": "Advanced",
+      "level": "Easy",
       "duration": "6–8 Weeks",
       "stack": "React, Node.js, Express, MongoDB",
       "summary": "Vendors, products, cart, checkout, commissions, returns and payouts.",
@@ -123,7 +150,7 @@
         "Reviews"
       ],
       "status": "active",
-      "difficulty": "Advanced",
+      "difficulty": "Easy",
       "objective": "Multi-tenant e-commerce platform.",
       "outcomes": [
         "Vendor management",
@@ -137,7 +164,7 @@
       "id": "food-delivery",
       "name": "Food Delivery & Restaurant Management",
       "icon": "🍔",
-      "level": "Advanced",
+      "level": "Easy",
       "duration": "6–8 Weeks",
       "stack": "React, Node.js, Express, MongoDB, Maps",
       "summary": "Restaurants, ordering, delivery assignment, live tracking and settlements.",
@@ -154,7 +181,7 @@
         "Settlements"
       ],
       "status": "active",
-      "difficulty": "Advanced",
+      "difficulty": "Easy",
       "objective": "End-to-end food ordering platform.",
       "outcomes": [
         "Geo-tracking",
@@ -199,7 +226,7 @@
       "id": "college",
       "name": "College / Institute Management System",
       "icon": "🎓",
-      "level": "Advanced",
+      "level": "Intermediate",
       "duration": "7–9 Weeks",
       "stack": "React, Node.js, Express, MongoDB",
       "summary": "Admissions, attendance, fees, exams, results, library and notices.",
@@ -216,7 +243,7 @@
         "Library"
       ],
       "status": "active",
-      "difficulty": "Advanced",
+      "difficulty": "Intermediate",
       "objective": "Higher education ERP platform.",
       "outcomes": [
         "Course management",
@@ -230,7 +257,7 @@
       "id": "job-portal",
       "name": "Job Portal & Recruitment Management",
       "icon": "💼",
-      "level": "Advanced",
+      "level": "Intermediate",
       "duration": "6–8 Weeks",
       "stack": "React, Node.js, Express, MongoDB",
       "summary": "Jobs, candidates, applications, interviews, feedback and offers.",
@@ -247,7 +274,7 @@
         "Analytics"
       ],
       "status": "active",
-      "difficulty": "Advanced",
+      "difficulty": "Intermediate",
       "objective": "Recruitment & Applicant Tracking System (ATS).",
       "outcomes": [
         "Resume parser",
@@ -261,7 +288,7 @@
       "id": "real-estate",
       "name": "Real Estate Property Platform",
       "icon": "🏠",
-      "level": "Intermediate",
+      "level": "Advanced",
       "duration": "5–7 Weeks",
       "stack": "React, Node.js, Express, MongoDB, Maps",
       "summary": "Properties, agents, enquiries, site visits, leads and bookings.",
@@ -278,7 +305,7 @@
         "Reports"
       ],
       "status": "active",
-      "difficulty": "Intermediate",
+      "difficulty": "Advanced",
       "objective": "Property listing & agent lead management.",
       "outcomes": [
         "Map integration",
@@ -387,8 +414,8 @@
       "title": "Phishing Awareness & Email Risk Detection System",
       "icon": "🎣",
       "domain": "Cyber Security",
-      "level": "Beginner",
-      "difficulty": "Beginner",
+      "level": "Easy",
+      "difficulty": "Easy",
       "duration": "4–6 Weeks",
       "stack": "Node.js, Express, MongoDB, Cyber Security, NLP",
       "summary": "Develop a web-based system that analyzes submitted email content for common phishing warning signs, generates an explainable risk score, and improves users' cybersecurity awareness.",
@@ -416,8 +443,8 @@
       "title": "Password Security & Account Safety System",
       "icon": "🔑",
       "domain": "Cyber Security",
-      "level": "Beginner",
-      "difficulty": "Beginner",
+      "level": "Easy",
+      "difficulty": "Easy",
       "duration": "4–6 Weeks",
       "stack": "React, Node.js, Express, Cryptography",
       "summary": "Develop a security platform that evaluates password strength safely, validates password policies, promotes secure authentication practices, and provides account-security awareness.",
@@ -444,8 +471,8 @@
       "title": "Secure File Upload & Document Verification System",
       "icon": "📁",
       "domain": "Cyber Security",
-      "level": "Beginner",
-      "difficulty": "Beginner",
+      "level": "Easy",
+      "difficulty": "Easy",
       "duration": "4–6 Weeks",
       "stack": "Node.js, Express, ClamAV, Crypto, MongoDB",
       "summary": "Develop a secure file-management platform that validates uploaded documents, verifies file integrity, controls access, and maintains an audit history.",
@@ -670,8 +697,8 @@
       "domain": "DevOps & Infrastructure",
       "summary": "Automated CI/CD pipeline project for DevOps domain.",
       "description": "Automated CI/CD pipeline project for DevOps domain.",
-      "level": "Intermediate",
-      "difficulty": "Intermediate",
+      "level": "Easy",
+      "difficulty": "Easy",
       "duration": "4–6 Weeks",
       "stack": "Docker, Kubernetes, Jenkins, GitHub Actions",
       "modules": [
