@@ -2,7 +2,7 @@
 "use strict";
 
 const API = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
-  ? (window.location.port === "5000" ? "/api" : "http://localhost:5000/api")
+  ? (window.location.port === "5000" ? "/api" : "https://weblive-qvzp.onrender.com/api")
   : "/api";
 const $ = id => document.getElementById(id);
 const state = {
@@ -2255,6 +2255,11 @@ async function startWorkCamera() {
     document.getElementById("startCameraButton").textContent = "Stop Camera";
     document.getElementById("startWorkButton").disabled = false;
     document.getElementById("captureProofButton").disabled = false;
+    const pauseBtn = document.getElementById("pauseCameraButton");
+    if (pauseBtn) {
+      pauseBtn.disabled = false;
+      pauseBtn.textContent = "Pause Camera";
+    }
     await initializeAttentionDetector();
     notify("Camera started.");
   } catch (error) {
@@ -2268,11 +2273,20 @@ function stopWorkCamera() {
   const video = document.getElementById("workCameraVideo");
   video.srcObject = null;
   video.style.display = "none";
-  document.getElementById("cameraPlaceholder").classList.remove("hidden");
+  const placeholder = document.getElementById("cameraPlaceholder");
+  if (placeholder) {
+    placeholder.classList.remove("hidden");
+    placeholder.textContent = "Camera preview";
+  }
   document.getElementById("cameraStatus").textContent = "Camera stopped";
   document.getElementById("startCameraButton").textContent = "Start Camera";
   document.getElementById("startWorkButton").disabled = true;
   document.getElementById("captureProofButton").disabled = true;
+  const pauseBtn = document.getElementById("pauseCameraButton");
+  if (pauseBtn) {
+    pauseBtn.disabled = true;
+    pauseBtn.textContent = "Pause Camera";
+  }
   stopAttentionChecks();
 }
 
@@ -2282,6 +2296,35 @@ async function toggleWorkCamera() {
     stopWorkCamera();
   } else {
     await startWorkCamera();
+  }
+}
+
+function toggleCameraPause() {
+  if (!cameraState.stream) return;
+  const videoTrack = cameraState.stream.getVideoTracks()[0];
+  if (videoTrack) {
+    videoTrack.enabled = !videoTrack.enabled;
+    const isPaused = !videoTrack.enabled;
+    
+    const pauseBtn = document.getElementById("pauseCameraButton");
+    if (pauseBtn) pauseBtn.textContent = isPaused ? "Resume Camera" : "Pause Camera";
+
+    const status = document.getElementById("cameraStatus");
+    if (status) status.textContent = isPaused ? "Camera paused" : "Work session active";
+
+    const placeholder = document.getElementById("cameraPlaceholder");
+    const video = document.getElementById("workCameraVideo");
+    
+    if (isPaused) {
+      if (video) video.style.display = "none";
+      if (placeholder) {
+        placeholder.classList.remove("hidden");
+        placeholder.textContent = "Camera paused";
+      }
+    } else {
+      if (video) video.style.display = "block";
+      if (placeholder) placeholder.classList.add("hidden");
+    }
   }
 }
 
@@ -2432,10 +2475,21 @@ function initializeCameraWidget() {
     if (event.target.closest("button")) return;
     togglePanel();
   };
-  document.getElementById("startCameraButton").onclick = toggleWorkCamera;
-  document.getElementById("startWorkButton").onclick = startCameraWorkSession;
-  document.getElementById("captureProofButton").onclick = () => captureCameraProof("manual");
-  document.getElementById("stopWorkButton").onclick = stopCameraWorkSession;
+  const startBtn = document.getElementById("startCameraButton");
+  if (startBtn) startBtn.onclick = toggleWorkCamera;
+
+  const pauseBtn = document.getElementById("pauseCameraButton");
+  if (pauseBtn) pauseBtn.onclick = toggleCameraPause;
+
+  const startWorkBtn = document.getElementById("startWorkButton");
+  if (startWorkBtn) startWorkBtn.onclick = startCameraWorkSession;
+
+  const captureBtn = document.getElementById("captureProofButton");
+  if (captureBtn) captureBtn.onclick = () => captureCameraProof("manual");
+
+  const stopWorkBtn = document.getElementById("stopWorkButton");
+  if (stopWorkBtn) stopWorkBtn.onclick = stopCameraWorkSession;
+
   loadCameraTotals();
   initializeAttentionDetector();
 }
