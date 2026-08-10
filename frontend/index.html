@@ -598,7 +598,13 @@
       <span id="attentionIndicator" class="attention-dot idle"></span>
       <span id="attentionStateLabel">Idle</span>
     </div>
-    <button id="cameraToggleStream" class="btn primary btn-xs full-width" type="button">Start Camera</button>
+    <div class="camera-controls">
+      <button id="startCameraButton" class="btn primary" type="button">Start Camera</button>
+      <button id="pauseCameraButton" class="btn outline" type="button" disabled>Pause Camera</button>
+      <button id="startWorkButton" class="btn success" type="button" disabled>Start Work</button>
+      <button id="stopWorkButton" class="btn danger hidden" type="button">Stop Work</button>
+      <button id="captureProofButton" class="btn outline" type="button" disabled>Capture Proof</button>
+    </div>
   </div>
 </div>
 
