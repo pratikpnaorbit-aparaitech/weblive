@@ -45,6 +45,11 @@ if (MONGODB_URI) {
         if (record && record.data) {
           fs.writeFileSync(FILE, JSON.stringify(record.data, null, 2));
           console.log("🍃 Local database (data.json) successfully synced from MongoDB Atlas!");
+          
+          // Normalize dynamic project difficulties and persist them to local and cloud database
+          const db = read();
+          write(db);
+          console.log("🍃 Project difficulties successfully normalized and persisted to DB!");
         } else if (!record) {
           const localDb = read();
           record = await PortalData.create({ key: "main_data", data: localDb });
@@ -617,10 +622,26 @@ function read(){
       }
     });
 
+    const categoryCounts = {};
     db.projects.forEach(p => {
       p.domain = p.domain || "Web Development";
-      p.level = p.level || p.difficulty || "Intermediate";
-      p.difficulty = p.difficulty || p.level || "Intermediate";
+      const cat = p.domain;
+      if (categoryCounts[cat] === undefined) {
+        categoryCounts[cat] = 0;
+      }
+      const index = categoryCounts[cat];
+      categoryCounts[cat]++;
+
+      let diff = "Intermediate";
+      if (index < 3) {
+        diff = "Easy";
+      } else if (index < 6) {
+        diff = "Intermediate";
+      } else {
+        diff = "Advanced";
+      }
+      p.difficulty = diff;
+      p.level = diff;
 
       let doc = db.documentation.find(d => d.projectId === p.id);
       if (!doc) {

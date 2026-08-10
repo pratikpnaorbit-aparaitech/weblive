@@ -466,6 +466,20 @@ async function renderAdminProjectsGrid() {
     const statusBadgeClass = p.status === "inactive" ? "background:#fef3c7;color:#92400e" : "background:#dcfce7;color:#166534";
     const statusText = p.status === "inactive" ? "Inactive" : "Active";
 
+    // Find the 1-based order of this project in its specific domain
+    const categoryProjects = (window.PROJECTS || []).filter(proj => normalize(proj.domain || "Web Development") === normalize(p.domain || "Web Development"));
+    const categoryOrder = categoryProjects.findIndex(proj => proj.id === p.id) + 1;
+
+    // Premium custom badge styling for difficulty
+    let diffBadgeStyle = "background:rgba(37,99,235,.1);color:var(--blue)";
+    if (p.difficulty === "Easy") {
+      diffBadgeStyle = "background:#dcfce7;color:#166534";
+    } else if (p.difficulty === "Intermediate") {
+      diffBadgeStyle = "background:#fef3c7;color:#92400e";
+    } else if (p.difficulty === "Advanced") {
+      diffBadgeStyle = "background:#fee2e2;color:#b91c1c";
+    }
+
     return `
       <article class="panel project-card" style="background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:18px;display:flex;flex-direction:column;justify-content:space-between">
         <div>
@@ -473,7 +487,8 @@ async function renderAdminProjectsGrid() {
             <span style="font-size:32px">${p.icon || "💻"}</span>
             <div style="display:flex;gap:4px;flex-wrap:wrap">
               <span class="pill" style="font-size:11px;background:#e0f2fe;color:#0369a1">${p.domain || "Web Development"}</span>
-              <span class="pill" style="font-size:11px">${p.level || p.difficulty || "Intermediate"}</span>
+              <span class="pill" style="font-size:11px;${diffBadgeStyle};font-weight:bold">${p.difficulty || "Intermediate"}</span>
+              <span class="pill" style="font-size:11px;background:#f3f4f6;color:#374151;font-weight:bold">Order: ${categoryOrder}</span>
               <span class="pill" style="font-size:11px;${statusBadgeClass}">${statusText}</span>
             </div>
           </div>
@@ -997,16 +1012,115 @@ async function renderSelection() {
     return;
   }
 
-  container.innerHTML = domainProjects.map(p => `
-    <article class="panel project" id="selection-${p.id}">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <span class="pill">${p.level || p.difficulty || 'Intermediate'}</span>
-        <span class="pill" style="background:#e0f2fe;color:#0369a1">${p.domain || 'Web Development'}</span>
+  // Determine difficulty dynamically by position in category:
+  // Projects 1-3 (index 0,1,2) -> Easy
+  // Projects 4-6 (index 3,4,5) -> Intermediate
+  // Projects 7-10 (index 6,7,8,9...) -> Advanced
+  const easyProjects = [];
+  const intermediateProjects = [];
+  const advancedProjects = [];
+
+  domainProjects.forEach((p, idx) => {
+    let diff = "Intermediate";
+    if (idx < 3) {
+      diff = "Easy";
+    } else if (idx < 6) {
+      diff = "Intermediate";
+    } else {
+      diff = "Advanced";
+    }
+    p.difficulty = diff;
+    p.level = diff;
+
+    if (diff === "Easy") {
+      easyProjects.push(p);
+    } else if (diff === "Intermediate") {
+      intermediateProjects.push(p);
+    } else {
+      advancedProjects.push(p);
+    }
+  });
+
+  const renderCard = p => {
+    let badgeStyle = "background:rgba(37,99,235,.1);color:var(--blue)";
+    if (p.difficulty === "Easy") {
+      badgeStyle = "background:#dcfce7;color:#166534";
+    } else if (p.difficulty === "Intermediate") {
+      badgeStyle = "background:#fef3c7;color:#92400e";
+    } else if (p.difficulty === "Advanced") {
+      badgeStyle = "background:#fee2e2;color:#b91c1c";
+    }
+
+    return `
+      <article class="panel project" id="selection-${p.id}">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="pill" style="${badgeStyle};font-weight:bold">${p.difficulty}</span>
+          <span class="pill" style="background:#e0f2fe;color:#0369a1">${p.domain || 'Web Development'}</span>
+        </div>
+        <h3>${p.icon || '💻'} ${p.name || p.title}</h3>
+        <p class="muted">${p.summary}</p>
+        <label><input class="choose" type="checkbox" value="${p.id}"> Choose Project</label>
+      </article>
+    `;
+  };
+
+  const sectionsHtml = [];
+
+  // Section 1: Easy
+  sectionsHtml.push(`
+    <div class="difficulty-section easy-section" style="margin-bottom: 30px; grid-column: 1/-1;">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #0f8a68; padding-bottom:8px; margin-bottom:14px">
+        <div>
+          <h3 style="margin:0; font-size:18px; color:#0f8a68; display:flex; align-items:center; gap:8px">
+            <span>🟢</span> EASY PROJECTS
+          </h3>
+          <p style="margin:4px 0 0; font-size:13px; color:var(--muted)">Beginner-friendly projects to build fundamental skills.</p>
+        </div>
+        <span class="pill" style="background:#0f8a68; color:#fff; font-weight:bold; padding:4px 10px">${easyProjects.length} Projects</span>
       </div>
-      <h3>${p.icon || '💻'} ${p.name || p.title}</h3>
-      <p class="muted">${p.summary}</p>
-      <label><input class="choose" type="checkbox" value="${p.id}"> Choose Project</label>
-    </article>`).join("");
+      <div class="grid">
+        ${easyProjects.map(renderCard).join("") || `<p class="muted" style="grid-column:1/-1;padding:12px 0;">No projects available in this section.</p>`}
+      </div>
+    </div>
+  `);
+
+  // Section 2: Intermediate
+  sectionsHtml.push(`
+    <div class="difficulty-section intermediate-section" style="margin-bottom: 30px; grid-column: 1/-1;">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #d97706; padding-bottom:8px; margin-bottom:14px">
+        <div>
+          <h3 style="margin:0; font-size:18px; color:#d97706; display:flex; align-items:center; gap:8px">
+            <span>🟡</span> INTERMEDIATE PROJECTS
+          </h3>
+          <p style="margin:4px 0 0; font-size:13px; color:var(--muted)">Projects requiring practical development knowledge.</p>
+        </div>
+        <span class="pill" style="background:#d97706; color:#fff; font-weight:bold; padding:4px 10px">${intermediateProjects.length} Projects</span>
+      </div>
+      <div class="grid">
+        ${intermediateProjects.map(renderCard).join("") || `<p class="muted" style="grid-column:1/-1;padding:12px 0;">No projects available in this section.</p>`}
+      </div>
+    </div>
+  `);
+
+  // Section 3: Advanced
+  sectionsHtml.push(`
+    <div class="difficulty-section advanced-section" style="margin-bottom: 20px; grid-column: 1/-1;">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #dc2626; padding-bottom:8px; margin-bottom:14px">
+        <div>
+          <h3 style="margin:0; font-size:18px; color:#dc2626; display:flex; align-items:center; gap:8px">
+            <span>🔴</span> ADVANCED PROJECTS
+          </h3>
+          <p style="margin:4px 0 0; font-size:13px; color:var(--muted)">Complex projects requiring strong technical knowledge.</p>
+        </div>
+        <span class="pill" style="background:#dc2626; color:#fff; font-weight:bold; padding:4px 10px">${advancedProjects.length} Projects</span>
+      </div>
+      <div class="grid">
+        ${advancedProjects.map(renderCard).join("") || `<p class="muted" style="grid-column:1/-1;padding:12px 0;">No projects available in this section.</p>`}
+      </div>
+    </div>
+  `);
+
+  container.innerHTML = sectionsHtml.join("");
 
   document.querySelectorAll(".choose").forEach(box => box.onchange = () => pick(box));
   updateSelect();
