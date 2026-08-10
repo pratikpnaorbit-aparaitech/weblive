@@ -42,7 +42,10 @@ if (MONGODB_URI) {
       console.log("🍃 MongoDB Atlas connected successfully!");
       try {
         let record = await PortalData.findOne({ key: "main_data" });
-        if (!record) {
+        if (record && record.data) {
+          fs.writeFileSync(FILE, JSON.stringify(record.data, null, 2));
+          console.log("🍃 Local database (data.json) successfully synced from MongoDB Atlas!");
+        } else if (!record) {
           const localDb = read();
           record = await PortalData.create({ key: "main_data", data: localDb });
           console.log("🌱 MongoDB Atlas initialized with local database data.");
@@ -918,29 +921,6 @@ app.post("/api/auth/student-login",(req,res)=>{
     String(item.email||"").toLowerCase()===queryLower ||
     String(item.name||"").toLowerCase()===queryLower
   );
-  if(!u && (password === STUDENT_DEFAULT_PASSWORD || password === PASSWORD || password === "Aparitech123@" || password === "Aparaitech123@")){
-    u = {
-      id:"usr_"+Date.now(),
-      name:userQuery,
-      username:userQuery,
-      email:userQuery.includes("@")?userQuery.toLowerCase():`${userQuery.toLowerCase()}@aparaitech.local`,
-      password:hashPassword(password),
-      college:"",
-      department:"Computer Science",
-      year:"Final Year",
-      status:"pending",
-      role:"STUDENT",
-      selectedProjects:[],
-      progress:{},
-      dailyActivity:{},
-      cameraProofs:[],
-      cameraWorkHistory:[],
-      createdAt:new Date().toISOString(),
-      updatedAt:new Date().toISOString()
-    };
-    db.users.push(u);
-    log(db,u.id,"STUDENT_AUTO_REGISTERED",{username:u.username});
-  }
   const passToVerify = u?.password || STUDENT_DEFAULT_PASSWORD;
   if(!u||!verifyPassword(password, passToVerify)){
     return res.status(401).json({message:"Invalid student username or password."});
@@ -1061,43 +1041,19 @@ app.post("/api/auth/login",(req,res)=>{
     String(u.name||"").toLowerCase() === queryLower
   );
 
-  // If student is not registered yet, auto-register student on first login
-  if (!student) {
-    const cleanUser = userQuery.includes("@") ? userQuery.split("@")[0] : userQuery;
-    student = {
-      id: "usr_" + Date.now(),
-      name: cleanUser,
-      username: cleanUser,
-      email: userQuery.includes("@") ? userQuery.toLowerCase() : `${userQuery.toLowerCase()}@aparaitech.local`,
-      password: hashPassword(password),
-      college: "",
-      department: "Computer Science",
-      year: "Final Year",
-      status: "pending",
-      role: "STUDENT",
-      selectedProjects: [],
-      progress: {},
-      dailyActivity: {},
-      cameraProofs: [],
-      cameraWorkHistory: [],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-    db.users.push(student);
-    log(db, student.id, "STUDENT_AUTO_REGISTERED", { username: student.username });
-  }
-
-  const passToVerify = student.password || STUDENT_DEFAULT_PASSWORD;
-  if(!student.password || verifyPassword(password, passToVerify) || password === STUDENT_DEFAULT_PASSWORD || password === PASSWORD || password === "Aparitech123@" || password === "Aparaitech123@"){
-    if(!student.password || !student.password.includes(":")){
-      student.password = hashPassword(password);
+  if (student) {
+    const passToVerify = student.password || STUDENT_DEFAULT_PASSWORD;
+    if(!student.password || verifyPassword(password, passToVerify) || password === STUDENT_DEFAULT_PASSWORD || password === PASSWORD || password === "Aparitech123@" || password === "Aparaitech123@"){
+      if(!student.password || !student.password.includes(":")){
+        student.password = hashPassword(password);
+      }
+      normalizeUser(student);
+      log(db, student.id, "STUDENT_LOGIN", {username: student.username});
+      write(db);
+      const token = jwt.sign({userId:student.id, role:"STUDENT"}, SECRET, {expiresIn:"7d"});
+      const safe = {...student}; delete safe.password;
+      return res.json({token, role:"STUDENT", user:safe});
     }
-    normalizeUser(student);
-    log(db, student.id, "STUDENT_LOGIN", {username: student.username});
-    write(db);
-    const token = jwt.sign({userId:student.id, role:"STUDENT"}, SECRET, {expiresIn:"7d"});
-    const safe = {...student}; delete safe.password;
-    return res.json({token, role:"STUDENT", user:safe});
   }
 
   return res.status(401).json({message:"Invalid Email/Username or Password."});
