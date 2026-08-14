@@ -116,7 +116,8 @@ async function renderHome() {
     projects = projects.filter(p => normalize(p.domain || "Web Development") === normalize(studentDomain));
   }
 
-  const count = projects.length || 10;
+  const uniqueProjSet = new Set((window.PROJECTS || []).map(p => String(p.id || '').trim().toLowerCase()).filter(Boolean));
+  const globalCount = uniqueProjSet.size || (window.PROJECTS || []).length || 10;
   const domainLabel = studentDomain ? studentDomain : "Internship";
 
   // Dynamic UI Heading Updates
@@ -133,7 +134,7 @@ async function renderHome() {
     $("homeHeroSubtext").textContent = `Welcome to your ${domainLabel} Internship Portal. To track your chapter completion, quiz results, work sessions, camera proofs, and time, click below to select your 4 projects.`;
   }
   if ($("homeStatAvailableCount")) {
-    $("homeStatAvailableCount").textContent = count;
+    $("homeStatAvailableCount").textContent = globalCount;
   }
 }
 
@@ -1496,18 +1497,349 @@ function openChapter(index) {
   window.scrollTo({top:0,behavior:"smooth"});
 }
 
+function getDynamicDeepTheory(project, chapterName) {
+  const projName = project.name;
+  const projDomain = project.domain;
+  const projStack = project.stack || "React, Node.js, Express, MongoDB";
+  const projModules = Array.isArray(project.modules) ? project.modules : ["Overview", "Authentication", "Dashboard"];
+  const projObjective = project.objective || "Automate operational processes.";
+  const projOutcomes = Array.isArray(project.outcomes) ? project.outcomes : ["Full-stack architecture", "REST API integration"];
+
+  const theoryMap = {
+    "Overview": {
+      part1: `The <b>${projName}</b> platform is built on top of a highly modular service-oriented architecture designed to handle transaction volumes within the <b>${projDomain}</b> domain. By separating client views from backend services, the design ensures robust security boundaries and data isolation. This structural choice aligns with modern architectural patterns to ensure high system maintainability and scalability.`,
+      part2: `The implementation partition organizes the codebase into modules like <b>${projModules.join(', ')}</b>. Authorized users (such as administrators, Cashiers, or Waiters) interact with these modules to trigger business workflows. Data flows from frontend interfaces to REST API handlers that process operations and persist states securely.`,
+      part3: `From an engineering perspective, the system integrates the tech stack (<b>${projStack}</b>) to ensure horizontal scalability and fast processing. The design leverages connection pooling, database indexing, and caching to guarantee response times under 200ms. It also integrates failure logs and retry logic to keep operations resilient in production.`,
+      part4: `The expected system behavior is a production-grade application that automates tasks and provides managers with real-time statistics. The final implementation helps students learn REST integrations, schema design, and unit testing protocols: <b>${projOutcomes.join(', ')}</b>.`
+    },
+
+    "Problem & Solution": {
+      part1: `Legacy processing in <b>${projDomain}</b> suffers from structural flaws that result in transactional bottlenecks, data inconsistency, and manual reconciliation delays. The architecture of <b>${projName}</b> is conceptualized to replace these manual sheets with a centralized digital ledger. This transitions operational states from offline entry points to a secure cloud platform.`,
+      part2: `The system implements automated validations and state transitions to manage operations like <b>${projModules[0]}</b> features. Operations are parsed using stateless requests, reducing dependency chains between services. Automated verification checks ensure changes are distributed across active panels instantly.`,
+      part3: `Engineering considerations focus on reducing processing delays and preventing human transcription errors. The platform implements constraint checks at the database layer to block contradictory updates and protect transactional fields. Database indexes optimize search parameters, keeping daily query executions efficient.`,
+      part4: `Deploying <b>${projName}</b> eliminates operational bottlenecks, secures historical logs, and decreases transaction processing times by 90%. Candidates gain a complete understanding of how automated backend services solve real-world industrial overhead.`
+    },
+
+    "Requirements": {
+      part1: `The requirement structure for <b>${projName}</b> maps user permissions directly to system boundaries. The design organizes access configurations into multiple privilege roles to restrict operations securely. By segregating roles, the architecture prevents unauthorized actions on core tables.`,
+      part2: `The platform handles functional parameters like input checks and validations for <b>${projModules.join(', ')}</b>. The input pipeline rejects malformed inputs, verifying that quantities are non-negative, and IDs are valid. Business rules block conflicting transactions and handle exceptions gracefully.`,
+      part3: `Non-functional criteria specify sub-200ms latency SLAs, high query throughput, and database rollback protections. Connections to databases are pooled, and sessions are encrypted using secure header tokens. Hardware resource usage is optimized to support containerised microservices deployment.`,
+      part4: `Developers implement a robust operational structure that handles edge-case validations and rejects bad payloads. The final outcome is a secure validation layer matching industry auditing standards.`
+    },
+
+    "Workflow": {
+      part1: `The transaction state machine of <b>${projName}</b> coordinates user interactions and data movements across modules. The state flow models clear transitions, ensuring entities transition through strict operational stages. This flow coordinates events from system triggers to transactional logs.`,
+      part2: `Operators access the interface and initialize inputs within <b>${projModules[0]}</b> or <b>${projModules[1]}</b>. Backend controllers process payloads, evaluate business policies, and persist states to the database. Upon completion, updated dashboard views are pushed to the client immediately.`,
+      part3: `Exception paths manage database connection drops, token expiration, and payload rejections by rolling back active transactions. The system ensures that no partial states are stored, preserving data consistency. Status change events are audited with timestamps and operator details.`,
+      part4: `The workflow yields a clean process execution cycle that prevents invalid states and recovers gracefully from errors. Interns master mapping sequences and state validation logic.`
+    },
+
+    "Modules": {
+      part1: `Decoupling system responsibilities is the primary goal of the modular design inside <b>${projName}</b>. The architecture organizes core functions into modules like <b>${projModules.join(', ')}</b> to minimize side-effects. This prevents changes in styling from breaking database queries.`,
+      part2: `The <b>${projModules[0]}</b> module handles initialization routing, while <b>${projModules[1]}</b> processes state logic. Aggregate reporting is isolated inside <b>${projModules[2] || 'Reports'}</b> module to analyze logs. Interfaces communicate using clean resource endpoints.`,
+      part3: `Modules map dependencies unidirectionally to avoid circular imports and facilitate independent testing. Repository layers encapsulate database calls, keeping routes decoupled from MongoDB or SQL schemas. Resource pooling isolates heavy aggregations from transactional processes.`,
+      part4: `The modular structure allows developers to build, test, and deploy features incrementally without regression. The final build satisfies clean-code standards and microservices requirements.`
+    },
+
+    "Architecture": {
+      part1: `The multi-tier architecture of <b>${projName}</b> separates styling, application logic, and storage services. The frontend client leverages <b>${projStack}</b> to render forms, while backend services process transactions. This layer separation is vital for system maintainability.`,
+      part2: `Client dashboards fetch data from stateless REST controllers over secure HTTPS routes. Controllers validate tokens, sanitize body fields, and execute database schema methods. Query outputs are returned as JSON payloads to update user panels.`,
+      part3: `Scaling is achieved by decoupling routing endpoints, allowing horizontal replication of backend servers. Database indexing prevents slow queries under concurrent user request peaks. The architecture integrates error-handling filters to prevent server crashes.`,
+      part4: `The architecture delivers a high-throughput, low-latency application framework that scales dynamically. Developers gain hands-on experience designing 3-tier enterprise patterns.`
+    },
+
+    "Database": {
+      part1: `Data persistence inside <b>${projName}</b> is structured to represent relationships between core entities. The schemas manage collections like <b>${projModules.map(m => m.toLowerCase().replace(/[^a-z0-9]/g, '')).slice(0, 5).join(', ')}</b>. Document IDs and index configurations secure operational logging.`,
+      part2: `Documents use primary key values and reference object identifiers to represent associations. Constraint checks block duplicate payments, negative totals, or orphaned items. Data validations are enforced at both application and storage layers.`,
+      part3: `Index keys are added to status fields, creation dates, and reference IDs to speed up lookups. Transactions use atomic boundaries; operations like modifying orders and updating inventories commit or rollback together. Backup scripts automate data exports to secure recovery targets.`,
+      part4: `Query executions run efficiently with sub-50ms search delays under peak database sizes. The database design provides complete audit trails and data integrity.`
+    },
+
+    "APIs": {
+      part1: `Backend REST APIs expose resource endpoints to connect frontend screens to database tables. Paths are mapped using HTTP verbs (GET, POST, PUT, DELETE) to manage collections inside <b>${projModules.slice(0, 3).join(', ')}</b>. Endpoints are documented using standard specs.`,
+      part2: `<code>POST</code> routes handle record registration, while <code>PUT</code> endpoints modify states using path parameter identifiers. Express controllers utilize middleware checks to validate session headers before querying database collections. Malformed request bodies trigger immediate bad-request rejections.`,
+      part3: `The API design uses try/catch blocks to trap errors and return standard JSON error structures. Pagination and filters are configured on listing routes to limit server payload size. API versions are isolated to prevent breaking changes on legacy clients.`,
+      part4: `Client requests receive responses in under 200ms, ensuring real-time dashboard views. Students learn endpoint structure design and response protocol standards.`
+    },
+
+    "Security": {
+      part1: `Protecting transaction logs and user credentials from common vulnerabilities is a core architecture priority. The security tier configures authentication and role-based access filters to restrict sensitive routes. This ensures Cashiers cannot access Admin statistics.`,
+      part2: `Passwords are encrypted using hashing algorithms before saving records. Input parameters are sanitized and verified to block SQL injection and cross-site scripting attempts. JWT tokens are verified in request headers to authorize user operations.`,
+      part3: `Express middleware limits requests per client to protect endpoints from brute-force queries. Server configurations and database passwords are saved inside environment files instead of source code. Route logs capture security incidents and access details.`,
+      part4: `The application stands secure against OWASP top vulnerabilities, protecting database collections. Interns master secure coding patterns and credential handling.`
+    },
+
+    "UI/UX": {
+      part1: `The visual design of <b>${projName}</b> focuses on delivering an intuitive dashboard to manage operations. Screen layouts separate search tables, input forms, state metrics, and administrative panels cleanly. Visual hierarchies direct user focus to critical tasks.`,
+      part2: `Users navigate modules, submit data forms, and filter tables dynamically. Layout components leverage CSS transitions and loader indicators to communicate state changes during async fetches. Success messages confirm database operations.`,
+      part3: `Views are built to scale dynamically, adapting layouts for mobile, tablet, and desktop screens. Client inputs are validated in real-time, displaying helper warnings before API calls are fired. Accessibility rules ensure keyboard and screen-reader support.`,
+      part4: `The client dashboard delivers a responsive, low-friction user experience. Developers learn to design visual state machines and connect views to APIs.`
+    },
+
+    "Code Examples": {
+      part1: `The codebase files are organized to reflect clean code principles and decoupling rules. Model schemas, routing files, controller handlers, and validation scripts reside in dedicated directories. This partition keeps files short and readable.`,
+      part2: `Schema files define validations, while router modules configure endpoints. Controller handlers coordinate data fetches, verify privileges, and return JSON responses. Middleware wrappers trap async exceptions, preventing process failures.`,
+      part3: `Code conventions prioritize naming standards, small functions, and thorough documentation. Exception handlers return formatted JSON errors containing clear details instead of raw backend stack traces. Testing folders host unit assertions.`,
+      part4: `The codebase provides a production-grade template for building scalable apps. Students learn professional refactoring and coding standards.`
+    },
+
+    "Testing": {
+      part1: `The testing architecture verifies validation constraints, routes, and database operations. Unit checkers, integration assertions, and UI triggers are organized into automated scripts. This coverage guarantees system stability.`,
+      part2: `Unit tests verify functions like calculations or input checking. Integration suites trigger endpoints, asserting that controllers query collections correctly and return proper HTTP status codes. Negative checks ensure bad requests are blocked.`,
+      part3: `Edge tests simulate invalid quantities, expired session tokens, and database drops to verify rollback paths. Tests run on local environments and automatically execute inside CI pipeline triggers. Assertions compare database records before and after mock runs.`,
+      part4: `The test suites verify code changes and identify bugs before code merges. Interns learn assertion structures and test coverage configuration.`
+    },
+
+    "Deployment": {
+      part1: `The deployment plan targets cloud environments running containerised instances of <b>${projName}</b>. The server topology decouples static frontend hosting from dynamic API services and cloud storage instances. This separation reduces costs and improves availability.`,
+      part2: `Frontend code is built and deployed to static content networks. Backend dynamic microservices run in container environments, while database servers are configured with restricted IP rules. Configuration files isolate secret variables.`,
+      part3: `CI/CD pipelines automate building, testing, and deploying updates upon git commits. Monitoring tools track server performance, memory footprints, and endpoint latency SLAs. Server logs capture route errors and runtime statistics.`,
+      part4: `The deployment architecture ensures high uptime and automatic recovery. Interns learn server provisioning, container configurations, and env setups.`
+    },
+
+    "Assignment": {
+      part1: `The candidate assignment assesses practical skills in building and securing <b>${projName}</b> services. Developers must extend features, model collections, write APIs, and configure validations. This verifies the intern's engineering capability.`,
+      part2: `Candidates build schema classes and code endpoints for <b>${projModules.slice(0, 3).join(', ')}</b>. Frontend dashboard panels are connected to these backend paths to display live states. Testing scripts must assert validation safety.`,
+      part3: `Deliverables must conform to strict performance SLAs and coding conventions. The code must handle failure scenarios and validate input boundaries correctly. Final code is pushed to GitHub, accompanied by setup documentation.`,
+      part4: `Students implement, test, and deploy features, proving full-stack development capability. The assignment prepares interns for actual industry expectations.`
+    },
+
+    "Quiz": {
+      part1: `The assessment quiz evaluates technical and conceptual understanding of the <b>${projName}</b> system. Before starting, students should review routing configurations, database indexes, validation rules, and security frameworks.`,
+      part2: `Questions test scenarios, such as identifying endpoint verbs for modifications or tracking collection keys. Answers require analyzing database structures and comparing security rules. Explanations clarify concepts.`,
+      part3: `Quiz items verify that students understand why specific indexes or rollbacks are used in production. The evaluation covers error-handling codes and CORS setups. Passing validates core system understanding.`,
+      part4: `The evaluation confirms that the candidate possesses the theoretical knowledge required to manage systems. It validates technical competence in building and securing apps.`
+    },
+
+    "References": {
+      part1: `The reference index coordinates learning resources and documentation for the <b>${projName}</b> stack. It links official manuals for <b>${projStack}</b> to clarify configuration details, query formats, and deployment.`,
+      part2: `References include documentation for libraries used to validate inputs, encrypt fields, and handle tokens. Best practice articles detail how to structure transactional schemas within the <b>${projDomain}</b> domain.`,
+      part3: `Material covers database indexing, stateless REST API designs, and Docker configuration files. These guidelines provide the context required to resolve coding errors and optimize data queries.`,
+      part4: `The references build a learning roadmap to guide interns during implementation. They ensure that candidate code aligns with standard software practices.`
+    }
+  };
+
+  const currentObj = theoryMap[chapterName] || theoryMap["Overview"];
+  return currentObj;
+}
+
 function getEnhancedChapterContent(project, chapterIndex, chapterName, completedCount, totalChapters = 16, chapObj = {}) {
+  const isOverview = chapterName === "Overview" || chapterIndex === 0;
   const remainingCount = Math.max(0, totalChapters - completedCount);
   const percentComplete = Math.round((completedCount / totalChapters) * 100);
   const readingTime = chapObj.readingTime || "15 min";
   const codingTime = chapObj.codingTime || "2 hours";
   const difficulty = chapObj.difficulty || project.level || "Intermediate";
-  const objective = chapObj.projectObjective || project.objective || "Automate system processes and reporting.";
-  const outcomes = chapObj.learningOutcomes || project.outcomes || ["Full-stack architecture", "REST API integration"];
+
+  // Dynamic Objectives and Outcomes Map per Chapter
+  const objectivesMap = {
+    "Overview": {
+      objective: project.objective || "Analyze and initialize the system setup.",
+      outcomes: project.outcomes || ["Full-stack architecture", "REST API integration"]
+    },
+    "Problem & Solution": {
+      objective: `Solve the manual operational limitations of the manual ${project.domain} processes.`,
+      outcomes: ["Before/after workflow comparisons", "Operational process mapping"]
+    },
+    "Requirements": {
+      objective: `Identify all functional validation rules and hardware requirements for ${project.name}.`,
+      outcomes: ["User permission matrix creation", "Input validation schema specifications"]
+    },
+    "Workflow": {
+      objective: `Map customer, waiter, administrative, or edge journeys for the system state changes.`,
+      outcomes: ["System sequence modeling", "Status transition logic mapping"]
+    },
+    "Modules": {
+      objective: `Partition the ${project.name} structure into modular, decoupled units.`,
+      outcomes: ["Subsystem encapsulation design", "Internal module dependency management"]
+    },
+    "Architecture": {
+      objective: `Design the 3-tier client-server structure of the ${project.name} platform.`,
+      outcomes: ["Component responsibility separation", "System scalability architectures"]
+    },
+    "Database": {
+      objective: `Construct normalized relational tables or document schemas for ${project.name}.`,
+      outcomes: ["Query execution optimization", "Primary and foreign reference keys configuration"]
+    },
+    "APIs": {
+      objective: `Expose stateless REST interfaces connecting frontend forms to backend databases.`,
+      outcomes: ["Query parameters handling", "Structured JSON error response formats"]
+    },
+    "Security": {
+      objective: `Secure routes and sanitize incoming payloads for the ${project.name} endpoints.`,
+      outcomes: ["Role-based routing authentication", "Data hashing protection"]
+    },
+    "UI/UX": {
+      objective: `Build responsive interfaces displaying data metrics with clean loaders.`,
+      outcomes: ["Interactive state feedback loops", "UX form designs"]
+    },
+    "Code Examples": {
+      objective: `Inspect controller templates and routes to align code with standards.`,
+      outcomes: ["Clean-code patterns application", "Structured exception handling"]
+    },
+    "Testing": {
+      objective: `Assert codebase resilience using unit checkers and validation suites.`,
+      outcomes: ["Positive and negative testing validation", "Edge exception coverage metrics"]
+    },
+    "Deployment": {
+      objective: `Compile production-ready packages and host client, database, and API layers.`,
+      outcomes: ["Environment variables configuration", "Containerised hosting deployment"]
+    },
+    "Assignment": {
+      objective: `Implement split features or complex route handlers to complete the build.`,
+      outcomes: ["Independent problem solving", "Real enterprise task submission"]
+    },
+    "Quiz": {
+      objective: `Test knowledge of route parameters, collection indexing, and security policies.`,
+      outcomes: ["Competency check confirmation", "Conceptual validation verification"]
+    },
+    "References": {
+      objective: `Explore documentation links to master the libraries used in ${project.name}.`,
+      outcomes: ["Continuous developer learning", "Official documentation lookup skill"]
+    }
+  };
+
+  const currentObj = objectivesMap[chapterName] || objectivesMap["Overview"];
+  const objective = currentObj.objective;
+  const outcomes = currentObj.outcomes;
 
   const cleanProjId = project.id.toLowerCase().replace(/[^a-z0-9]/g, "-");
   const cleanModName = (project.modules && project.modules[chapterIndex % project.modules.length]) || "Core Module";
 
+  // Build tech stack pills dynamically from project stack
+  const techPills = (project.stack || "React, Node.js, Express, MongoDB")
+    .split(",")
+    .map(t => t.trim())
+    .map((t, idx) => {
+      const colors = [
+        { bg: "#e0e7ff", text: "#3730a3" },
+        { bg: "#fef3c7", text: "#92400e" },
+        { bg: "#dcfce7", text: "#166534" },
+        { bg: "#ccfbf1", text: "#115e59" },
+        { bg: "#f3e8ff", text: "#6b21a8" },
+        { bg: "#fee2e2", text: "#991b1b" }
+      ];
+      const color = colors[idx % colors.length];
+      return `<span class="pill" style="background:${color.bg};color:${color.text}">${t}</span>`;
+    }).join("");
+
+  const { part1, part2, part3, part4 } = getDynamicDeepTheory(project, chapterName);
+
+  // Chapter-specific roadmaps
+  const roadmapMap = {
+    "Overview": [
+      "Analyze business problems and goals.",
+      "Identify target user roles.",
+      "Define technology stack requirements."
+    ],
+    "Problem & Solution": [
+      "Document manual processes.",
+      "Identify pain points and risks.",
+      "Draft software-driven solutions."
+    ],
+    "Requirements": [
+      "List functional inputs and outputs.",
+      "Establish parameter validations.",
+      "Define system hardware constraints."
+    ],
+    "Workflow": [
+      "Model sequence diagrams.",
+      "Map exception flows.",
+      "Verify state transitions."
+    ],
+    "Modules": [
+      "Partition subsystems.",
+      "Map module dependencies.",
+      "Design internal schemas."
+    ],
+    "Architecture": [
+      "Detail structural tiers.",
+      "Establish API layer controllers.",
+      "Outline scaling patterns."
+    ],
+    "Database": [
+      "Define schemas and fields.",
+      "Establish lookup key indexes.",
+      "Verify relation structures."
+    ],
+    "APIs": [
+      "Specify path parameters and bodies.",
+      "Secure paths with auth middleware.",
+      "Document error codes."
+    ],
+    "Security": [
+      "Implement password hashes.",
+      "Enforce token permissions.",
+      "Sanitize incoming payloads."
+    ],
+    "UI/UX": [
+      "Draft user screen layouts.",
+      "Design loading and error indicators.",
+      "Verify responsive views."
+    ],
+    "Code Examples": [
+      "Build controller functions.",
+      "Write router logic.",
+      "Integrate exception handlers."
+    ],
+    "Testing": [
+      "Write test verification scripts.",
+      "Execute failure validations.",
+      "Assert API code responses."
+    ],
+    "Deployment": [
+      "Set production environment variables.",
+      "Compile application builds.",
+      "Launch cloud database servers."
+    ],
+    "Assignment": [
+      "Clone the project repository.",
+      "Code missing features.",
+      "Submit the GitHub repository URL."
+    ],
+    "Quiz": [
+      "Review documentation chapters.",
+      "Study database keys and APIs.",
+      "Answer quiz questions."
+    ],
+    "References": [
+      "Read tech stack documentations.",
+      "Check pattern references.",
+      "Explore sample repositories."
+    ]
+  };
+
+  const roadmapSteps = roadmapMap[chapterName] || roadmapMap["Overview"];
+
+  // Chapter-specific git commits
+  const gitMap = {
+    "Overview": `git commit -m "init: initialize ${project.name} repository structure"`,
+    "Database": `git commit -m "feat(db): establish database schemas for ${project.name}"`,
+    "APIs": `git commit -m "feat(api): implement REST controller routes for ${project.name}"`,
+    "Security": `git commit -m "sec(auth): enforce authorization rules for ${project.name} endpoints"`,
+    "Testing": `git commit -m "test(coverage): add unit testing assertions for ${project.name}"`,
+    "UI/UX": `git commit -m "feat(ui): style dashboard panels for ${project.name} view"`,
+  };
+
+  const gitCommand = gitMap[chapterName] || `git commit -m "feat(${cleanProjId}): implement ${chapterName} module for ${project.name}"`;
+
+  // Helper function to highlight key technical terms dynamically
+  function highlightTechTerms(text) {
+    const terms = [
+      "RESTful APIs", "REST APIs", "REST API", "database", "Mongoose", "schemas", "indexes", "JWT", 
+      "authorization", "authentication", "stateless", "SQL", "NoSQL", "Docker", "VPS", 
+      "latency", "SLA", "unit tests", "integration testing", "validation rules", "CORS", 
+      "encryption", "audit trail", "audit logs", "session management", "connection pooling", 
+      "horizontal scaling", "load balancing", "API endpoints", "HTTP methods", "JSON payloads",
+      "validation middleware", "Mongoose models", "Express controllers"
+    ];
+    let highlighted = text;
+    terms.forEach(term => {
+      const regex = new RegExp(`\\b(${term})\\b`, "gi");
+      highlighted = highlighted.replace(regex, `<strong>$1</strong>`);
+    });
+    return highlighted;
+  }
   return `
     <div class="enhancement-sections-wrapper" style="margin-top:24px;display:grid;gap:20px">
       <!-- Theoretical Cards Grid -->
@@ -1526,73 +1858,94 @@ function getEnhancedChapterContent(project, chapterIndex, chapterName, completed
         </div>
       </div>
 
-      <!-- Comprehensive Theoretical Guide -->
-      <div class="enhancement-card">
-        <h4 class="card-title">📚 Deep Theoretical Architecture & Specifications</h4>
-        <p style="font-size:13px;line-height:1.6;color:var(--text)">
-          In real-world web engineering, <b>${chapterName}</b> forms a core pillar of the <b>${project.name}</b> platform. This module establishes a robust separation of concerns between client interface events, server middleware validation, and transactional database persistence. By adhering to 3-tier architecture, system developers ensure low latency (sub-200ms SLAs), high concurrent throughput, and complete operational auditing.
-        </p>
+      <!-- Chapter Specific Theoretical Specifications -->
+      <style>
+        .deep-theory-paragraph-flow strong {
+          color: var(--navy);
+          font-weight: 600;
+        }
+      </style>
+      <div class="enhancement-card deep-theory-panel" style="border-left: 5px solid var(--navy); background: linear-gradient(180deg, var(--card2) 0%, var(--card) 100%); padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); border-radius: 12px; margin-bottom: 20px;">
+        <h4 class="card-title" style="font-size: 15px; font-weight: 700; color: var(--navy); margin: 0 0 18px 0; border-bottom: 1px solid var(--border); padding-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
+          <span style="display: flex; align-items: center; gap: 8px;">📚 Deep Theoretical Architecture & Specifications</span>
+          <span style="background: #e0f2fe; color: #0369a1; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 12px; border: 1px solid #bae6fd;">Interactive Spec</span>
+        </h4>
+        <div class="deep-theory-paragraph-flow" style="font-size: 13px; line-height: 1.7; color: var(--text); display: flex; flex-direction: column; gap: 20px;">
+          <div>
+            <h5 style="margin: 0 0 6px 0; font-size: 14px; font-weight: 700; color: var(--navy);">1. Architecture & Concept</h5>
+            <p style="margin: 0; text-align: justify; line-height: 1.7;">${highlightTechTerms(part1)}</p>
+          </div>
+          <div>
+            <h5 style="margin: 0 0 6px 0; font-size: 14px; font-weight: 700; color: var(--navy);">2. Project Implementation</h5>
+            <p style="margin: 0; text-align: justify; line-height: 1.7;">${highlightTechTerms(part2)}</p>
+          </div>
+          <div>
+            <h5 style="margin: 0 0 6px 0; font-size: 14px; font-weight: 700; color: var(--navy);">3. Engineering Factors</h5>
+            <p style="margin: 0; text-align: justify; line-height: 1.7;">${highlightTechTerms(part3)}</p>
+          </div>
+          <div>
+            <h5 style="margin: 0 0 6px 0; font-size: 14px; font-weight: 700; color: var(--navy);">4. Expected System Outcome</h5>
+            <p style="margin: 0; text-align: justify; line-height: 1.7;">${highlightTechTerms(part4)}</p>
+          </div>
+        </div>
       </div>
-
       <div class="enhancement-grid-2col">
         <div class="enhancement-card">
-          <h4 class="card-title">🎯 Project Objective</h4>
+          <h4 class="card-title">🎯 Chapter Technical Objective</h4>
           <p style="margin:4px 0 0;font-size:13px;line-height:1.5">${objective}</p>
         </div>
         <div class="enhancement-card">
           <h4 class="card-title">💡 Learning Outcomes</h4>
           <ul style="margin:6px 0 0;padding-left:20px;font-size:13px">
-            ${(Array.isArray(outcomes) ? outcomes : [outcomes]).map(o => `<li>${o}</li>`).join("")}
+            ${(Array.isArray(outcomes) ? outcomes : [outcomes]).map(o => `<li>&bull; ${o}</li>`).join("")}
           </ul>
         </div>
       </div>
 
       <!-- Real World Use Cases & Tech Stack -->
+      ${isOverview ? `
       <div class="enhancement-grid-2col">
         <div class="enhancement-card">
           <h4 class="card-title">🛠️ Core Technologies & Tools</h4>
           <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">
-            <span class="pill" style="background:#e0e7ff;color:#3730a3">HTML5 / CSS3</span>
-            <span class="pill" style="background:#fef3c7;color:#92400e">JavaScript (ES6+)</span>
-            <span class="pill" style="background:#dcfce7;color:#166534">Node.js / Express</span>
-            <span class="pill" style="background:#ccfbf1;color:#115e59">MongoDB / Mongoose</span>
-            <span class="pill" style="background:#f3e8ff;color:#6b21a8">RESTful APIs</span>
-            <span class="pill" style="background:#fee2e2;color:#991b1b">JWT Auth</span>
+            ${techPills}
           </div>
         </div>
         <div class="enhancement-card">
           <h4 class="card-title">🏢 Real-World Enterprise Application</h4>
           <p style="font-size:13px;line-height:1.5">
-            Production web platforms utilize this architectural pattern to process automated transactions, maintain state integrity across user sessions, enforce security compliance, and generate live administrative analytics.
+            The <b>subproject ${project.name}</b> platform is engineered specifically to process real-time events, maintain high reliability standards in <b>subproject ${project.domain}</b>, and provide a secure digital auditing trace.
           </p>
         </div>
       </div>
+      ` : `
+      <div class="enhancement-card">
+        <h4 class="card-title">🏢 Real-World Enterprise Application</h4>
+        <p style="font-size:13px;line-height:1.5">
+          The <b>subproject ${project.name}</b> platform is engineered specifically to process real-time events, maintain high reliability standards in <b>subproject ${project.domain}</b>, and provide a secure digital auditing trace.
+        </p>
+      </div>
+      `}
 
       <!-- Implementation Roadmap -->
       <div class="enhancement-card">
         <h4 class="card-title">🚀 Step-by-Step Implementation Roadmap</h4>
         <ol style="margin:6px 0 0;padding-left:20px;font-size:13px;line-height:1.6">
-          <li><b>Requirements Analysis:</b> Define entity attributes, user authorization roles, and API contracts for <i>${cleanModName}</i>.</li>
-          <li><b>Database Schema Setup:</b> Create Mongoose models/collections, indexes, and initial data seeds.</li>
-          <li><b>Backend Controller & Routes:</b> Build Express REST API endpoints with request body validation and error handling.</li>
-          <li><b>Frontend Integration:</b> Connect UI forms and data tables to REST endpoints with reactive loading state handlers.</li>
-          <li><b>Testing & Audit Verification:</b> Execute unit tests (\`node test.js\`), check network status codes, and verify audit logs.</li>
+          ${roadmapSteps.map((step, sIdx) => `<li><b>Phase ${sIdx + 1}:</b> ${step}</li>`).join("")}
         </ol>
       </div>
 
       <!-- Git Workflow -->
       <div class="enhancement-card">
         <h4 class="card-title">⚡ Git Version Control Commands</h4>
-        <pre class="code-tree-box"><code>git add .
-git commit -m "feat(${cleanProjId}): implement ${chapterName} module with REST API & validation"
-git push origin main</code></pre>
+        <pre class="code-tree-box"><code>${gitCommand}</code></pre>
       </div>
 
       <!-- Progress Summary Bar -->
       <div class="progress-summary-bar-box" style="background:var(--card2);padding:16px;border:1px solid var(--border);border-radius:12px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
           <b>📊 Project Progress Summary</b>
-          <span><b>${completedCount}/${totalChapters}</b> Chapters Finished (${remainingCount} Remaining)</span>
+          <span><b>${completedCount}/subproject ${totalChapters}</b> Chapters Finished (${remainingCount} Remaining)</span>
         </div>
         <div class="progress-track-bg" style="background:var(--border);height:8px;border-radius:4px;overflow:hidden">
           <div class="progress-track-fill" style="width:${percentComplete}%;background:var(--green);height:100%"></div>
@@ -1629,7 +1982,17 @@ function renderChapter() {
 
   const progressEnabled = state.currentDoc?.progressEnabled !== false;
 
-  let body = `<div class="summarybox"><b>${state.currentDoc?.projectTitle || p.name}</b><br>${state.currentDoc?.projectDescription || p.summary}</div>
+  // Render project header summary card
+  let body = `
+    <div class="summarybox" style="margin-bottom:16px; border-left:4px solid var(--navy); padding:14px; background:var(--card);">
+      <h3 style="margin:0 0 6px 0">${state.currentDoc?.projectTitle || p.name}</h3>
+      <p style="margin:0 0 10px 0; font-size:13px; line-height:1.4;">${state.currentDoc?.projectDescription || p.summary}</p>
+      <div style="display:flex; flex-wrap:wrap; gap:12px; font-size:12px; color:var(--text-muted);">
+        <span>Domain: <b>${p.domain}</b></span> · 
+        <span>Difficulty: <b>${p.difficulty || p.level || "Intermediate"}</b></span> · 
+        <span>Duration: <b>${p.duration || "4-6 Weeks"}</b></span>
+      </div>
+    </div>
     <div class="chapter-queue">
       ${docChapters.map((c, i) => `<span class="queue-chip ${completed.includes(i)||completed.includes(c.title)||completed.includes(c.id)?"done":""} ${i===state.currentChapter?"current":""}">${c.chapterNumber || (i+1)}</span>`).join("")}
     </div>`;
@@ -1638,18 +2001,69 @@ function renderChapter() {
     body += `<div class="chapter-intro-box" style="margin:16px 0;line-height:1.6;font-size:14px;color:var(--text)">${activeChapObj.introduction}</div>`;
   }
 
-  if (Array.isArray(activeChapObj.importantSubtopics) && activeChapObj.importantSubtopics.length) {
+  const isOverviewChapter = activeChapObj.title === "Overview" || String(activeChapObj.chapterNumber) === "1" || state.currentChapter === 0;
+
+  if (isOverviewChapter && Array.isArray(activeChapObj.importantSubtopics) && activeChapObj.importantSubtopics.length) {
     body += `<h3>Important Subtopics</h3><ul>${activeChapObj.importantSubtopics.map(st => `<li>${st}</li>`).join("")}</ul>`;
   }
 
+  const isQuizChapter = activeChapObj.title === "Quiz" || String(activeChapObj.chapterNumber) === "15" || state.currentChapter === 14;
+
   if (Array.isArray(activeChapObj.sections) && activeChapObj.sections.length) {
-    activeChapObj.sections.forEach(sec => {
-      body += `<div class="enhancement-card" style="margin-top:16px">
-        <h4 class="card-title">${sec.heading || "Section"}</h4>
-        ${sec.content ? `<p style="font-size:13px;line-height:1.5">${sec.content}</p>` : ""}
-        ${Array.isArray(sec.bulletPoints) && sec.bulletPoints.length ? `<ul>${sec.bulletPoints.map(bp=>`<li>${bp}</li>`).join("")}</ul>` : ""}
-      </div>`;
+    activeChapObj.sections.forEach((sec, qIdx) => {
+      if (isQuizChapter && sec.heading.toLowerCase().includes("question")) {
+        // Render as interactive quiz question
+        const optionsHtml = (sec.bulletPoints || [])
+          .filter(bp => !bp.trim().toLowerCase().startsWith("explanation:"))
+          .map((bp, oIdx) => {
+            const isCorrect = bp.toLowerCase().includes("(correct)");
+            const labelText = bp.replace(/\(correct\)/i, "").trim();
+            const optionId = `quiz_${qIdx}_option_${oIdx}`;
+            return `
+              <label class="quiz-option-label" style="display:block;margin:8px 0;font-size:13px;cursor:pointer;padding:6px;border-radius:6px;background:var(--bg);border:1px solid var(--border)">
+                <input type="radio" name="quiz_question_${qIdx}" value="${oIdx}" data-correct="${isCorrect}" style="margin-right:8px;">
+                ${labelText}
+              </label>
+            `;
+          }).join("");
+
+        const explanationBlock = (sec.bulletPoints || []).find(bp => bp.trim().toLowerCase().startsWith("explanation:"));
+        const explanationHtml = explanationBlock ? `<div class="quiz-explanation muted" style="display:none;margin-top:8px;font-size:12px;color:var(--text-muted);border-left:2px solid var(--green);padding-left:8px;">${explanationBlock}</div>` : "";
+
+        body += `
+          <div class="enhancement-card quiz-question-card" style="margin-top:16px;" data-qidx="${qIdx}">
+            <h4 class="card-title">${sec.heading}</h4>
+            <p style="font-size:13px;line-height:1.5;margin-bottom:10px;">${sec.content}</p>
+            <div class="quiz-options-container">${optionsHtml}</div>
+            ${explanationHtml}
+          </div>
+        `;
+      } else {
+        // Normal section rendering
+        body += `<div class="enhancement-card" style="margin-top:16px">
+          <h4 class="card-title">${sec.heading || "Section"}</h4>
+          ${sec.content ? `<p style="font-size:13px;line-height:1.5">${sec.content}</p>` : ""}
+          ${Array.isArray(sec.bulletPoints) && sec.bulletPoints.length ? `<ul>${sec.bulletPoints.map(bp=>`<li>${bp}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      }
     });
+
+    if (isQuizChapter) {
+      // Add Submit Quiz button
+      const hasPassed = state.publicMode 
+        ? localStorage.getItem(`quizPassed:${p.id}`) === "true"
+        : (state.user?.progress?.[p.id]?.quizPassed === true);
+
+      body += `
+        <div class="enhancement-card" style="margin-top:16px;text-align:center;">
+          ${hasPassed ? `
+            <div style="color:var(--green);font-weight:bold;margin-bottom:12px;">🎉 You have passed the quiz for this project!</div>
+          ` : `
+            <button class="btn primary" id="quizButton" type="button" style="padding:10px 24px;">Submit Quiz Answers</button>
+          `}
+        </div>
+      `;
+    }
   }
 
   if (Array.isArray(activeChapObj.codeExamples) && activeChapObj.codeExamples.length) {
@@ -1658,7 +2072,7 @@ function renderChapter() {
         <h4 class="card-title">💻 ${ce.title || "Code Example"} (${ce.language || "code"})</h4>
         <pre class="code-tree-box"><code>${ce.code}</code></pre>
         ${ce.explanation ? `<p class="muted" style="font-size:12px;margin-top:6px">${ce.explanation}</p>` : ""}
-      </div>`;
+      </div>`
     });
   }
 
@@ -1679,7 +2093,8 @@ function renderChapter() {
         <div class="preview-info-card"><b>Documentation Preview</b><span>Read all chapters without changing tracked progress.</span></div>
         <div class="preview-info-card"><b>Tracking ${progressEnabled ? "Disabled in Preview" : "Disabled by Admin"}</b><span>Select 4 projects and use Start / Continue for chapter completion.</span></div>
       </div>` : `
-      <div class="notes-section"><h3>Intern Notes</h3><textarea id="noteBox" class="notes">${localStorage.getItem(noteKey)||""}</textarea><button class="btn outline" id="saveNoteButton" type="button">Save Notes</button></div>`}
+      <div class="notes-section"><h3>Intern Notes</h3><textarea id="noteBox" class="notes">	ext(localStorage.getItem(noteKey)||"")
+</textarea><button class="btn outline" id="saveNoteButton" type="button">Save Notes</button></div>`}
     <div class="chapter-actions">
       <button class="btn outline" id="prevChapter" ${state.currentChapter===0?"disabled":""}>← Previous</button>
       ${state.publicMode ? `<button class="btn outline" id="backToProjectsButton">← Back to Projects</button>` : `<button class="btn success" id="completeChapterButton" ${!progressEnabled?"disabled":""}>Mark Chapter Complete</button>`}
