@@ -87,7 +87,8 @@ const DEFAULT_DOMAINS = [
   "Web Development",
   "Cyber Security",
   "Artificial Intelligence (AI/ML)",
-  "Cloud Computing"
+  "Cloud Computing",
+  "Python with Machine Learning"
 ];
 const DOMAINS = DEFAULT_DOMAINS;
 
@@ -114,7 +115,207 @@ const DEFAULT_PROJECTS = [
   { id: "cs-soc-alert-triage", name: "SOC Security Event Monitoring & Alert Triage Platform", title: "SOC Security Event Monitoring & Alert Triage Platform", icon: "📊", domain: "Cyber Security", level: "Advanced", difficulty: "Advanced", duration: "6–8 Weeks", stack: "React, Node.js, Express, WebSockets, MongoDB", summary: "Develop a Security Operations Center platform that processes authorized or simulated security events, applies detection rules, prioritizes alerts, and supports analyst investigation and incident management.", description: "Develop a Security Operations Center platform that processes authorized or simulated security events, applies detection rules, prioritizes alerts, and supports analyst investigation and incident management.", modules: ["Event Stream Processing", "Rule Engine", "Alert Triage Queue", "Analyst Workbench", "Incident Case Builder"], status: "active", objective: "Process security event telemetry, execute rule engines, prioritize alerts, and manage SOC workflows.", outcomes: ["SIEM/SOC architecture", "Alert correlation rules", "Analyst workflow optimization"], customChapters: [] },
   { id: "cs-ai-log-analysis", name: "AI-Assisted Cyber Security Log Analysis System", title: "AI-Assisted Cyber Security Log Analysis System", icon: "🤖", domain: "Cyber Security", level: "Advanced", difficulty: "Advanced", duration: "6–8 Weeks", stack: "React, Node.js, Express, TensorFlow/ML, MongoDB", summary: "Develop an AI-assisted defensive security platform that analyzes authorized security logs, identifies unusual patterns, summarizes alerts, calculates explainable risk scores, and assists analysts with incident investigation.", description: "Develop an AI-assisted defensive security platform that analyzes authorized security logs, identifies unusual patterns, summarizes alerts, calculates explainable risk scores, and assists analysts with incident investigation.", modules: ["Security Log Collector", "ML Anomaly Detector", "Risk Scoring Engine", "AI Summary Generator", "Analyst Copilot"], status: "active", objective: "AI-driven log analysis, anomaly detection, explainable risk scoring, and threat summarization.", outcomes: ["Machine learning anomaly detection", "Explainable AI risk scoring", "Automated threat intelligence"], customChapters: [] },
   { id: "cs-zerotrust-compliance", name: "Zero-Trust Access & Device Compliance Management System", title: "Zero-Trust Access & Device Compliance Management System", icon: "🛡️", domain: "Cyber Security", level: "Advanced", difficulty: "Advanced", duration: "6–8 Weeks", stack: "React, Node.js, Express, Certificate Auth, MongoDB", summary: "Develop a zero-trust security platform that evaluates identity, roles, session context, and device-compliance signals before granting access to protected organizational resources.", description: "Develop a zero-trust security platform that evaluates identity, roles, session context, and device-compliance signals before granting access to protected organizational resources.", modules: ["Identity Evaluator", "Device Telemetry Inspector", "Contextual Policy Engine", "Adaptive Auth Gateway", "Access Audit Log"], status: "active", objective: "Evaluate identity, session context, and device compliance signals continuously before granting access.", outcomes: ["Zero-trust architecture", "Device posture verification", "Adaptive authentication"], customChapters: [] },
-  { id: "cs-threat-intel-command", name: "Enterprise Cyber Security Incident Command & Threat Intelligence Platform", title: "Enterprise Cyber Security Incident Command & Threat Intelligence Platform", icon: "⚔️", domain: "Cyber Security", level: "Advanced", difficulty: "Advanced", duration: "7–9 Weeks", stack: "React, Node.js, Express, STIX/TAXII, MongoDB", summary: "Develop an enterprise security platform that integrates authorized security events, threat-intelligence records, assets, alerts, incidents, investigation workflows, response activities, and management reporting.", description: "Develop an enterprise security platform that integrates authorized security events, threat-intelligence records, assets, alerts, incidents, investigation workflows, response activities, and management reporting.", modules: ["Threat Intel Feeds", "Asset Inventory", "Incident Command Center", "Playbook Execution Engine", "Executive Threat Metrics"], status: "active", objective: "Integrate threat intelligence feeds, asset inventories, automated playbooks, and incident command metrics.", outcomes: ["Threat intelligence feeds (STIX/TAXII)", "Automated SOAR playbooks", "Executive security reporting"], customChapters: [] }
+  { id: "cs-threat-intel-command", name: "Enterprise Cyber Security Incident Command & Threat Intelligence Platform", title: "Enterprise Cyber Security Incident Command & Threat Intelligence Platform", icon: "⚔️", domain: "Cyber Security", level: "Advanced", difficulty: "Advanced", duration: "7–9 Weeks", stack: "React, Node.js, Express, STIX/TAXII, MongoDB", summary: "Develop an enterprise security platform that integrates authorized security events, threat-intelligence records, assets, alerts, incidents, investigation workflows, response activities, and management reporting.", description: "Develop an enterprise security platform that integrates authorized security events, threat-intelligence records, assets, alerts, incidents, investigation workflows, response activities, and management reporting.", modules: ["Threat Intel Feeds", "Asset Inventory", "Incident Command Center", "Playbook Execution Engine", "Executive Threat Metrics"], status: "active", objective: "Integrate threat intelligence feeds, asset inventories, automated playbooks, and incident command metrics.", outcomes: ["Threat intelligence feeds (STIX/TAXII)", "Automated SOAR playbooks", "Executive security reporting"], customChapters: [] },
+  {
+    id: "py-ml-student-perf",
+    name: "Student Performance Prediction System",
+    title: "Student Performance Prediction System",
+    icon: "📈",
+    domain: "Python with Machine Learning",
+    level: "Easy",
+    difficulty: "Easy",
+    duration: "4-6 Weeks",
+    stack: "Python, Pandas, NumPy, Scikit-learn, Matplotlib",
+    summary: "Predict a student's final marks or academic performance using attendance, previous study metrics, and grades.",
+    modules: ["Data Ingestion", "Feature Engineering", "Model Training", "Predictive Dashboard", "Reports"],
+    status: "active",
+    objective: "Build an academic forecasting model to identify students at risk early.",
+    outcomes: ["Regression pipeline", "Feature significance analysis", "Visual analytics dashboard"],
+    customChapters: [],
+    realWorldApp: "Academic progress monitoring & early student intervention systems.",
+    mlConcepts: "Linear Regression / Random Forest",
+    description: "Predict a student's final marks or academic performance using attendance, previous marks, study hours, assignments, and other factors."
+  },
+  {
+    id: "py-ml-house-price",
+    name: "House Price Prediction System",
+    title: "House Price Prediction System",
+    icon: "🏠",
+    domain: "Python with Machine Learning",
+    level: "Easy",
+    difficulty: "Easy",
+    duration: "4-6 Weeks",
+    stack: "Python, Pandas, NumPy, Scikit-learn",
+    summary: "Predict house/property prices based on location, area, bedrooms, bathrooms, and other features.",
+    modules: ["Data Cleaning", "Geocoding", "Feature Extraction", "Regression Model", "Evaluation Metrics"],
+    status: "active",
+    objective: "Predict housing market valuations using spatial and structural attributes.",
+    outcomes: ["Scikit-learn pipeline", "Overfitting prevention", "Model serialization"],
+    customChapters: [],
+    realWorldApp: "Real estate evaluation, property pricing search engines, and mortgage assessment.",
+    mlConcepts: "Linear Regression / Random Forest Regression",
+    description: "Predict house/property prices based on location, area, number of bedrooms, bathrooms, age of property, and other features."
+  },
+  {
+    id: "py-ml-customer-churn",
+    name: "Customer Churn Prediction",
+    title: "Customer Churn Prediction",
+    icon: "🔄",
+    domain: "Python with Machine Learning",
+    level: "Intermediate",
+    difficulty: "Intermediate",
+    duration: "5-7 Weeks",
+    stack: "Python, Pandas, Scikit-learn, Matplotlib, Seaborn",
+    summary: "Predict whether a customer is likely to leave a company based on usage, subscriptions, and payment history.",
+    modules: ["Usage Aggregator", "Churn Analytics Dashboard", "Risk Scoring", "Retention Action Engine"],
+    status: "active",
+    objective: "Classify subscriber profiles into high, medium, and low churn risks.",
+    outcomes: ["Imbalanced data handling (SMOTE)", "ROC-AUC optimization", "Feature importance charts"],
+    customChapters: [],
+    realWorldApp: "SaaS retention optimization, subscriber engagement analytics, and churn prevention campaigns.",
+    mlConcepts: "Logistic Regression / Decision Tree / Random Forest",
+    description: "Predict whether a customer is likely to leave a company based on usage, subscription, payment history, complaints, and customer activity."
+  },
+  {
+    id: "py-ml-spam-detection",
+    name: "Spam Email/SMS Detection",
+    title: "Spam Email/SMS Detection",
+    icon: "🚫",
+    domain: "Python with Machine Learning",
+    level: "Intermediate",
+    difficulty: "Intermediate",
+    duration: "5-7 Weeks",
+    stack: "Python, Pandas, Scikit-learn, NLTK",
+    summary: "Classify messages as spam or legitimate using Natural Language Processing.",
+    modules: ["Text Tokenizer", "Feature Vectorizer", "Naive Bayes Classifier", "Gateway Guard API"],
+    status: "active",
+    objective: "Filter spam communication streams using text classification.",
+    outcomes: ["TF-IDF vector space model", "NLP text preprocessing pipelines", "Precision/Recall optimization"],
+    customChapters: [],
+    realWorldApp: "Email client filtering, SMS gateway spam blocking, and communications safety guards.",
+    mlConcepts: "NLP, TF-IDF, Naive Bayes",
+    description: "Classify messages as spam or legitimate using Natural Language Processing."
+  },
+  {
+    id: "py-ml-loan-approval",
+    name: "Loan Approval Prediction System",
+    title: "Loan Approval Prediction System",
+    icon: "💵",
+    domain: "Python with Machine Learning",
+    level: "Intermediate",
+    difficulty: "Intermediate",
+    duration: "5-7 Weeks",
+    stack: "Python, Pandas, NumPy, Scikit-learn",
+    summary: "Predict whether a loan application should be approved based on income, credit history, and employment factors.",
+    modules: ["Applicant Portal", "Credit Score Ingest", "Decision Engine", "Compliance & Audit Log"],
+    status: "active",
+    objective: "Evaluate default risk of loan applicants automatically.",
+    outcomes: ["Classification pipeline", "Fairness checking algorithms", "Model audit reporting"],
+    customChapters: [],
+    realWorldApp: "Automated retail lending decisions, credit scoring verification, and risk profiling dashboards.",
+    mlConcepts: "Logistic Regression / Random Forest / Decision Tree",
+    description: "Predict whether a loan application should be approved based on income, credit history, employment, loan amount, education, and other applicant information."
+  },
+  {
+    id: "py-ml-fake-news",
+    name: "Fake News Detection System",
+    title: "Fake News Detection System",
+    icon: "📰",
+    domain: "Python with Machine Learning",
+    level: "Intermediate",
+    difficulty: "Intermediate",
+    duration: "5-7 Weeks",
+    stack: "Python, Pandas, Scikit-learn, NLTK",
+    summary: "Analyze news articles and predict whether the news is potentially fake or genuine using NLP.",
+    modules: ["Text Ingestion", "Sentiment Analyzer", "Stance Detection Model", "Verification Console"],
+    status: "active",
+    objective: "Analyze and label textual integrity of online media files.",
+    outcomes: ["Text representation models", "Media verification pipeline", "Topic model metrics"],
+    customChapters: [],
+    realWorldApp: "Social media content moderation, fact-checking assistants, and automated news feed evaluation.",
+    mlConcepts: "NLP, TF-IDF, Logistic Regression / Naive Bayes",
+    description: "Analyze news articles and predict whether the news is potentially fake or genuine using NLP and machine learning."
+  },
+  {
+    id: "py-ml-product-recommendation",
+    name: "E-Commerce Product Recommendation System",
+    title: "E-Commerce Product Recommendation System",
+    icon: "🛒",
+    domain: "Python with Machine Learning",
+    level: "Advanced",
+    difficulty: "Advanced",
+    duration: "6-8 Weeks",
+    stack: "Python, Pandas, NumPy, Scikit-learn, Flask/FastAPI",
+    summary: "Recommend products to users based on purchase history, ratings, and similar user behavior.",
+    modules: ["User Profiles Ingestion", "Ratings Matrix Builder", "Recommendation Engine API", "Storefront Widget Sync"],
+    status: "active",
+    objective: "Construct product matching graphs based on user-item matrix similarities.",
+    outcomes: ["Matrix Factorization (SVD)", "Cosine similarity algorithms", "API service containerization"],
+    customChapters: [],
+    realWorldApp: "Personalized shopping storefronts, related-item carousels, and catalog discovery.",
+    mlConcepts: "Collaborative Filtering / Content-Based Filtering",
+    description: "Recommend products to users based on their previous purchases, browsing history, ratings, and similar user behavior."
+  },
+  {
+    id: "py-ml-disease-risk",
+    name: "Disease Risk Prediction System",
+    title: "Disease Risk Prediction System",
+    icon: "🩺",
+    domain: "Python with Machine Learning",
+    level: "Advanced",
+    difficulty: "Advanced",
+    duration: "6-8 Weeks",
+    stack: "Python, Pandas, NumPy, Scikit-learn, Flask/FastAPI",
+    summary: "Predict the risk of a particular disease based on user-provided medical parameters (Prediction/Decision-support only).",
+    modules: ["Biometric Inputs Portal", "Medical Parameter Normalizer", "Risk Assessment Engine", "Disclaimer & Audit Log"],
+    status: "active",
+    objective: "Calculate general health risk categories using physiological sensor data.",
+    outcomes: ["Strict disclaimer architecture", "Precision-focused classification", "Model explaining layers (SHAP)"],
+    customChapters: [],
+    realWorldApp: "Clinical decision support, preventive wellness dashboards, and risk stratification metrics. (Presented only as prediction/decision-support; does not claim professional medical diagnosis.)",
+    mlConcepts: "Classification, Random Forest, Logistic Regression",
+    description: "Predict the risk of a particular disease based on user-provided medical parameters. Presented only as a prediction/decision-support system and must not claim to provide professional medical diagnosis."
+  },
+  {
+    id: "py-ml-fraud-detection",
+    name: "Credit Card Fraud Detection System",
+    title: "Credit Card Fraud Detection System",
+    icon: "💳",
+    domain: "Python with Machine Learning",
+    level: "Advanced",
+    difficulty: "Advanced",
+    duration: "6-8 Weeks",
+    stack: "Python, Pandas, NumPy, Scikit-learn",
+    summary: "Detect potentially fraudulent transactions by analyzing transaction amount, time, and behaviors.",
+    modules: ["Transaction Stream Ingestion", "Anomaly Risk Detector", "Triage Dashboard", "Blocked Cards Log"],
+    status: "active",
+    objective: "Detect fraudulent events in heavily imbalanced transaction records.",
+    outcomes: ["Unsupervised anomaly models", "SMOTE oversampling pipeline", "F1-Score optimization"],
+    customChapters: [],
+    realWorldApp: "Real-time payment fraud prevention, risk assessment filters, and authorization blocking.",
+    mlConcepts: "Classification, Random Forest, Isolation Forest, Anomaly Detection",
+    description: "Detect potentially fraudulent transactions by analyzing transaction amount, time, location, transaction behavior, and other features."
+  },
+  {
+    id: "py-ml-traffic-accident",
+    name: "Traffic Accident Risk Prediction System",
+    title: "Traffic Accident Risk Prediction System",
+    icon: "🚗",
+    domain: "Python with Machine Learning",
+    level: "Advanced",
+    difficulty: "Advanced",
+    duration: "6-8 Weeks",
+    stack: "Python, Pandas, NumPy, Scikit-learn, Matplotlib",
+    summary: "Predict accident-risk levels based on traffic density, weather, road conditions, time, and location.",
+    modules: ["GIS Spatial Loader", "Weather Ingest API", "Risk Scoring Engine", "Route Analysis Map"],
+    status: "active",
+    objective: "Stratify traffic accident probability along roadway segments.",
+    outcomes: ["Spatial-temporal feature engineering", "Gradient Boosting pipeline", "Risk maps visualization"],
+    customChapters: [],
+    realWorldApp: "Municipal route safety planning, GPS risk-aware navigation, and emergency resource allocation.",
+    mlConcepts: "Classification / Random Forest / Gradient Boosting",
+    description: "Predict accident-risk levels based on traffic density, weather, road conditions, time, location, and historical accident data."
+  }
 ];
 
 const DEFAULT_CHAPTER_TITLES = [
@@ -515,9 +716,16 @@ function getProjectDifficultyForUser(db, u, projectId) {
   const domainProjects = (db.projects || []).filter(p => String(p.domain || "Web Development").trim().toLowerCase() === String(userDomain).trim().toLowerCase());
   const idx = domainProjects.findIndex(p => p.id === projectId);
   if (idx === -1) return "Intermediate";
-  if (idx < 3) return "Easy";
-  if (idx < 6) return "Intermediate";
-  return "Advanced";
+
+  if (String(userDomain).trim().toLowerCase() === "python with machine learning") {
+    if (idx < 2) return "Easy";
+    if (idx < 6) return "Intermediate";
+    return "Advanced";
+  } else {
+    if (idx < 3) return "Easy";
+    if (idx < 6) return "Intermediate";
+    return "Advanced";
+  }
 }
 
 function normalizeUser(u){
