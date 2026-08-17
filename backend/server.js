@@ -510,6 +510,16 @@ function queueExcelReport(db){
   },20);
 }
 
+function getProjectDifficultyForUser(db, u, projectId) {
+  const userDomain = u.domain || "Web Development";
+  const domainProjects = (db.projects || []).filter(p => String(p.domain || "Web Development").trim().toLowerCase() === String(userDomain).trim().toLowerCase());
+  const idx = domainProjects.findIndex(p => p.id === projectId);
+  if (idx === -1) return "Intermediate";
+  if (idx < 3) return "Easy";
+  if (idx < 6) return "Intermediate";
+  return "Advanced";
+}
+
 function normalizeUser(u){
   u.role=u.role||"STUDENT";
   u.department=u.department||"Computer Science";
@@ -521,10 +531,12 @@ function normalizeUser(u){
   u.dailyActivity=u.dailyActivity&&typeof u.dailyActivity==="object"?u.dailyActivity:{};
 
   const assigned=u.selectedProjects;
-  const completed=assigned.filter(id=>u.progress?.[id]?.status==="completed").length;
-  if(!u.status){
-    if(assigned.length===4 && completed===4) u.status="completed";
-    else if(assigned.length>0) u.status="active";
+  const initialProjects=assigned.slice(0, 4);
+  const completedInitial=initialProjects.filter(id=>u.progress?.[id]?.status==="completed").length;
+  if(initialProjects.length===4 && completedInitial===4) {
+    u.status="completed";
+  } else if(!u.status) {
+    if(assigned.length>0) u.status="active";
     else u.status="pending";
   }
 
@@ -949,6 +961,22 @@ app.post("/api/intern/selection",auth,(req,res)=>{
       user:u
     });
   }
+
+  // Enforce difficulty count rules
+  let easy = 0, inter = 0, adv = 0;
+  for (const id of ids) {
+    const diff = getProjectDifficultyForUser(db, u, id);
+    if (diff === "Easy") easy++;
+    else if (diff === "Intermediate") inter++;
+    else if (diff === "Advanced") adv++;
+  }
+
+  if (easy !== 1 || inter !== 1 || adv !== 2) {
+    return res.status(400).json({
+      message: "Invalid combination. You must select exactly 1 Easy, 1 Intermediate, and 2 Advanced projects."
+    });
+  }
+
   u.selectedProjects=ids;
   u.progress={};
   ids.forEach((id,index)=>{
@@ -968,6 +996,47 @@ app.post("/api/intern/selection",auth,(req,res)=>{
   log(db,u.id,"STUDENT_PROJECT_SELECTION_LOCKED",{projectIds:ids});
   write(db);
   res.json({user:u,message:"Four projects selected and locked successfully."});
+});
+
+app.post("/api/intern/select-additional",auth,(req,res)=>{
+  const { projectId } = req.body || {};
+  if (!projectId) return res.status(400).json({ message: "projectId is required." });
+
+  const db = read(), u = getUser(db, req.auth.userId);
+  if (!u) return res.status(404).json({ message: "User not found." });
+  normalizeUser(u);
+
+  if ((u.selectedProjects || []).includes(projectId)) {
+    return res.status(400).json({ message: "Project already selected." });
+  }
+
+  const initialProjects = u.selectedProjects.slice(0, 4);
+  if (initialProjects.length < 4) {
+    return res.status(403).json({ message: "You must select the initial 4 projects first." });
+  }
+
+  const allCompleted = initialProjects.every(id => u.progress?.[id]?.status === "completed");
+  if (!allCompleted) {
+    return res.status(403).json({ message: "You must complete all 4 initially selected projects before unlocking additional projects." });
+  }
+
+  u.selectedProjects.push(projectId);
+  u.progress[projectId] = {
+    status: "available",
+    completedChapters: [],
+    percent: 0,
+    githubUrl: "",
+    submissionNote: "",
+    submittedAt: null,
+    timeSpentSeconds: 0,
+    activeStartedAt: null,
+    quizPassed: false,
+    quizScore: 0
+  };
+
+  log(db, u.id, "STUDENT_ADDITIONAL_PROJECT_SELECTED", { projectId });
+  write(db);
+  res.json({ user: u, message: "Additional project unlocked." });
 });
 
 app.post("/api/tracking/:id/start",auth,(req,res)=>{

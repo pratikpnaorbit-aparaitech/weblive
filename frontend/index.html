@@ -446,7 +446,25 @@
   </div>
 </section>
 
-<section id="selectView" class="hidden"><div class="wrap"><article class="panel"><h2>Choose Exactly 4 Projects</h2><div class="progress"><span id="selectBar"></span></div><p id="selectText">0 of 4 selected</p><div id="selectionGrid" class="grid"></div><button class="btn success" style="margin-top:15px" onclick="saveSelection()">Save 4 Projects</button></article></div></section>
+<section id="selectView" class="hidden">
+  <div class="wrap">
+    <article class="panel">
+      <h2>Choose Exactly 4 Projects</h2>
+      <div class="progress"><span id="selectBar"></span></div>
+      <div id="selectionProgressContainer" style="margin-top: 10px;"></div>
+      <p id="selectText" style="display:none">0 of 4 selected</p>
+      <div id="selectionGrid" class="grid"></div>
+      
+      <!-- Option selection note and link -->
+      <div style="margin-top:20px; padding:16px; background:var(--card2); border:1px dashed var(--border); border-radius:8px; font-size:14px; line-height:1.5">
+        <p style="margin:0 0 10px; color:var(--text)"><b>Note:</b> You must select exactly 4 projects — 1 Easy, 1 Intermediate, and 2 Advanced projects. After completing these 4 projects, you may get access to the remaining projects if you wish to work on additional projects.</p>
+        <button class="btn outline btn-xs" type="button" onclick="exploreRemainingProjects()" style="display:inline-block">Explore Remaining Projects</button>
+      </div>
+
+      <button id="saveSelectionBtn" class="btn success" style="margin-top:15px" onclick="saveSelection()">Save 4 Projects</button>
+    </article>
+  </div>
+</section>
 
 <section id="dashboardView" class="hidden"><div class="wrap"><article class="panel"><h2 id="welcome">Welcome</h2><p id="profileText" class="muted"></p><p>Complete every chapter, pass the project quiz, submit a valid GitHub repository URL, then the next selected project unlocks automatically.</p></article><div class="stats"><div class="panel stat"><b id="completedStat">0</b>Completed</div><div class="panel stat"><b id="pendingStat">4</b>Pending</div><div class="panel stat"><b id="overallStat">0%</b>Overall</div><div class="panel stat"><b id="githubStat">0</b>GitHub Submitted</div></div><div class="advanced-dashboard-grid">
       <section class="panel">
@@ -470,6 +488,17 @@
       </div>
       <div id="reportTable"></div>
     </section>
+
+    <!-- ADDITIONAL PROJECTS SECTION -->
+    <div id="additionalProjectsSection" class="panel hidden" style="margin-top:20px">
+      <div class="section-head">
+        <div>
+          <h2>🚀 Explore & Add Additional Projects</h2>
+          <p class="muted">You have successfully completed your core 4 projects! You can now choose to work on any of the remaining projects.</p>
+        </div>
+      </div>
+      <div id="additionalProjectsGrid" class="grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 14px"></div>
+    </div>
 
     <!-- STUDENT NOTES SECTION -->
     <section class="panel student-notes-section" style="margin-top:20px">
