@@ -1052,9 +1052,16 @@ function getProjectDifficulty(projectId) {
   const domainProjects = (window.PROJECTS || []).filter(p => normalize(p.domain || "Web Development") === normalize(userDomain));
   const idx = domainProjects.findIndex(p => p.id === projectId);
   if (idx === -1) return "Intermediate";
-  if (idx < 3) return "Easy";
-  if (idx < 6) return "Intermediate";
-  return "Advanced";
+  
+  if (normalize(userDomain) === "python with machine learning") {
+    if (idx < 2) return "Easy";
+    if (idx < 6) return "Intermediate";
+    return "Advanced";
+  } else {
+    if (idx < 3) return "Easy";
+    if (idx < 6) return "Intermediate";
+    return "Advanced";
+  }
 }
 
 function exploreRemainingProjects() {
@@ -1075,12 +1082,24 @@ function exploreRemainingProjects() {
       badgeStyle = "background:#fee2e2;color:#b91c1c";
     }
 
+    let extraMlDetails = "";
+    if (p.domain === "Python with Machine Learning") {
+      extraMlDetails = `
+        <div style="margin-top:6px; font-size:12px; line-height:1.4; color:var(--text)">
+          <div><b>Real-World App:</b> ${p.realWorldApp || ''}</div>
+          <div><b>Technologies:</b> ${p.stack || ''}</div>
+          <div><b>ML Concepts:</b> ${p.mlConcepts || ''}</div>
+        </div>
+      `;
+    }
+
     return `
       <div style="padding:12px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center">
         <div>
           <strong style="color:var(--navy)">${p.icon || '💻'} ${p.name || p.title}</strong>
           <span class="pill" style="font-size:11px; margin-left:8px; padding:2px 6px; font-weight:bold; ${badgeStyle}">${diff}</span>
           <p class="muted" style="margin:4px 0 0; font-size:12px">${p.summary}</p>
+          ${extraMlDetails}
         </div>
       </div>
     `;
@@ -1143,12 +1162,22 @@ async function renderSelection() {
 
   domainProjects.forEach((p, idx) => {
     let diff = "Intermediate";
-    if (idx < 3) {
-      diff = "Easy";
-    } else if (idx < 6) {
-      diff = "Intermediate";
+    if (normalize(userDomain) === "python with machine learning") {
+      if (idx < 2) {
+        diff = "Easy";
+      } else if (idx < 6) {
+        diff = "Intermediate";
+      } else {
+        diff = "Advanced";
+      }
     } else {
-      diff = "Advanced";
+      if (idx < 3) {
+        diff = "Easy";
+      } else if (idx < 6) {
+        diff = "Intermediate";
+      } else {
+        diff = "Advanced";
+      }
     }
     p.difficulty = diff;
     p.level = diff;
@@ -1172,6 +1201,17 @@ async function renderSelection() {
       badgeStyle = "background:#fee2e2;color:#b91c1c";
     }
 
+    let extraMlDetails = "";
+    if (p.domain === "Python with Machine Learning") {
+      extraMlDetails = `
+        <div class="ml-project-details" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); font-size: 13px; line-height: 1.4">
+          <div style="margin-bottom: 4px"><b>Real-World App:</b> ${p.realWorldApp || ''}</div>
+          <div style="margin-bottom: 4px"><b>Technologies:</b> ${p.stack || ''}</div>
+          <div><b>ML Concepts:</b> ${p.mlConcepts || ''}</div>
+        </div>
+      `;
+    }
+
     return `
       <article class="panel project" id="selection-${p.id}">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
@@ -1180,7 +1220,8 @@ async function renderSelection() {
         </div>
         <h3>${p.icon || '💻'} ${p.name || p.title}</h3>
         <p class="muted">${p.summary}</p>
-        <label><input class="choose" type="checkbox" value="${p.id}"> Choose Project</label>
+        ${extraMlDetails}
+        <label style="display:block; margin-top:10px"><input class="choose" type="checkbox" value="${p.id}"> Choose Project</label>
       </article>
     `;
   };
@@ -1571,6 +1612,17 @@ async function renderAdditionalProjects(user) {
       badgeStyle = "background:#fee2e2;color:#b91c1c";
     }
 
+    let extraMlDetails = "";
+    if (p.domain === "Python with Machine Learning") {
+      extraMlDetails = `
+        <div class="ml-project-details" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); font-size: 13px; line-height: 1.4">
+          <div style="margin-bottom: 4px"><b>Real-World App:</b> ${p.realWorldApp || ''}</div>
+          <div style="margin-bottom: 4px"><b>Technologies:</b> ${p.stack || ''}</div>
+          <div><b>ML Concepts:</b> ${p.mlConcepts || ''}</div>
+        </div>
+      `;
+    }
+
     return `
       <article class="panel project" style="border: 1px solid var(--border); padding: 16px; border-radius: 8px; background: var(--card)">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
@@ -1578,7 +1630,8 @@ async function renderAdditionalProjects(user) {
         </div>
         <h4 style="margin: 0 0 8px; color: var(--navy)">${p.icon || '💻'} ${p.name || p.title}</h4>
         <p class="muted" style="font-size: 13px; margin: 0 0 14px; line-height: 1.4">${p.summary}</p>
-        <button class="btn success btn-xs" type="button" onclick="addAdditionalProject('${p.id}')">+ Add Project</button>
+        ${extraMlDetails}
+        <button class="btn success btn-xs" type="button" onclick="addAdditionalProject('${p.id}')" style="margin-top:10px">+ Add Project</button>
       </article>
     `;
   }).join("");
