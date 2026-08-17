@@ -1169,6 +1169,70 @@ app.delete("/api/admin/students/:id", adminAuth, (req, res) => {
   res.json({ message: "Student account deleted successfully." });
 });
 
+app.put("/api/admin/students/:id", adminAuth, (req, res) => {
+  const { name, email, username, department, customDepartment, year, college, domain, selectedProjects } = req.body || {};
+  if (!name || !email || !username) {
+    return res.status(400).json({ message: "Name, email, and username are required." });
+  }
+
+  const db = read();
+  const u = getUser(db, req.params.id);
+  if (!u) return res.status(404).json({ message: "Student not found." });
+
+  // Check username/email conflicts
+  const conflict = db.users.find(x => x.id !== u.id && (
+    (x.username || "").toLowerCase() === username.toLowerCase() ||
+    (x.email || "").toLowerCase() === email.toLowerCase()
+  ));
+  if (conflict) {
+    return res.status(400).json({ message: "Username or email is already taken." });
+  }
+
+  // Update details
+  u.name = name;
+  u.email = email;
+  u.username = username;
+  u.department = department || "Computer Science";
+  u.customDepartment = customDepartment || "";
+  u.year = year || "Final Year";
+  u.college = college || "";
+  u.domain = domain || "Web Development";
+
+  // Merge selectedProjects
+  if (Array.isArray(selectedProjects)) {
+    const newProgress = {};
+    selectedProjects.forEach((id, index) => {
+      if (u.progress && u.progress[id]) {
+        newProgress[id] = u.progress[id];
+      } else {
+        newProgress[id] = {
+          status: index === 0 ? "available" : "locked",
+          completedChapters: [],
+          percent: 0,
+          githubUrl: "",
+          submissionNote: "",
+          submittedAt: null,
+          timeSpentSeconds: 0,
+          activeStartedAt: null,
+          quizPassed: false,
+          quizScore: 0
+        };
+      }
+    });
+    u.selectedProjects = selectedProjects;
+    u.progress = newProgress;
+  }
+
+  u.updatedAt = new Date().toISOString();
+  log(db, u.id, "ADMIN_EDIT_STUDENT", { name, email, username, adminId: req.admin.leaderId || req.admin.userId });
+  write(db);
+  normalizeUser(u);
+
+  const safe = { ...u };
+  delete safe.password;
+  res.json({ message: "Student information updated successfully.", student: safe });
+});
+
 app.get("/api/intern/me",auth,(req,res)=>{
   const db=read(),u=getUser(db,req.auth.userId);
   if(!u)return res.status(404).json({message:"User not found."});

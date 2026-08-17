@@ -584,6 +584,84 @@
   </div>
 </div>
 
+<!-- EDIT STUDENT MODAL -->
+<div id="editStudentModal" class="modal">
+  <div class="modalbox" style="max-width:560px;padding:24px 28px">
+    <div class="section-head">
+      <h3>Edit Student Account</h3>
+      <button class="btn outline" type="button" onclick="$('editStudentModal').classList.remove('show')">✕ Close</button>
+    </div>
+    <div style="display:grid;gap:12px;margin-top:14px">
+      <input type="hidden" id="editStudentId">
+      
+      <div>
+        <label class="form-label" style="font-size:12px;font-weight:600;display:block;margin-bottom:4px">Full Name</label>
+        <input id="editStudentName" class="input" placeholder="Full Student Name">
+      </div>
+      
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <label class="form-label" style="font-size:12px;font-weight:600;display:block;margin-bottom:4px">Username</label>
+          <input id="editStudentUsername" class="input" placeholder="Unique Username">
+        </div>
+        <div>
+          <label class="form-label" style="font-size:12px;font-weight:600;display:block;margin-bottom:4px">Email Address</label>
+          <input id="editStudentEmail" class="input" placeholder="Student Email Address">
+        </div>
+      </div>
+
+      <div>
+        <label class="form-label" style="font-size:12px;font-weight:600;display:block;margin-bottom:4px">Student Domain</label>
+        <select id="editStudentDomain" class="input">
+          <option value="Web Development">Web Development</option>
+          <option value="Cyber Security">Cyber Security</option>
+          <option value="Artificial Intelligence">Artificial Intelligence</option>
+          <option value="Cloud Computing">Cloud Computing</option>
+          <option value="Python with Machine Learning">Python with Machine Learning</option>
+        </select>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <label class="form-label" style="font-size:12px;font-weight:600;display:block;margin-bottom:4px">Department/Branch</label>
+          <select id="editStudentDept" class="input" onchange="toggleEditStudentCustomDeptField()">
+            <option value="Computer Science">Computer Science</option>
+            <option value="Information Technology">Information Technology</option>
+            <option value="Electronics">Electronics</option>
+            <option value="Data Science">Data Science</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label" style="font-size:12px;font-weight:600;display:block;margin-bottom:4px">Year</label>
+          <select id="editStudentYear" class="input">
+            <option value="1st Year">1st Year</option>
+            <option value="2nd Year">2nd Year</option>
+            <option value="3rd Year">3rd Year</option>
+            <option value="Final Year">Final Year</option>
+            <option value="Graduated">Graduated</option>
+          </select>
+        </div>
+      </div>
+      
+      <input id="editStudentCustomDept" class="input" placeholder="Enter Branch Name" style="display:none">
+      
+      <div>
+        <label class="form-label" style="font-size:12px;font-weight:600;display:block;margin-bottom:4px">College / Institute</label>
+        <input id="editStudentCollege" class="input" placeholder="College / Institute">
+      </div>
+
+      <div id="editStudentProjectsContainer"></div>
+
+      <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:10px">
+        <button class="btn outline" type="button" onclick="$('editStudentModal').classList.remove('show')">Cancel</button>
+        <button class="btn success" type="button" onclick="saveEditedStudent()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <!-- ADD NEW DOMAIN MODAL -->
 <div id="addDomainModal" class="modal">
   <div class="modalbox" style="max-width:480px;padding:24px 28px">
