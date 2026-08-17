@@ -219,9 +219,11 @@
               </select>
               <select id="adminFilterYear" class="input" onchange="filterAdminStudents()">
                 <option value="">All Years</option>
-                <option value="Final Year">Final Year</option>
-                <option value="3rd Year">3rd Year</option>
+                <option value="1st Year">1st Year</option>
                 <option value="2nd Year">2nd Year</option>
+                <option value="3rd Year">3rd Year</option>
+                <option value="Final Year">Final Year</option>
+                <option value="Graduated">Graduated</option>
               </select>
               <select id="adminFilterProject" class="input" onchange="filterAdminStudents()">
                 <option value="">All Projects</option>
@@ -529,18 +531,22 @@
         </select>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <select id="newStudentDept" class="input">
+        <select id="newStudentDept" class="input" onchange="toggleCustomDeptField()">
           <option value="Computer Science">Computer Science</option>
           <option value="Information Technology">Information Technology</option>
           <option value="Electronics">Electronics</option>
           <option value="Data Science">Data Science</option>
+          <option value="Other">Other</option>
         </select>
         <select id="newStudentYear" class="input">
-          <option value="Final Year">Final Year</option>
-          <option value="3rd Year">3rd Year</option>
+          <option value="1st Year">1st Year</option>
           <option value="2nd Year">2nd Year</option>
+          <option value="3rd Year">3rd Year</option>
+          <option value="Final Year" selected>Final Year</option>
+          <option value="Graduated">Graduated</option>
         </select>
       </div>
+      <input id="newStudentCustomDept" class="input" placeholder="Enter Branch Name" style="display:none">
       <input id="newStudentCollege" class="input" placeholder="College / Institute">
       <p class="muted" style="margin:4px 0;font-size:12px">Default Password: <b>Aparitech123@</b></p>
       <button class="btn success" type="button" onclick="createStudentFromModal()">Create Account</button>

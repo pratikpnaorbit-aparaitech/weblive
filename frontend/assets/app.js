@@ -709,6 +709,21 @@ async function renderAdminDashboard() {
 
     const data = await leaderApi("/admin/students");
     adminStudentsCache = data.students || [];
+
+    // Dynamically update admin department filter dropdown to include custom departments
+    const filterDeptSelect = $("adminFilterDept");
+    if (filterDeptSelect) {
+      const currentSelected = filterDeptSelect.value;
+      const uniqueDepts = new Set(["Computer Science", "Information Technology", "Electronics", "Data Science"]);
+      adminStudentsCache.forEach(s => {
+        const displayDept = s.department === 'Other' ? (s.customDepartment || 'Other') : (s.department || "Computer Science");
+        if (displayDept) uniqueDepts.add(displayDept);
+      });
+      filterDeptSelect.innerHTML = `<option value="">All Departments</option>` + 
+        Array.from(uniqueDepts).map(dept => `<option value="${dept}">${dept}</option>`).join("");
+      filterDeptSelect.value = currentSelected;
+    }
+
     filterAdminStudents();
     await renderAdminNotes();
     renderAdminProjectsGrid();
@@ -735,7 +750,10 @@ function filterAdminStudents() {
     );
   }
   if (deptFilter) {
-    list = list.filter(s => (s.department || "").toLowerCase() === deptFilter);
+    list = list.filter(s => {
+      const displayDept = s.department === 'Other' ? (s.customDepartment || 'Other') : (s.department || "Computer Science");
+      return displayDept.toLowerCase() === deptFilter;
+    });
   }
   if (yearFilter) {
     list = list.filter(s => (s.year || "").toLowerCase() === yearFilter);
@@ -800,7 +818,7 @@ function renderAdminStudentTable(students) {
                 <span class="student-username-badge">@${s.username || s.id}</span>
               </td>
               <td>
-                <b>${s.department || "Computer Science"}</b><br>
+                <b>${s.department === 'Other' ? (s.customDepartment || 'Other') : (s.department || "Computer Science")}</b><br>
                 <small class="muted">${s.year || "Final Year"}</small><br>
                 <small>${s.college || ""}</small>
               </td>
@@ -888,7 +906,8 @@ async function openStudentDetailModal(studentId) {
     const logs = data.logs || [];
 
     $("modalStudentName").textContent = student.name;
-    $("modalStudentSub").textContent = `${student.email || 'No Email'} · @${student.username || student.id} · ${student.department || "Computer Science"} (${student.year || "Final Year"})`;
+    const displayDept = student.department === 'Other' ? (student.customDepartment || 'Other') : (student.department || "Computer Science");
+    $("modalStudentSub").textContent = `${student.email || 'No Email'} · @${student.username || student.id} · ${displayDept} (${student.year || "Final Year"})`;
 
     const assigned = student.selectedProjects || [];
     const progress = student.progress || {};
@@ -941,30 +960,77 @@ async function openStudentDetailModal(studentId) {
   }
 }
 
+function toggleCustomDeptField() {
+  const deptSelect = $("newStudentDept");
+  const customDeptInput = $("newStudentCustomDept");
+  if (deptSelect && customDeptInput) {
+    if (deptSelect.value === "Other") {
+      customDeptInput.style.display = "block";
+    } else {
+      customDeptInput.style.display = "none";
+      customDeptInput.value = "";
+    }
+  }
+}
+
 function openCreateStudentModal() {
   $("createStudentModal").classList.add("show");
+  ["newStudentName", "newStudentUsername", "newStudentEmail", "newStudentCollege", "newStudentCustomDept"].forEach(id => {
+    if ($(id)) $(id).value = "";
+  });
+  if ($("newStudentDept")) {
+    $("newStudentDept").value = "Computer Science";
+  }
+  if ($("newStudentYear")) {
+    $("newStudentYear").value = "Final Year";
+  }
+  if ($("newStudentCustomDept")) {
+    $("newStudentCustomDept").style.display = "none";
+  }
 }
 
 async function createStudentFromModal() {
+  const deptVal = $("newStudentDept").value;
+  const customDeptVal = $("newStudentCustomDept")?.value.trim() || "";
+  const yearVal = $("newStudentYear").value;
+
   const payload = {
     name: $("newStudentName").value.trim(),
     username: $("newStudentUsername").value.trim(),
     email: $("newStudentEmail").value.trim(),
     domain: $("newStudentDomain")?.value || "Web Development",
-    department: $("newStudentDept").value,
-    year: $("newStudentYear").value,
+    department: deptVal,
+    customDepartment: customDeptVal,
+    year: yearVal,
     college: $("newStudentCollege").value.trim()
   };
+
   if (!payload.name || !payload.username) {
     return notify("Student name and username are required.", "error");
   }
+  if (!payload.department) {
+    return notify("Branch is required.", "error");
+  }
+  if (payload.department === "Other" && !payload.customDepartment) {
+    return notify("Custom branch name is required when 'Other' is selected.", "error");
+  }
+  if (!payload.year) {
+    return notify("Year is required.", "error");
+  }
+
   try {
     const data = await leaderApi("/leader/students", {
       method: "POST",
       body: JSON.stringify(payload)
     });
     notify(`Student account created for @${data.student.username} (${data.student.domain})!`);
-    ["newStudentName", "newStudentUsername", "newStudentEmail", "newStudentCollege"].forEach(id => $(id) && ($(id).value = ""));
+    ["newStudentName", "newStudentUsername", "newStudentEmail", "newStudentCollege", "newStudentCustomDept"].forEach(id => $(id) && ($(id).value = ""));
+    if ($("newStudentDept")) {
+      $("newStudentDept").value = "Computer Science";
+    }
+    if ($("newStudentCustomDept")) {
+      $("newStudentCustomDept").style.display = "none";
+    }
     $("createStudentModal").classList.remove("show");
     await renderAdminDashboard();
   } catch (error) {

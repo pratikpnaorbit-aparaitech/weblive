@@ -513,6 +513,7 @@ function queueExcelReport(db){
 function normalizeUser(u){
   u.role=u.role||"STUDENT";
   u.department=u.department||"Computer Science";
+  u.customDepartment=u.customDepartment||"";
   u.year=u.year||"Final Year";
   u.domain=u.domain||"Web Development";
   u.selectedProjects=Array.isArray(u.selectedProjects)?u.selectedProjects:[];
@@ -699,8 +700,17 @@ app.post("/api/auth/login",(req,res)=>{
 });
 
 app.post("/api/leader/students",leaderAuth,(req,res)=>{
-  const{name,username,email="",college="",department="Computer Science",year="Final Year",domain="Web Development"}=req.body||{};
+  const{name,username,email="",college="",department="Computer Science",customDepartment="",year="Final Year",domain="Web Development"}=req.body||{};
   if(!name||!username)return res.status(400).json({message:"Student name and username are required."});
+  if(!String(department).trim()){
+    return res.status(400).json({message:"Branch is required."});
+  }
+  if(String(department).trim()==="Other" && !String(customDepartment).trim()){
+    return res.status(400).json({message:"Custom branch name is required when Other is selected."});
+  }
+  if(!String(year).trim()){
+    return res.status(400).json({message:"Year is required."});
+  }
   const db=read();
   db.users=Array.isArray(db.users)?db.users:[];
   if(db.users.some(u=>String(u.username||"").toLowerCase()===String(username).toLowerCase())){
@@ -715,6 +725,7 @@ app.post("/api/leader/students",leaderAuth,(req,res)=>{
     domain:String(domain||"Web Development").trim(),
     college:String(college).trim(),
     department:String(department).trim(),
+    customDepartment:String(department).trim()==="Other"?String(customDepartment).trim():"",
     year:String(year).trim(),
     status:"pending",
     role:"STUDENT",
@@ -790,7 +801,10 @@ app.get("/api/admin/students", adminAuth, (req, res) => {
     );
   }
   if (department) {
-    students = students.filter(s => String(s.department).toLowerCase() === String(department).toLowerCase());
+    students = students.filter(s => {
+      const displayDept = s.department === "Other" ? (s.customDepartment || "Other") : (s.department || "Computer Science");
+      return displayDept.toLowerCase() === String(department).toLowerCase();
+    });
   }
   if (year) {
     students = students.filter(s => String(s.year).toLowerCase() === String(year).toLowerCase());
@@ -831,7 +845,7 @@ app.get("/api/admin/stats", adminAuth, (req, res) => {
     else if (st === "active") activeStudents++;
     else pendingStudents++;
 
-    const dept = u.department || "Computer Science";
+    const dept = u.department === "Other" ? (u.customDepartment || "Other") : (u.department || "Computer Science");
     departmentCounts[dept] = (departmentCounts[dept] || 0) + 1;
 
     (u.selectedProjects || []).forEach(pId => {
