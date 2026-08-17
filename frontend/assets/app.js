@@ -78,7 +78,7 @@ function show(id) {
 
   // If user is already logged in and tries to access loginView
   if (isLogged && id === "loginView") {
-    id = isAdmin ? "adminView" : ((state.user?.selectedProjects || []).length === 4 ? "dashboardView" : "selectView");
+    id = isAdmin ? "adminView" : ((state.user?.selectedProjects || []).length >= 4 ? "dashboardView" : "selectView");
   }
 
   // Admin route protection for non-admins
@@ -87,7 +87,7 @@ function show(id) {
     id = "loginView";
   }
   
-  if (state.token && state.role === "STUDENT" && id === "selectView" && (state.user?.selectedProjects || []).length === 4) {
+  if (state.token && state.role === "STUDENT" && id === "selectView" && (state.user?.selectedProjects || []).length >= 4) {
     id = "dashboardView";
     renderDashboard();
   }
@@ -167,7 +167,7 @@ async function unifiedLogin() {
       state.user = data.user;
       localStorage.setItem("aprToken", state.token);
 
-      if ((state.user?.selectedProjects || []).length === 4) {
+      if ((state.user?.selectedProjects || []).length >= 4) {
         await renderDashboard();
         show("dashboardView");
         notify(`Welcome back, ${state.user.name || "Student"}!`);
@@ -213,7 +213,7 @@ async function studentLogin() {
     localStorage.setItem("aprToken", state.token);
     localStorage.setItem("aprRole", "STUDENT");
 
-    if ((state.user.selectedProjects || []).length === 4) {
+    if ((state.user.selectedProjects || []).length >= 4) {
       await renderDashboard();
       show("dashboardView");
     } else {
@@ -1046,16 +1046,70 @@ function switchLoginMode(mode) {
   $("credsInfoTab")?.classList.toggle("active", !isUnified);
 }
 
+function getProjectDifficulty(projectId) {
+  const userDomain = state.user?.domain || "Web Development";
+  const normalize = s => String(s || "").trim().toLowerCase();
+  const domainProjects = (window.PROJECTS || []).filter(p => normalize(p.domain || "Web Development") === normalize(userDomain));
+  const idx = domainProjects.findIndex(p => p.id === projectId);
+  if (idx === -1) return "Intermediate";
+  if (idx < 3) return "Easy";
+  if (idx < 6) return "Intermediate";
+  return "Advanced";
+}
+
+function exploreRemainingProjects() {
+  const userDomain = state.user?.domain || "Web Development";
+  const normalize = s => String(s || "").trim().toLowerCase();
+  const domainProjects = (window.PROJECTS || []).filter(p => normalize(p.domain || "Web Development") === normalize(userDomain));
+
+  const remaining = domainProjects.filter(p => !state.selected.includes(p.id));
+
+  const listHtml = remaining.map(p => {
+    let badgeStyle = "background:rgba(37,99,235,.1);color:var(--blue)";
+    const diff = getProjectDifficulty(p.id);
+    if (diff === "Easy") {
+      badgeStyle = "background:#dcfce7;color:#166534";
+    } else if (diff === "Intermediate") {
+      badgeStyle = "background:#fef3c7;color:#92400e";
+    } else if (diff === "Advanced") {
+      badgeStyle = "background:#fee2e2;color:#b91c1c";
+    }
+
+    return `
+      <div style="padding:12px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center">
+        <div>
+          <strong style="color:var(--navy)">${p.icon || '💻'} ${p.name || p.title}</strong>
+          <span class="pill" style="font-size:11px; margin-left:8px; padding:2px 6px; font-weight:bold; ${badgeStyle}">${diff}</span>
+          <p class="muted" style="margin:4px 0 0; font-size:12px">${p.summary}</p>
+        </div>
+      </div>
+    `;
+  }).join("") || '<p class="muted">No remaining projects.</p>';
+
+  $("previewBody").innerHTML = `
+    <div class="section-head">
+      <h3>Remaining Projects in ${userDomain}</h3>
+      <button class="btn outline" type="button" onclick="$('previewModal').classList.remove('show')">✕ Close</button>
+    </div>
+    <div style="margin-top:14px; max-height:400px; overflow-y:auto">
+      <p style="font-size:13px; margin-bottom:14px; line-height:1.4" class="muted">
+        These projects are currently locked. You will be able to unlock and work on them after completing your 4 initially selected projects.
+      </p>
+      ${listHtml}
+    </div>
+  `;
+  $("previewModal").classList.add("show");
+}
+
 async function renderSelection() {
   if (state.token && !state.user) {
     try { await loadMe(); } catch (e) {}
   }
   await loadProjects();
 
-  if ((state.user?.selectedProjects || []).length === 4) {
+  if ((state.user?.selectedProjects || []).length >= 4) {
     await renderDashboard();
     show("dashboardView");
-    notify("Your four projects are already selected and locked.");
     return;
   }
   state.selected = [];
@@ -1194,19 +1248,84 @@ async function renderSelection() {
 }
 
 function pick(box) {
-  const checked = [...document.querySelectorAll(".choose:checked")];
-  if (box.checked && checked.length > 4) {
-    box.checked = false;
-    notify("You can select maximum 4 projects.", "error");
-  }
   state.selected = [...document.querySelectorAll(".choose:checked")].map(x => x.value);
   PROJECTS.forEach(p => $("selection-"+p.id)?.classList.toggle("selected", state.selected.includes(p.id)));
   updateSelect();
 }
 
 function updateSelect() {
-  $("selectText").textContent = `${state.selected.length} of 4 selected`;
-  $("selectBar").style.width = `${state.selected.length/4*100}%`;
+  const selectedEasy = state.selected.filter(id => getProjectDifficulty(id) === "Easy");
+  const selectedInter = state.selected.filter(id => getProjectDifficulty(id) === "Intermediate");
+  const selectedAdv = state.selected.filter(id => getProjectDifficulty(id) === "Advanced");
+
+  const easyCount = selectedEasy.length;
+  const interCount = selectedInter.length;
+  const advCount = selectedAdv.length;
+  const totalCount = state.selected.length;
+
+  // Enforce Category-based Disabling
+  document.querySelectorAll(".choose").forEach(box => {
+    const pId = box.value;
+    const diff = getProjectDifficulty(pId);
+    if (!box.checked) {
+      if (diff === "Easy" && easyCount >= 1) {
+        box.disabled = true;
+      } else if (diff === "Intermediate" && interCount >= 1) {
+        box.disabled = true;
+      } else if (diff === "Advanced" && advCount >= 2) {
+        box.disabled = true;
+      } else {
+        box.disabled = false;
+      }
+    } else {
+      box.disabled = false; // Keep checked boxes enabled so they can be unchecked
+    }
+  });
+
+  // Display category progress
+  const progressContainer = $("selectionProgressContainer");
+  const isCompleted = easyCount === 1 && interCount === 1 && advCount === 2;
+  if (progressContainer) {
+    progressContainer.innerHTML = `
+      <div style="margin: 12px 0; padding: 14px; background: var(--card2); border: 1px solid var(--border); border-radius: 8px; font-size: 14px; line-height: 1.5">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; font-weight: 600;">
+          <div style="color: #0f8a68">🟢 Easy: ${easyCount} / 1</div>
+          <div style="color: #d97706">🟡 Intermediate: ${interCount} / 1</div>
+          <div style="color: #dc2626">🔴 Advanced: ${advCount} / 2</div>
+          <div style="color: var(--navy)">Total: ${totalCount} / 4 ${isCompleted ? '<span style="color:#0f8a68; margin-left: 4px;">✓ Complete</span>' : ''}</div>
+        </div>
+      </div>
+    `;
+
+    // Save button styling and state
+    const saveBtn = $("saveSelectionBtn");
+    if (saveBtn) {
+      if (isCompleted) {
+        saveBtn.removeAttribute("disabled");
+        saveBtn.style.opacity = "1";
+        saveBtn.style.cursor = "pointer";
+      } else {
+        saveBtn.setAttribute("disabled", "true");
+        saveBtn.style.opacity = "0.6";
+        saveBtn.style.cursor = "not-allowed";
+      }
+    }
+  }
+
+  // Trigger success message once when combination is met
+  if (isCompleted && !state._selectionNoticeShown) {
+    notify("Mandatory combination satisfied! Click Save to lock your selection.", "success");
+    state._selectionNoticeShown = true;
+  } else if (!isCompleted) {
+    state._selectionNoticeShown = false;
+  }
+
+  if ($("selectBar")) {
+    $("selectBar").style.width = `${(totalCount / 4) * 100}%`;
+  }
+  if ($("selectText")) {
+    $("selectText").textContent = `${totalCount} of 4 selected`;
+  }
 }
 
 async function ensureCandidate() {
@@ -1228,7 +1347,13 @@ async function ensureCandidate() {
 }
 
 async function saveSelection() {
-  if (state.selected.length !== 4) return notify("Select exactly 4 projects.","error");
+  const selectedEasy = state.selected.filter(id => getProjectDifficulty(id) === "Easy");
+  const selectedInter = state.selected.filter(id => getProjectDifficulty(id) === "Intermediate");
+  const selectedAdv = state.selected.filter(id => getProjectDifficulty(id) === "Advanced");
+
+  if (selectedEasy.length !== 1 || selectedInter.length !== 1 || selectedAdv.length !== 2) {
+    return notify("Invalid combination. Select exactly 1 Easy, 1 Intermediate, and 2 Advanced projects.", "error");
+  }
   if (!(await ensureCandidate())) return;
   try {
     const data = await api("/intern/selection", { method:"POST", body:JSON.stringify({ projectIds:state.selected }) });
@@ -1401,13 +1526,79 @@ async function renderDashboard() {
           : `<button class="btn primary tracked-open" data-id="${id}" type="button" onclick="window.openTrackedProjectSafe('${id}'); return false;">${item.status==="completed"?"Review":"Start / Continue"}</button>`}
       </article></div>`;
   }).join("");
-$("completedStat").textContent = completed;
-  $("pendingStat").textContent = 4-completed;
+  $("completedStat").textContent = completed;
+  $("pendingStat").textContent = user.selectedProjects.length-completed;
   $("githubStat").textContent = github;
-  $("overallStat").textContent = Math.round(total/4)+"%";
+  $("overallStat").textContent = Math.round(total/user.selectedProjects.length)+"%";
+
+  const initialProjects = user.selectedProjects.slice(0, 4);
+  const coreCompleted = initialProjects.length === 4 && initialProjects.every(id => progress[id]?.status === "completed");
+
+  if (coreCompleted) {
+    $("additionalProjectsSection")?.classList.remove("hidden");
+    await renderAdditionalProjects(user);
+  } else {
+    $("additionalProjectsSection")?.classList.add("hidden");
+  }
 
   renderCalendar();
   renderReport();
+}
+
+async function renderAdditionalProjects(user) {
+  const container = $("additionalProjectsGrid");
+  if (!container) return;
+
+  const userDomain = user.domain || "Web Development";
+  const normalize = s => String(s || "").trim().toLowerCase();
+  
+  const domainProjects = (window.PROJECTS || []).filter(p => normalize(p.domain || "Web Development") === normalize(userDomain));
+  const remaining = domainProjects.filter(p => !user.selectedProjects.includes(p.id));
+
+  if (!remaining.length) {
+    container.innerHTML = `<p class="muted" style="grid-column: 1/-1; text-align: center; padding: 20px;">You have added all available projects for your domain!</p>`;
+    return;
+  }
+
+  container.innerHTML = remaining.map(p => {
+    let badgeStyle = "background:rgba(37,99,235,.1);color:var(--blue)";
+    const diff = getProjectDifficulty(p.id);
+    if (diff === "Easy") {
+      badgeStyle = "background:#dcfce7;color:#166534";
+    } else if (diff === "Intermediate") {
+      badgeStyle = "background:#fef3c7;color:#92400e";
+    } else if (diff === "Advanced") {
+      badgeStyle = "background:#fee2e2;color:#b91c1c";
+    }
+
+    return `
+      <article class="panel project" style="border: 1px solid var(--border); padding: 16px; border-radius: 8px; background: var(--card)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="pill" style="${badgeStyle};font-weight:bold">${diff}</span>
+        </div>
+        <h4 style="margin: 0 0 8px; color: var(--navy)">${p.icon || '💻'} ${p.name || p.title}</h4>
+        <p class="muted" style="font-size: 13px; margin: 0 0 14px; line-height: 1.4">${p.summary}</p>
+        <button class="btn success btn-xs" type="button" onclick="addAdditionalProject('${p.id}')">+ Add Project</button>
+      </article>
+    `;
+  }).join("");
+}
+
+async function addAdditionalProject(projectId) {
+  const p = PROJECTS.find(x => x.id === projectId);
+  if (!confirm(`Are you sure you want to add "${p?.name || projectId}" to your dashboard?`)) return;
+
+  try {
+    const data = await api("/intern/select-additional", {
+      method: "POST",
+      body: JSON.stringify({ projectId })
+    });
+    notify(`Project "${p?.name || projectId}" added and unlocked successfully!`, "success");
+    state.user = data.user;
+    await renderDashboard();
+  } catch (error) {
+    notify(error.message, "error");
+  }
 }
 
 function renderReport() {
@@ -2998,7 +3189,7 @@ async function initApp() {
     } else {
       try {
         const user = await loadMe();
-        if ((user?.selectedProjects || []).length === 4) {
+        if ((user?.selectedProjects || []).length >= 4) {
           await renderDashboard();
           show("dashboardView");
         } else {
