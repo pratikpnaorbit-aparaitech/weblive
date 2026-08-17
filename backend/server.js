@@ -86,7 +86,7 @@ function verifyPassword(password, storedPassword){
 const DEFAULT_DOMAINS = [
   "Web Development",
   "Cyber Security",
-  "Artificial Intelligence (AI/ML)",
+  "Artificial Intelligence",
   "Cloud Computing",
   "Python with Machine Learning"
 ];
@@ -389,6 +389,25 @@ function read(){
     db.projects = Array.isArray(db.projects) && db.projects.length ? db.projects : [...DEFAULT_PROJECTS];
     db.documentation = Array.isArray(db.documentation) ? db.documentation : [];
     db.domains = Array.isArray(db.domains) && db.domains.length ? db.domains : [...DEFAULT_DOMAINS];
+
+    db.domains = db.domains.map(d => d === "Artificial Intelligence (AI/ML)" ? "Artificial Intelligence" : d);
+    db.domains = [...new Set(db.domains)];
+
+    if (Array.isArray(db.users)) {
+      db.users.forEach(u => {
+        if (u.domain === "Artificial Intelligence (AI/ML)") {
+          u.domain = "Artificial Intelligence";
+        }
+      });
+    }
+
+    if (Array.isArray(db.projects)) {
+      db.projects.forEach(p => {
+        if (p.domain === "Artificial Intelligence (AI/ML)") {
+          p.domain = "Artificial Intelligence";
+        }
+      });
+    }
 
     DEFAULT_DOMAINS.forEach(d => {
       if (!db.domains.includes(d)) db.domains.push(d);
