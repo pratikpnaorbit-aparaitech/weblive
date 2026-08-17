@@ -839,6 +839,7 @@ function renderAdminStudentTable(students) {
               <td>
                 <div class="action-btns">
                   <button class="btn primary btn-xs" onclick="openStudentDetailModal('${s.id}')">Profile</button>
+                  <button class="btn outline btn-xs" onclick="openEditStudentModal('${s.id}')">Edit</button>
                   <button class="btn outline btn-xs" onclick="editStudentProgressPrompt('${s.id}')">Progress</button>
                   <button class="btn outline btn-xs" style="color:#b91c1c;border-color:#fca5a5" onclick="deleteStudentAccount('${s.id}')">Delete</button>
                 </div>
@@ -896,6 +897,133 @@ async function deleteStudentAccount(studentId) {
     await renderAdminDashboard();
   } catch (error) {
     notify(error.message, "error");
+  }
+}
+
+function toggleEditStudentCustomDeptField() {
+  const select = $("editStudentDept");
+  const customInput = $("editStudentCustomDept");
+  if (select && customInput) {
+    if (select.value === "Other") {
+      customInput.style.display = "block";
+    } else {
+      customInput.style.display = "none";
+    }
+  }
+}
+
+async function openEditStudentModal(studentId) {
+  try {
+    const data = await leaderApi(`/admin/students/${studentId}`);
+    const student = data.student;
+    
+    $("editStudentId").value = student.id;
+    $("editStudentName").value = student.name || "";
+    $("editStudentUsername").value = student.username || "";
+    $("editStudentEmail").value = student.email || "";
+    $("editStudentDomain").value = student.domain || "Web Development";
+    $("editStudentDept").value = student.department || "Computer Science";
+    $("editStudentCustomDept").value = student.customDepartment || "";
+    $("editStudentYear").value = student.year || "Final Year";
+    $("editStudentCollege").value = student.college || "";
+    
+    toggleEditStudentCustomDeptField();
+
+    // Set onchange handler for domain to dynamic project rendering
+    $("editStudentDomain").onchange = (e) => {
+      renderEditStudentProjectsList(e.target.value, []);
+    };
+
+    // Render the checkbox list of projects
+    renderEditStudentProjectsList(student.domain || "Web Development", student.selectedProjects || []);
+
+    $("editStudentModal").classList.add("show");
+  } catch (error) {
+    console.error("Error opening edit student modal:", error);
+    notify("Error loading student details.", "error");
+  }
+}
+
+function renderEditStudentProjectsList(selectedDomain, checkedProjectIds = []) {
+  const container = $("editStudentProjectsContainer");
+  if (!container) return;
+
+  // Filter projects by domain (case-insensitive)
+  const domainProjects = (window.PROJECTS || []).filter(p => 
+    String(p.domain || "Web Development").trim().toLowerCase() === String(selectedDomain).trim().toLowerCase()
+  );
+  
+  if (domainProjects.length === 0) {
+    container.innerHTML = `<p class="muted" style="font-size:13px;margin:8px 0 0">No projects available for this domain.</p>`;
+    return;
+  }
+
+  container.innerHTML = `
+    <label class="form-label" style="font-size:12px;font-weight:600;display:block;margin:8px 0 4px">Project Selection (Domain: ${selectedDomain})</label>
+    <div style="max-height: 180px; overflow-y: auto; border: 1px solid var(--border); padding: 8px; border-radius: 4px; display: grid; gap: 6px;">
+      ${domainProjects.map(p => {
+        const isChecked = checkedProjectIds.includes(p.id);
+        const diffLabel = getProjectDifficulty(p.id);
+        return `
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;margin:0">
+            <input type="checkbox" name="editStudentProjectCheckbox" value="${p.id}" ${isChecked ? 'checked' : ''}>
+            <span>${p.name} <span class="badge ${diffLabel.toLowerCase()}" style="font-size:10px;padding:1px 4px;border-radius:3px">${diffLabel}</span></span>
+          </label>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
+async function saveEditedStudent() {
+  const studentId = $("editStudentId").value;
+  const name = $("editStudentName").value.trim();
+  const username = $("editStudentUsername").value.trim();
+  const email = $("editStudentEmail").value.trim();
+  const domain = $("editStudentDomain").value;
+  const department = $("editStudentDept").value;
+  const customDepartment = $("editStudentCustomDept").value.trim();
+  const year = $("editStudentYear").value;
+  const college = $("editStudentCollege").value.trim();
+
+  if (!name || !username || !email) {
+    notify("Name, username, and email are required.", "error");
+    return;
+  }
+
+  // Get selected projects from checkboxes
+  const checkboxes = document.getElementsByName("editStudentProjectCheckbox");
+  const selectedProjects = [];
+  checkboxes.forEach(cb => {
+    if (cb.checked) {
+      selectedProjects.push(cb.value);
+    }
+  });
+
+  try {
+    const res = await leaderApi(`/admin/students/${studentId}`, {
+      method: "PUT",
+      body: JSON.stringify({
+        name,
+        username,
+        email,
+        domain,
+        department,
+        customDepartment: department === "Other" ? customDepartment : "",
+        year,
+        college,
+        selectedProjects
+      })
+    });
+    
+    notify("Student profile updated successfully.");
+    $("editStudentModal").classList.remove("show");
+    
+    // Refresh student list/directory
+    await renderAdminDashboard();
+  } catch (error) {
+    console.error("Error saving student edits:", error);
+    notify(error.message || "Failed to update student profile.", "error");
   }
 }
 
