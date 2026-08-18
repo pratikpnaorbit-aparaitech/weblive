@@ -2,7 +2,7 @@
 "use strict";
 
 const API = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
-  ? (window.location.port === "5000" ? "/api" : "https://weblive-qvzp.onrender.com/api")
+  ? (window.location.port === "5000" ? "/api" : "http://localhost:5000/api")
   : "/api";
 const $ = id => document.getElementById(id);
 const state = {
@@ -182,7 +182,17 @@ async function unifiedLogin() {
   }
 }
 
-function logout() {
+async function logout() {
+  if (cameraState.working) {
+    try {
+      await stopCameraWorkSession();
+    } catch (e) {
+      console.error("Error stopping session on logout:", e);
+    }
+  }
+  if (cameraState.stream) {
+    stopWorkCamera();
+  }
   state.token = "";
   state.leaderToken = "";
   state.user = null;
@@ -335,6 +345,8 @@ function switchAdminTab(tabName, clickedEl) {
     notes: "Student Internship Notes Directory",
     docmgmt: "Dynamic Documentation Management System",
     reports: "Automatic Student Work Excel Reports",
+    quizscores: "Student Quiz Attempt Scores",
+    quizmgmt: "Interactive Quiz Questions Management",
     settings: "System Settings & Profile"
   };
 
@@ -349,6 +361,8 @@ function switchAdminTab(tabName, clickedEl) {
   if (tabName === "projects") renderAdminProjectsGrid();
   if (tabName === "progress") renderLeaderDashboard();
   if (tabName === "notes") renderAdminNotes();
+  if (tabName === "quizscores") renderAdminQuizScores();
+  if (tabName === "quizmgmt") renderAdminQuizMgmt();
   if (tabName === "docmgmt") {
     populateDocAdminProjectSelect();
     loadAdminDocForSelectedProject();
@@ -1712,6 +1726,7 @@ async function renderDashboard() {
 
   renderCalendar();
   renderReport();
+  loadCameraTotals();
 }
 
 async function renderAdditionalProjects(user) {
@@ -1782,14 +1797,14 @@ async function addAdditionalProject(projectId) {
   }
 }
 
-function renderReport() {
+async function renderReport() {
   if (!state.user) return;
   const progress = state.user.progress || {};
   const rows = state.user.selectedProjects.map((id,index) => {
     const p = PROJECTS.find(x=>x.id===id);
     const pg = progress[id] || {};
     return `<tr>
-      <td>${index+1}. ${p.name}</td>
+      <td>${index+1}. ${p ? p.name : id}</td>
       <td>${statusBadge(pg.status)}</td>
       <td>${(pg.completedChapters||[]).length}/${CHAPTERS.length}</td>
       <td>${pg.percent||0}%</td>
@@ -1798,9 +1813,84 @@ function renderReport() {
       <td>${pg.githubUrl ? `<a href="${pg.githubUrl}" target="_blank">Submitted</a>` : "Pending"}</td>
     </tr>`;
   }).join("");
-  $("reportTable").innerHTML = `<table class="report-table">
+  
+  const originalTableHtml = `<table class="report-table">
     <tr><th>Project</th><th>Status</th><th>Chapters</th><th>Progress</th><th>Quiz</th><th>Tracked Time</th><th>GitHub</th></tr>${rows}
   </table>`;
+
+  let quizStatsHtml = "";
+  try {
+    const quizRes = await api("/student/quiz-results");
+    const results = quizRes.results || [];
+
+    const totalQuizzes = results.length;
+    let avgScore = 0;
+    let highestScore = 0;
+    let completedQuizzes = 0;
+
+    if (totalQuizzes > 0) {
+      const sum = results.reduce((s, r) => s + r.percentage, 0);
+      avgScore = Math.round(sum / totalQuizzes);
+      highestScore = Math.max(...results.map(r => r.percentage));
+      completedQuizzes = results.filter(r => r.percentage >= 70).length;
+    }
+
+    const quizRows = results.map(r => `
+      <tr>
+        <td><b>${escapeHtml(r.projectName)}</b></td>
+        <td><b>${r.score}</b> / ${r.totalMarks}</td>
+        <td><b>${r.percentage}%</b></td>
+        <td><span class="badge ${r.percentage >= 70 ? 'success' : 'danger'}">${r.percentage >= 70 ? 'Completed' : 'Failed'}</span></td>
+      </tr>
+    `).join("");
+
+    const quizTable = results.length > 0 ? `
+      <table class="report-table" style="margin-top:12px">
+        <thead>
+          <tr style="background:var(--navy);color:#fff">
+            <th>Project</th>
+            <th>Score</th>
+            <th>Percentage</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${quizRows}
+        </tbody>
+      </table>
+    ` : `<p class="muted" style="margin-top:10px">No quizzes attempted yet. Pass Chapter 15 of your projects to see scores here.</p>`;
+
+    quizStatsHtml = `
+      <div style="margin-top:24px;border-top:1px dashed var(--border);padding-top:20px">
+        <h3>🏆 Quiz Statistics & Performance</h3>
+        <div class="metrics" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-top:12px;margin-bottom:20px">
+          <article class="metricbox" style="padding:14px;background:var(--card2);border:1px solid var(--border);border-radius:12px;text-align:center">
+            <h5 style="margin:0 0 4px 0;color:var(--text-muted)">Total Attempted</h5>
+            <span style="font-size:24px;font-weight:bold;color:var(--navy)">${totalQuizzes}</span>
+          </article>
+          <article class="metricbox" style="padding:14px;background:var(--card2);border:1px solid var(--border);border-radius:12px;text-align:center">
+            <h5 style="margin:0 0 4px 0;color:var(--text-muted)">Average Score</h5>
+            <span style="font-size:24px;font-weight:bold;color:var(--green)">${avgScore}%</span>
+          </article>
+          <article class="metricbox" style="padding:14px;background:var(--card2);border:1px solid var(--border);border-radius:12px;text-align:center">
+            <h5 style="margin:0 0 4px 0;color:var(--text-muted)">Highest Score</h5>
+            <span style="font-size:24px;font-weight:bold;color:var(--blue)">${highestScore}%</span>
+          </article>
+          <article class="metricbox" style="padding:14px;background:var(--card2);border:1px solid var(--border);border-radius:12px;text-align:center">
+            <h5 style="margin:0 0 4px 0;color:var(--text-muted)">Completed Quizzes</h5>
+            <span style="font-size:24px;font-weight:bold;color:var(--green)">${completedQuizzes}</span>
+          </article>
+        </div>
+        
+        <h4>Project-Wise Quiz Scores</h4>
+        ${quizTable}
+      </div>
+    `;
+  } catch (err) {
+    console.error("Error loading quiz stats on dashboard:", err.message);
+  }
+
+  $("reportTable").innerHTML = originalTableHtml + quizStatsHtml;
   renderStudentNotes();
 }
 
@@ -2435,6 +2525,20 @@ function renderChapter() {
       ${docChapters.map((c, i) => `<span class="queue-chip ${completed.includes(i)||completed.includes(c.title)||completed.includes(c.id)?"done":""} ${i===state.currentChapter?"current":""}">${c.chapterNumber || (i+1)}</span>`).join("")}
     </div>`;
 
+  const isQuizChapter = activeChapObj.title === "Quiz" || String(activeChapObj.chapterNumber) === "15" || state.currentChapter === 14;
+  if (isQuizChapter) {
+    $("chapterContent").innerHTML = `
+      <section class="chapter">
+        <div class="tracking-strip">
+          <span>Chapter ${state.currentChapter + 1}/${totalChaptersCount}</span>
+        </div>
+        <div id="activeQuizContainer" style="margin-top:14px">Loading Quiz details...</div>
+      </section>
+    `;
+    loadStudentQuiz(p.id);
+    return;
+  }
+
   if (activeChapObj.introduction) {
     body += `<div class="chapter-intro-box" style="margin:16px 0;line-height:1.6;font-size:14px;color:var(--text)">${activeChapObj.introduction}</div>`;
   }
@@ -2445,7 +2549,7 @@ function renderChapter() {
     body += `<h3>Important Subtopics</h3><ul>${activeChapObj.importantSubtopics.map(st => `<li>${st}</li>`).join("")}</ul>`;
   }
 
-  const isQuizChapter = activeChapObj.title === "Quiz" || String(activeChapObj.chapterNumber) === "15" || state.currentChapter === 14;
+  // isQuizChapter is already declared at the top of renderChapter
 
   if (Array.isArray(activeChapObj.sections) && activeChapObj.sections.length) {
     activeChapObj.sections.forEach((sec, qIdx) => {
@@ -3052,12 +3156,20 @@ function stopAttentionChecks() {
 }
 
 async function loadCameraTotals() {
+  const updateDashboardWorkTime = (sec) => {
+    const dashTotal = document.getElementById("dashboardTotalWorkTime");
+    if (dashTotal) {
+      dashTotal.textContent = formatTime(sec);
+    }
+  };
+
   if (!state.token) {
     cameraState.totalSeconds = Number(
       localStorage.getItem("cameraTotalWorkSeconds") || 0
     );
     const total = document.getElementById("cameraTotalTimer");
     if (total) total.textContent = formatCameraDuration(cameraState.totalSeconds);
+    updateDashboardWorkTime(cameraState.totalSeconds);
     return;
   }
 
@@ -3066,7 +3178,34 @@ async function loadCameraTotals() {
     cameraState.totalSeconds = Number(data.totalWorkSeconds || 0);
     const total = document.getElementById("cameraTotalTimer");
     if (total) total.textContent = formatCameraDuration(cameraState.totalSeconds);
-  } catch {}
+    updateDashboardWorkTime(cameraState.totalSeconds);
+
+    // Fetch and restore active work session on refresh/re-login
+    const activeRes = await api("/camera-work/active");
+    if (activeRes && activeRes.session && activeRes.session.status === "ACTIVE") {
+      const sess = activeRes.session;
+      cameraState.working = true;
+      cameraState.startedAt = new Date(sess.startTime).getTime();
+      cameraState.sessionSeconds = Math.max(0, Math.floor((Date.now() - cameraState.startedAt) / 1000));
+      
+      clearInterval(cameraState.timer);
+      cameraState.timer = setInterval(updateCameraTimer, 1000);
+      
+      document.getElementById("workLiveBadge")?.classList.remove("hidden");
+      const statusEl = document.getElementById("cameraStatus");
+      if (statusEl) statusEl.textContent = "Work session active";
+      
+      document.getElementById("startWorkButton")?.classList.add("hidden");
+      document.getElementById("stopWorkButton")?.classList.remove("hidden");
+      
+      if (!cameraState.stream) {
+        await startWorkCamera();
+      }
+      startAttentionChecks();
+    }
+  } catch (err) {
+    console.error("Error loading camera totals/active session:", err);
+  }
 }
 
 async function autoStartCameraForTrackedProject(projectId) {
@@ -3773,5 +3912,515 @@ function previewAdminChapterModal() {
     const num = Number($("chapEditNum")?.value || 1);
     state.currentChapter = Math.max(0, num - 1);
     openProjectDocument(adminDocCache.projectId, true);
+  }
+}
+
+/* ADMIN & STUDENT QUIZ PORTAL SYSTEM */
+let adminQuizResultsCache = [];
+let adminProjectsCacheForQuiz = [];
+let activeQuizQuestionsCache = [];
+
+async function renderAdminQuizScores() {
+  try {
+    const res = await leaderApi("/admin/quiz-results");
+    adminQuizResultsCache = res.results || [];
+
+    // Populate projects filter
+    const projFilter = $("adminQuizProjectFilter");
+    if (projFilter) {
+      const uniqueProjects = [...new Set(adminQuizResultsCache.map(r => r.projectName))].sort();
+      projFilter.innerHTML = `<option value="">All Projects</option>` +
+        uniqueProjects.map(pName => `<option value="${pName}">${escapeHtml(pName)}</option>`).join("");
+    }
+
+    filterAdminQuizResults();
+  } catch (err) {
+    notify(err.message, "error");
+  }
+}
+
+function filterAdminQuizResults() {
+  const searchVal = ($("adminQuizSearch")?.value || "").toLowerCase().trim();
+  const projectVal = $("adminQuizProjectFilter")?.value || "";
+  const scoreVal = $("adminQuizScoreFilter")?.value || "";
+  const sortVal = $("adminQuizSort")?.value || "date_desc";
+
+  let filtered = [...adminQuizResultsCache];
+
+  // Search
+  if (searchVal) {
+    filtered = filtered.filter(r => 
+      (r.studentName || "").toLowerCase().includes(searchVal) ||
+      (r.studentEmail || "").toLowerCase().includes(searchVal)
+    );
+  }
+
+  // Filter Project
+  if (projectVal) {
+    filtered = filtered.filter(r => r.projectName === projectVal);
+  }
+
+  // Filter Score Status
+  if (scoreVal) {
+    if (scoreVal === "passed") {
+      filtered = filtered.filter(r => r.percentage >= 70);
+    } else if (scoreVal === "failed") {
+      filtered = filtered.filter(r => r.percentage < 70);
+    }
+  }
+
+  // Sorting
+  filtered.sort((a, b) => {
+    if (sortVal === "date_desc") {
+      return new Date(b.submittedAt) - new Date(a.submittedAt);
+    } else if (sortVal === "date_asc") {
+      return new Date(a.submittedAt) - new Date(b.submittedAt);
+    } else if (sortVal === "score_desc") {
+      return b.percentage - a.percentage;
+    } else if (sortVal === "score_asc") {
+      return a.percentage - b.percentage;
+    }
+    return 0;
+  });
+
+  const tbody = $("adminQuizResultsTableBody");
+  if (!tbody) return;
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="10" class="text-center muted">No quiz scores found.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(r => {
+    const isPassed = r.percentage >= 70;
+    const statusText = isPassed ? "🟢 Passed" : "🔴 Failed";
+    const dateStr = r.submittedAt ? new Date(r.submittedAt).toLocaleString() : "N/A";
+    
+    return `
+      <tr>
+        <td><b>${escapeHtml(r.studentName || "N/A")}</b></td>
+        <td><small>${escapeHtml(r.studentEmail || "N/A")}</small></td>
+        <td>${escapeHtml(r.projectName)}</td>
+        <td><b>${r.score}</b> / ${r.totalMarks}</td>
+        <td><b>${r.percentage}%</b></td>
+        <td><span style="color:var(--green)">${r.correctAnswers}</span></td>
+        <td><span style="color:var(--red)">${r.incorrectAnswers}</span></td>
+        <td><small>${dateStr}</small></td>
+        <td><span class="badge ${isPassed ? 'success' : 'danger'}">${statusText}</span></td>
+        <td>
+          <button class="btn danger btn-xs" type="button" onclick="resetStudentQuizAttempt('${r.projectId}', '${r.studentId}')">🔄 Reset Attempt</button>
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+
+async function renderAdminQuizMgmt() {
+  try {
+    const res = await api("/projects");
+    adminProjectsCacheForQuiz = res.projects || [];
+    
+    const select = $("adminQuizMgmtProjectSelect");
+    if (select) {
+      select.innerHTML = adminProjectsCacheForQuiz.map(p => `
+        <option value="${p.id}">${escapeHtml(p.name)} [${escapeHtml(p.domain)}]</option>
+      `).join("");
+      
+      loadQuizMgmtQuestions();
+    }
+  } catch (err) {
+    notify(err.message, "error");
+  }
+}
+
+async function loadQuizMgmtQuestions() {
+  const projId = $("adminQuizMgmtProjectSelect")?.value;
+  if (!projId) return;
+
+  try {
+    const res = await leaderApi(`/admin/projects/${projId}/quiz/questions`);
+    activeQuizQuestionsCache = res.questions || [];
+    const quiz = res.quiz || { totalQuestions: 0, totalMarks: 0 };
+
+    if ($("quizMgmtCount")) $("quizMgmtCount").textContent = `${activeQuizQuestionsCache.length} / 25`;
+    if ($("quizMgmtMarks")) $("quizMgmtMarks").textContent = `${quiz.totalMarks} / 50`;
+
+    const container = $("quizMgmtQuestionsContainer");
+    if (!container) return;
+
+    if (activeQuizQuestionsCache.length === 0) {
+      container.innerHTML = `<div class="text-center muted" style="padding:20px;background:var(--card);border:1px solid var(--border);border-radius:12px;">No questions added yet.</div>`;
+      return;
+    }
+
+    container.innerHTML = activeQuizQuestionsCache.map((q, idx) => `
+      <div class="settings-card" style="background:var(--card);padding:16px;border-radius:12px;border:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+            <span class="badge secondary" style="background:var(--navy);color:#fff">Q${idx + 1}</span>
+            <span class="badge info">Marks: ${q.marks || 2}</span>
+            <span class="badge success" style="background:var(--green);color:#fff">Correct: Option ${escapeHtml(q.correctAnswer)}</span>
+          </div>
+          <h4 style="margin:0 0 8px 0;font-size:14px">${escapeHtml(q.question)}</h4>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px;color:var(--text-muted)">
+            <div><b>A:</b> ${escapeHtml(q.optionA)}</div>
+            <div><b>B:</b> ${escapeHtml(q.optionB)}</div>
+            <div><b>C:</b> ${escapeHtml(q.optionC)}</div>
+            <div><b>D:</b> ${escapeHtml(q.optionD)}</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn outline btn-xs" type="button" onclick="openEditQuestionModal('${q.id}')">✏️ Edit</button>
+          <button class="btn danger btn-xs" type="button" onclick="deleteQuizQuestion('${q.id}')">🗑️ Delete</button>
+        </div>
+      </div>
+    `).join("");
+  } catch (err) {
+    notify(err.message, "error");
+  }
+}
+
+function openCreateQuestionModal() {
+  if (activeQuizQuestionsCache.length >= 25) {
+    notify("Maximum 25 questions reached for this quiz.", "error");
+    return;
+  }
+
+  $("quizQuestionModalTitle").textContent = "Add Quiz Question";
+  $("questionFormId").value = "";
+  $("questionFormText").value = "";
+  $("questionFormOptA").value = "";
+  $("questionFormOptB").value = "";
+  $("questionFormOptC").value = "";
+  $("questionFormOptD").value = "";
+  $("questionFormCorrect").value = "A";
+  $("questionFormMarks").value = "2";
+
+  $("quizQuestionModal").classList.add("show");
+}
+
+function openEditQuestionModal(qId) {
+  const q = activeQuizQuestionsCache.find(item => item.id === qId);
+  if (!q) return;
+
+  $("quizQuestionModalTitle").textContent = "Edit Quiz Question";
+  $("questionFormId").value = q.id;
+  $("questionFormText").value = q.question;
+  $("questionFormOptA").value = q.optionA;
+  $("questionFormOptB").value = q.optionB;
+  $("questionFormOptC").value = q.optionC;
+  $("questionFormOptD").value = q.optionD;
+  $("questionFormCorrect").value = q.correctAnswer;
+  $("questionFormMarks").value = q.marks || 2;
+
+  $("quizQuestionModal").classList.add("show");
+}
+
+async function saveQuizQuestionForm() {
+  const projId = $("adminQuizMgmtProjectSelect")?.value;
+  if (!projId) return;
+
+  const qId = $("questionFormId").value;
+  const payload = {
+    question: $("questionFormText").value.trim(),
+    optionA: $("questionFormOptA").value.trim(),
+    optionB: $("questionFormOptB").value.trim(),
+    optionC: $("questionFormOptC").value.trim(),
+    optionD: $("questionFormOptD").value.trim(),
+    correctAnswer: $("questionFormCorrect").value,
+    marks: Number($("questionFormMarks").value || 2)
+  };
+
+  const isEdit = !!qId;
+  const url = isEdit
+    ? `/admin/projects/${projId}/quiz/questions/${qId}`
+    : `/admin/projects/${projId}/quiz/questions`;
+  const method = isEdit ? "PUT" : "POST";
+
+  try {
+    const res = await leaderApi(url, {
+      method,
+      body: JSON.stringify(payload)
+    });
+    notify(res.message || "Question saved successfully.");
+    $("quizQuestionModal").classList.remove("show");
+    loadQuizMgmtQuestions();
+  } catch (err) {
+    notify(err.message, "error");
+  }
+}
+
+async function deleteQuizQuestion(qId) {
+  const projId = $("adminQuizMgmtProjectSelect")?.value;
+  if (!projId) return;
+
+  if (!confirm("Are you sure you want to delete this question?")) {
+    return;
+  }
+
+  try {
+    const res = await leaderApi(`/admin/projects/${projId}/quiz/questions/${qId}`, {
+      method: "DELETE"
+    });
+    notify(res.message || "Question deleted successfully.");
+    loadQuizMgmtQuestions();
+  } catch (err) {
+    notify(err.message, "error");
+  }
+}
+
+/* STUDENT PORTAL QUIZ SYSTEM CONTROLLERS */
+let studentQuizQuestions = [];
+let studentQuizAnswers = {}; // { questionId: "A" / "B" / "C" / "D" }
+let studentQuizCurrentIndex = 0; // 0 to 24
+let studentQuizResult = null;
+let studentQuizLoadedProjectId = null;
+
+async function loadStudentQuiz(projectId) {
+  if (state.publicMode) {
+    const container = $("activeQuizContainer");
+    if (container) {
+      container.innerHTML = `
+        <div style="padding:20px;background:var(--card);border:1px solid var(--border);border-radius:12px;text-align:center">
+          <div style="font-size:48px;margin-bottom:12px">🔒</div>
+          <h3 style="color:var(--navy)">Registered Interns Only</h3>
+          <p class="muted">You must log in to attempt the project assessment quiz.</p>
+        </div>
+      `;
+    }
+    return;
+  }
+
+  if (studentQuizLoadedProjectId === projectId && studentQuizQuestions.length > 0) {
+    renderStudentQuizPage();
+    return;
+  }
+  
+  studentQuizLoadedProjectId = projectId;
+  studentQuizQuestions = [];
+  studentQuizAnswers = {};
+  studentQuizCurrentIndex = 0;
+  studentQuizResult = null;
+  
+  try {
+    const resResult = await api(`/projects/${projectId}/quiz/result`);
+    if (resResult && resResult.result) {
+      studentQuizResult = resResult.result;
+      renderStudentQuizPage();
+      return;
+    }
+
+    const resQuiz = await api(`/projects/${projectId}/quiz`);
+    if (resQuiz && resQuiz.questions) {
+      studentQuizQuestions = resQuiz.questions || [];
+      if (studentQuizQuestions.length < 25) {
+        studentQuizQuestions = [];
+      }
+    }
+  } catch (err) {
+    console.error("Error loading quiz:", err.message);
+  }
+  
+  renderStudentQuizPage();
+}
+
+function renderStudentQuizPage() {
+  const container = $("activeQuizContainer");
+  if (!container) return;
+
+  const p = state.currentProject;
+
+  if (studentQuizResult) {
+    const r = studentQuizResult;
+    const isPassed = r.percentage >= 70;
+    
+    container.innerHTML = `
+      <div style="padding:20px;background:var(--card);border:1px solid var(--border);border-radius:12px;">
+        <h2 style="color:var(--navy)">🎉 Quiz Completed</h2>
+        <div style="margin:20px 0;padding:16px;background:var(--card2);border-radius:8px;border-left:4px solid ${isPassed ? 'var(--green)' : 'var(--red)'}">
+          <h4 style="margin:0 0 10px 0">${escapeHtml(p.name)} Assessment Quiz</h4>
+          <p style="font-size:18px;margin:6px 0">Score: <b>${r.score} / ${r.totalMarks}</b></p>
+          <p style="font-size:18px;margin:6px 0">Percentage: <b>${r.percentage}%</b></p>
+          <p style="font-size:14px;margin:6px 0;color:var(--text-muted)">
+            Correct: <b>${r.correctAnswers} / 25</b> · Incorrect: <b>${r.incorrectAnswers} / 25</b>
+          </p>
+          <p style="font-size:14px;margin:6px 0;font-weight:bold;color:${isPassed ? 'var(--green)' : 'var(--red)'}">
+            Status: ${isPassed ? 'Passed' : 'Failed (Required >= 70% to pass)'}
+          </p>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  if (studentQuizQuestions.length === 0) {
+    container.innerHTML = `
+      <div style="padding:20px;background:var(--card);border:1px solid var(--border);border-radius:12px;text-align:center">
+        <div style="font-size:48px;margin-bottom:12px">⚠️</div>
+        <h3 style="color:var(--red)">Quiz is not available yet</h3>
+        <p class="muted">Admin is still preparing the questions. Please check back later.</p>
+      </div>
+    `;
+    return;
+  }
+
+  const q = studentQuizQuestions[studentQuizCurrentIndex];
+  const qNum = studentQuizCurrentIndex + 1;
+  const totalQ = studentQuizQuestions.length;
+  const activeAnswer = studentQuizAnswers[q.id] || "";
+
+  const optionsHtml = ["A", "B", "C", "D"].map(optLetter => {
+    const optText = q[`option${optLetter}`];
+    const isChecked = activeAnswer === optLetter ? "checked" : "";
+    return `
+      <label class="quiz-option-label" style="display:block;margin:10px 0;font-size:13px;cursor:pointer;padding:10px;border-radius:6px;background:var(--bg);border:1px solid var(--border)">
+        <input type="radio" name="student_quiz_radio" value="${optLetter}" ${isChecked} onchange="saveStudentQuizAnswer('${q.id}', '${optLetter}')" style="margin-right:8px;">
+        <b>${optLetter}:</b> ${escapeHtml(optText)}
+      </label>
+    `;
+  }).join("");
+
+  const paletteChips = studentQuizQuestions.map((qItem, idx) => {
+    const isAttempted = !!studentQuizAnswers[qItem.id];
+    const isCurrent = idx === studentQuizCurrentIndex;
+    const style = isCurrent 
+      ? "background:var(--navy);color:#fff;border-color:var(--navy)" 
+      : (isAttempted ? "background:var(--green);color:#fff;border-color:var(--green)" : "background:var(--card);border-color:var(--border)");
+    return `
+      <span class="palette-chip" onclick="jumpToQuizQuestion(${idx})" style="display:inline-block;width:30px;height:30px;line-height:28px;text-align:center;border:1px solid;border-radius:4px;cursor:pointer;font-size:11px;font-weight:bold;${style}">
+        ${idx + 1}
+      </span>
+    `;
+  }).join("");
+
+  container.innerHTML = `
+    <div style="padding:20px;background:var(--card);border:1px solid var(--border);border-radius:12px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);padding-bottom:12px;margin-bottom:16px">
+        <div>
+          <h2 style="margin:0;font-size:18px;color:var(--navy)">${escapeHtml(p.name)}</h2>
+          <small class="muted">Chapter 15 Quiz</small>
+        </div>
+        <div style="text-align:right">
+          <span style="font-weight:bold;color:var(--green)">25 Questions · 50 Marks</span><br>
+          <small class="muted">2 Marks per Question</small>
+        </div>
+      </div>
+
+      <div class="quiz-question-card" style="margin-bottom:20px">
+        <div style="font-weight:bold;margin-bottom:8px;font-size:14px;color:var(--text-muted)">
+          Question ${qNum} of ${totalQ}
+        </div>
+        <h4 style="margin:0 0 14px 0;font-size:16px;line-height:1.5">${escapeHtml(q.question)}</h4>
+        <div class="quiz-options-container">${optionsHtml}</div>
+      </div>
+
+      <!-- Question Palette -->
+      <div style="margin-top:20px;margin-bottom:20px;border-top:1px solid var(--border);padding-top:16px">
+        <h5 style="margin:0 0 8px 0;font-size:12px;color:var(--text-muted)">Question Navigation Palette</h5>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">${paletteChips}</div>
+      </div>
+
+      <!-- Navigation Buttons -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:20px">
+        <div style="display:flex;gap:8px">
+          <button class="btn outline" type="button" onclick="prevQuizQuestion()" ${studentQuizCurrentIndex === 0 ? "disabled" : ""}>← Previous</button>
+          <button class="btn outline" type="button" onclick="nextQuizQuestion()" ${studentQuizCurrentIndex === totalQ - 1 ? "disabled" : ""}>Next →</button>
+        </div>
+        <button class="btn success" type="button" style="padding:10px 24px" onclick="submitStudentQuiz()">Submit Quiz Answers</button>
+      </div>
+    </div>
+  `;
+}
+
+function saveStudentQuizAnswer(qId, value) {
+  studentQuizAnswers[qId] = value;
+  renderStudentQuizPage();
+}
+
+function jumpToQuizQuestion(idx) {
+  if (idx >= 0 && idx < studentQuizQuestions.length) {
+    studentQuizCurrentIndex = idx;
+    renderStudentQuizPage();
+  }
+}
+
+function nextQuizQuestion() {
+  if (studentQuizCurrentIndex < studentQuizQuestions.length - 1) {
+    studentQuizCurrentIndex++;
+    renderStudentQuizPage();
+  }
+}
+
+function prevQuizQuestion() {
+  if (studentQuizCurrentIndex > 0) {
+    studentQuizCurrentIndex--;
+    renderStudentQuizPage();
+  }
+}
+
+function retryStudentQuiz() {
+  if (confirm("Are you sure you want to attempt the quiz again?")) {
+    studentQuizResult = null;
+    studentQuizAnswers = {};
+    studentQuizCurrentIndex = 0;
+    renderStudentQuizPage();
+  }
+}
+
+async function submitStudentQuiz() {
+  const attemptedCount = Object.keys(studentQuizAnswers).length;
+  if (attemptedCount < 25) {
+    if (!confirm(`You have only answered ${attemptedCount} out of 25 questions. Are you sure you want to submit the quiz?`)) {
+      return;
+    }
+  } else {
+    if (!confirm("Are you sure you want to submit the quiz?")) {
+      return;
+    }
+  }
+
+  const projectId = state.currentProject.id;
+  try {
+    const res = await api(`/projects/${projectId}/quiz`, {
+      method: "POST",
+      body: JSON.stringify({ answers: studentQuizAnswers })
+    });
+    notify(res.message || "Quiz submitted successfully.");
+    studentQuizResult = res.result;
+    
+    if (state.user && state.user.progress && state.user.progress[projectId]) {
+      state.user.progress[projectId].quizPassed = res.passed;
+      state.user.progress[projectId].quizScore = res.result.percentage;
+    }
+    
+    renderStudentQuizPage();
+  } catch (err) {
+    notify(err.message, "error");
+  }
+}
+
+function escapeHtml(str) {
+  if (str === null || str === undefined) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+async function resetStudentQuizAttempt(projectId, studentId) {
+  if (!confirm("Are you sure you want to reset this quiz attempt and allow the student to re-attempt?")) {
+    return;
+  }
+
+  try {
+    const res = await leaderApi(`/admin/projects/${projectId}/quiz/results/${studentId}`, {
+      method: "DELETE"
+    });
+    notify(res.message || "Quiz attempt reset successfully.");
+    renderAdminQuizScores();
+  } catch (err) {
+    notify(err.message, "error");
   }
 }

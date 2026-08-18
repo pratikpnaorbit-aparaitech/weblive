@@ -117,6 +117,14 @@
           <span class="link-icon">📗</span>
           <span class="link-label">Excel Reports</span>
         </a>
+        <a class="sidebar-link" data-tab="quizscores" onclick="switchAdminTab('quizscores', this)">
+          <span class="link-icon">📊</span>
+          <span class="link-label">Quiz Scores</span>
+        </a>
+        <a class="sidebar-link" data-tab="quizmgmt" onclick="switchAdminTab('quizmgmt', this)">
+          <span class="link-icon">❓</span>
+          <span class="link-label">Quiz Management</span>
+        </a>
 
         <div class="menu-section-label" style="margin-top:20px">SYSTEM</div>
         <a class="sidebar-link" data-tab="settings" onclick="switchAdminTab('settings', this)">
@@ -368,6 +376,85 @@
           </div>
         </section>
 
+        <!-- QUIZ SCORES TAB SECTION -->
+        <section id="adminTabQuizscores" class="admin-tab-section">
+          <div class="panel">
+            <div class="section-head" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+              <div>
+                <h3>📊 Student Quiz Scores</h3>
+                <p class="muted" style="margin:2px 0 0">View, search, filter, and sort student quiz results across all projects.</p>
+              </div>
+            </div>
+            
+            <div class="admin-filter-bar" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;margin-bottom:14px;">
+              <input id="adminQuizSearch" class="input" style="flex:1;min-width:200px" placeholder="Search by student name or email..." oninput="filterAdminQuizResults()">
+              <select id="adminQuizProjectFilter" class="input" style="width:200px" onchange="filterAdminQuizResults()">
+                <option value="">All Projects</option>
+              </select>
+              <select id="adminQuizScoreFilter" class="input" style="width:150px" onchange="filterAdminQuizResults()">
+                <option value="">All Scores</option>
+                <option value="passed">Passed (>=70%)</option>
+                <option value="failed">Failed (<70%)</option>
+              </select>
+              <select id="adminQuizSort" class="input" style="width:150px" onchange="filterAdminQuizResults()">
+                <option value="date_desc">Newest First</option>
+                <option value="date_asc">Oldest First</option>
+                <option value="score_desc">Highest Score</option>
+                <option value="score_asc">Lowest Score</option>
+              </select>
+            </div>
+
+            <div style="overflow-x:auto">
+              <table class="table" style="width:100%;border-collapse:collapse;margin-top:8px">
+                <thead>
+                  <tr style="background:var(--navy);color:#fff">
+                    <th>Student Name</th>
+                    <th>Email</th>
+                    <th>Project</th>
+                    <th>Score</th>
+                    <th>Percentage</th>
+                    <th>Correct</th>
+                    <th>Incorrect</th>
+                    <th>Attempt Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="adminQuizResultsTableBody">
+                  <!-- Dynamic rows go here -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- QUIZ MANAGEMENT TAB SECTION -->
+        <section id="adminTabQuizmgmt" class="admin-tab-section">
+          <div class="panel">
+            <div class="section-head" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+              <div>
+                <h3>❓ Quiz Management</h3>
+                <p class="muted" style="margin:2px 0 0">Add, edit, or delete questions for each project quiz. Maximum 25 questions per quiz.</p>
+              </div>
+              <button class="btn success" type="button" onclick="openCreateQuestionModal()">+ Add Question</button>
+            </div>
+
+            <div style="display:flex;gap:12px;margin-top:14px;margin-bottom:14px;">
+              <select id="adminQuizMgmtProjectSelect" class="input" style="flex:1" onchange="loadQuizMgmtQuestions()">
+                <!-- Projects go here -->
+              </select>
+            </div>
+
+            <div id="quizMgmtStatusAlert" class="summarybox" style="margin-bottom:16px; border-left:4px solid var(--blue); padding:10px; background:var(--card);">
+              Questions: <b id="quizMgmtCount">0 / 25</b> · Total Marks: <b id="quizMgmtMarks">0 / 50</b>
+            </div>
+
+            <div id="quizMgmtQuestionsContainer" style="display:grid;gap:14px">
+              <!-- Dynamic questions go here -->
+            </div>
+          </div>
+        </section>
+
         <!-- 7. SYSTEM SETTINGS SECTION -->
         <section id="adminTabSettings" class="admin-tab-section active">
           <div class="panel">
@@ -466,7 +553,7 @@
   </div>
 </section>
 
-<section id="dashboardView" class="hidden"><div class="wrap"><article class="panel"><h2 id="welcome">Welcome</h2><p id="profileText" class="muted"></p><p>Complete every chapter, pass the project quiz, submit a valid GitHub repository URL, then the next selected project unlocks automatically.</p></article><div class="stats"><div class="panel stat"><b id="completedStat">0</b>Completed</div><div class="panel stat"><b id="pendingStat">4</b>Pending</div><div class="panel stat"><b id="overallStat">0%</b>Overall</div><div class="panel stat"><b id="githubStat">0</b>GitHub Submitted</div></div><div class="advanced-dashboard-grid">
+<section id="dashboardView" class="hidden"><div class="wrap"><article class="panel"><h2 id="welcome">Welcome</h2><p id="profileText" class="muted"></p><p>Complete every chapter, pass the project quiz, submit a valid GitHub repository URL, then the next selected project unlocks automatically.</p></article><div class="stats"><div class="panel stat"><b id="completedStat">0</b>Completed</div><div class="panel stat"><b id="pendingStat">4</b>Pending</div><div class="panel stat"><b id="overallStat">0%</b>Overall</div><div class="panel stat"><b id="githubStat">0</b>GitHub Submitted</div><div class="panel stat"><b id="dashboardTotalWorkTime">00h 00m 00s</b>Total Work Time</div></div><div class="advanced-dashboard-grid">
       <section class="panel">
         <div class="section-head"><h2>Selected Project Roadmap</h2><span class="muted">Projects unlock one by one</span></div>
         <div id="roadmap" class="timeline"></div>
@@ -988,6 +1075,64 @@
         </div>
       </div>
       <button class="btn success" type="submit" style="margin-top:10px">Save Settings</button>
+    </form>
+  </div>
+</div>
+
+<!-- CREATE & EDIT QUIZ QUESTION MODAL -->
+<div id="quizQuestionModal" class="modal">
+  <div class="modalbox" style="max-width:650px;padding:24px 28px">
+    <div class="section-head">
+      <h3 id="quizQuestionModalTitle">Add Quiz Question</h3>
+      <button class="btn outline" type="button" onclick="$('quizQuestionModal').classList.remove('show')">✕ Close</button>
+    </div>
+    <form onsubmit="saveQuizQuestionForm(); return false;" style="display:grid;gap:12px;margin-top:14px">
+      <input id="questionFormId" type="hidden">
+      
+      <div>
+        <label class="form-label">Question Text *</label>
+        <textarea id="questionFormText" class="input" rows="3" placeholder="Enter the question text" required></textarea>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <label class="form-label">Option A *</label>
+          <input id="questionFormOptA" class="input" placeholder="Option A" required>
+        </div>
+        <div>
+          <label class="form-label">Option B *</label>
+          <input id="questionFormOptB" class="input" placeholder="Option B" required>
+        </div>
+        <div>
+          <label class="form-label">Option C *</label>
+          <input id="questionFormOptC" class="input" placeholder="Option C" required>
+        </div>
+        <div>
+          <label class="form-label">Option D *</label>
+          <input id="questionFormOptD" class="input" placeholder="Option D" required>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <label class="form-label">Correct Answer *</label>
+          <select id="questionFormCorrect" class="input" required>
+            <option value="A">Option A</option>
+            <option value="B">Option B</option>
+            <option value="C">Option C</option>
+            <option value="D">Option D</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Marks *</label>
+          <input id="questionFormMarks" class="input" type="number" value="2" required>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:10px">
+        <button class="btn outline" type="button" onclick="$('quizQuestionModal').classList.remove('show')">Cancel</button>
+        <button class="btn success" type="submit">Save Question</button>
+      </div>
     </form>
   </div>
 </div>

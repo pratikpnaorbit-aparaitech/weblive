@@ -9,6 +9,7 @@ const ExcelJS=require("exceljs");
 const crypto=require("crypto");
 const mongoose=require("mongoose");
 const docGenerator = require("./documentation_generator.js");
+const quizGenerator = require("./quiz_generator.js");
 
 const app=express();
 const PORT=process.env.PORT||5000;
@@ -488,13 +489,38 @@ function read(){
       }
     });
 
+    db.quizzes = Array.isArray(db.quizzes) ? db.quizzes : [];
+    db.questions = Array.isArray(db.questions) ? db.questions : [];
+    db.quizResults = Array.isArray(db.quizResults) ? db.quizResults : [];
+    
+    if (!global.quizzesEnsured) {
+      quizGenerator.ensureAllQuizzes(db, FILE);
+      global.quizzesEnsured = true;
+    }
+
     (db.users || []).forEach(u => normalizeUser(u));
 
     return db;
   }
   catch{
     const defaultDoc = DEFAULT_PROJECTS.map(p => getDefaultDocumentationForProject(p));
-    return {users:[], leaders:[], auditLogs:[], notes:[], projects: DEFAULT_PROJECTS, domains: DEFAULT_DOMAINS, documentation: defaultDoc};
+    const emptyDb = {
+      users:[],
+      leaders:[],
+      auditLogs:[],
+      notes:[],
+      projects: DEFAULT_PROJECTS,
+      domains: DEFAULT_DOMAINS,
+      documentation: defaultDoc,
+      quizzes: [],
+      questions: [],
+      quizResults: []
+    };
+    if (!global.quizzesEnsured) {
+      quizGenerator.ensureAllQuizzes(emptyDb, FILE);
+      global.quizzesEnsured = true;
+    }
+    return emptyDb;
   }
 }
 function write(db){
@@ -505,6 +531,9 @@ function write(db){
   db.projects=Array.isArray(db.projects)?db.projects:DEFAULT_PROJECTS;
   db.domains=Array.isArray(db.domains)&&db.domains.length?db.domains:DEFAULT_DOMAINS;
   db.documentation=Array.isArray(db.documentation)?db.documentation:[];
+  db.quizzes = Array.isArray(db.quizzes) ? db.quizzes : [];
+  db.questions = Array.isArray(db.questions) ? db.questions : [];
+  db.quizResults = Array.isArray(db.quizResults) ? db.quizResults : [];
   fs.writeFileSync(FILE,JSON.stringify(db,null,2));
   queueExcelReport(db);
 
@@ -549,7 +578,7 @@ function adminAuth(req,res,next){
 }
 function cameraSummary(u){
   const history=Array.isArray(u.cameraWorkHistory)?u.cameraWorkHistory:[];
-  const totalWorkSeconds=history.reduce((sum,item)=>sum+Number(item.durationSeconds||0),0);
+  const totalWorkSeconds=history.reduce((sum,item)=>sum+Number(item.durationSeconds||item.duration||0),0);
   const totalFocusedSeconds=history.reduce((sum,item)=>sum+Number(item.focusedSeconds||0),0);
   return{
     totalWorkSeconds,
@@ -1370,17 +1399,245 @@ app.post("/api/projects/:id/chapters/:chapter",auth,(req,res)=>{
   write(db);res.json({progress:p});
 });
 
-app.post("/api/projects/:id/quiz",auth,(req,res)=>{
-  const db=read(),u=getUser(db,req.auth.userId);normalizeUser(u);
-  const p=u.progress[req.params.id];
-  if(!p)return res.status(404).json({message:"Project not selected."});
-  if(p.status==="locked")return res.status(403).json({message:"Project is locked."});
-  const passed=req.body?.answer==="backend";
-  p.quizPassed=passed;p.quizScore=passed?100:0;
-  log(db,u.id,"QUIZ_ATTEMPT",{projectId:req.params.id,passed,score:p.quizScore});
+app.get("/api/projects/:id/quiz", auth, (req, res) => {
+  const db = read();
+  const quiz = db.quizzes.find(q => q.projectId === req.params.id);
+  if (!quiz) return res.status(404).json({ message: "Quiz not found." });
+  
+  const activeQuestions = db.questions.filter(q => q.projectId === req.params.id && q.active !== false);
+  
+  // Omit correctAnswer from the response for security
+  const sanitizedQuestions = activeQuestions.map(q => ({
+    id: q.id,
+    projectId: q.projectId,
+    question: q.question,
+    optionA: q.optionA,
+    optionB: q.optionB,
+    optionC: q.optionC,
+    optionD: q.optionD,
+    marks: q.marks
+  }));
+
+  res.json({
+    quiz,
+    questions: sanitizedQuestions
+  });
+});
+
+app.post("/api/projects/:id/quiz", auth, (req, res) => {
+  const db = read(), u = getUser(db, req.auth.userId);
+  normalizeUser(u);
+  
+  const p = u.progress[req.params.id];
+  if (!p) return res.status(404).json({ message: "Project not selected." });
+  if (p.status === "locked") return res.status(403).json({ message: "Project is locked." });
+  
+  const quiz = db.quizzes.find(q => q.projectId === req.params.id);
+  if (!quiz) return res.status(404).json({ message: "Quiz not found." });
+
+  const activeQuestions = db.questions.filter(q => q.projectId === req.params.id && q.active !== false);
+  if (activeQuestions.length < 25) {
+    return res.status(400).json({ message: "Quiz is not available yet. Admin is still preparing the questions." });
+  }
+
+  const { answers } = req.body || {}; // e.g. { "qId1": "A", "qId2": "B" }
+  if (!answers || typeof answers !== "object") {
+    return res.status(400).json({ message: "Invalid answers payload." });
+  }
+
+  let score = 0;
+  let correctAnswers = 0;
+  let incorrectAnswers = 0;
+  let attemptedQuestions = 0;
+
+  activeQuestions.forEach(q => {
+    const studentAns = answers[q.id];
+    if (studentAns !== undefined && studentAns !== null && String(studentAns).trim() !== "") {
+      attemptedQuestions++;
+      if (String(studentAns).trim().toUpperCase() === String(q.correctAnswer).trim().toUpperCase()) {
+        score += Number(q.marks || 2);
+        correctAnswers++;
+      } else {
+        incorrectAnswers++;
+      }
+    } else {
+      incorrectAnswers++;
+    }
+  });
+
+  const totalMarks = activeQuestions.reduce((sum, q) => sum + Number(q.marks || 2), 0);
+  const percentage = totalMarks > 0 ? Math.round((score / totalMarks) * 100) : 0;
+  const passed = percentage >= 70;
+
+  db.quizResults = db.quizResults.filter(r => !(r.studentId === u.id && r.projectId === req.params.id));
+
+  const result = {
+    id: "res_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7),
+    studentId: u.id,
+    studentName: u.name,
+    studentEmail: u.email,
+    projectId: req.params.id,
+    projectName: quiz.title.replace(" Assessment Quiz", ""),
+    quizId: quiz.projectId,
+    score,
+    totalMarks,
+    percentage,
+    correctAnswers,
+    incorrectAnswers,
+    attemptedQuestions,
+    submittedAt: new Date().toISOString()
+  };
+
+  db.quizResults.push(result);
+  
+  p.quizPassed = passed;
+  p.quizScore = percentage; // store percentage as score
+  
+  log(db, u.id, "QUIZ_SUBMITTED", { projectId: req.params.id, score, totalMarks, percentage, passed });
   write(db);
-  if(!passed)return res.status(400).json({message:"Quiz not passed. Review security and try again."});
-  res.json({message:"Quiz passed successfully.",quizScore:p.quizScore});
+
+  res.json({
+    message: passed ? "Quiz passed successfully." : "Quiz not passed. Score at least 70% and try again.",
+    passed,
+    result
+  });
+});
+
+app.get("/api/projects/:id/quiz/result", auth, (req, res) => {
+  const db = read();
+  const result = db.quizResults.find(r => r.studentId === req.auth.userId && r.projectId === req.params.id);
+  res.json({ result: result || null });
+});
+
+app.get("/api/student/quiz-results", auth, (req, res) => {
+  const db = read();
+  const results = db.quizResults.filter(r => r.studentId === req.auth.userId);
+  res.json({ results });
+});
+
+app.get("/api/admin/quiz-results", leaderAuth, (req, res) => {
+  const db = read();
+  res.json({ results: db.quizResults || [] });
+});
+
+app.get("/api/admin/projects/:id/quiz/questions", leaderAuth, (req, res) => {
+  const db = read();
+  const quiz = db.quizzes.find(q => q.projectId === req.params.id);
+  if (!quiz) return res.status(404).json({ message: "Quiz not found." });
+  const activeQuestions = db.questions.filter(q => q.projectId === req.params.id && q.active !== false);
+  res.json({ quiz, questions: activeQuestions });
+});
+
+app.post("/api/admin/projects/:id/quiz/questions", leaderAuth, (req, res) => {
+  const { question, optionA, optionB, optionC, optionD, correctAnswer, marks } = req.body || {};
+  if (!question || !optionA || !optionB || !optionC || !optionD || !correctAnswer) {
+    return res.status(400).json({ message: "All question fields are required." });
+  }
+
+  const db = read();
+  const activeQuestions = db.questions.filter(q => q.projectId === req.params.id && q.active !== false);
+  if (activeQuestions.length >= 25) {
+    return res.status(400).json({ message: "Maximum 25 questions reached for this quiz." });
+  }
+
+  const newId = `${req.params.id}-q-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`;
+  const newQ = {
+    id: newId,
+    projectId: req.params.id,
+    question,
+    optionA,
+    optionB,
+    optionC,
+    optionD,
+    correctAnswer: String(correctAnswer).trim().toUpperCase(),
+    marks: Number(marks || 2),
+    active: true
+  };
+
+  db.questions.push(newQ);
+  
+  const quiz = db.quizzes.find(q => q.projectId === req.params.id);
+  if (quiz) {
+    const newActiveQ = db.questions.filter(q => q.projectId === req.params.id && q.active !== false);
+    quiz.totalQuestions = newActiveQ.length;
+    quiz.totalMarks = newActiveQ.reduce((sum, q) => sum + Number(q.marks || 2), 0);
+  }
+
+  log(db, req.admin?.leaderId || "admin", "QUESTION_CREATED", { projectId: req.params.id, questionId: newId });
+  write(db);
+
+  res.json({ message: "Question added successfully.", question: newQ });
+});
+
+app.put("/api/admin/projects/:id/quiz/questions/:qId", leaderAuth, (req, res) => {
+  const { question, optionA, optionB, optionC, optionD, correctAnswer, marks } = req.body || {};
+  
+  const db = read();
+  const q = db.questions.find(item => item.id === req.params.qId && item.projectId === req.params.id);
+  if (!q) return res.status(404).json({ message: "Question not found." });
+
+  if (question !== undefined) q.question = question;
+  if (optionA !== undefined) q.optionA = optionA;
+  if (optionB !== undefined) q.optionB = optionB;
+  if (optionC !== undefined) q.optionC = optionC;
+  if (optionD !== undefined) q.optionD = optionD;
+  if (correctAnswer !== undefined) q.correctAnswer = String(correctAnswer).trim().toUpperCase();
+  if (marks !== undefined) q.marks = Number(marks || 2);
+
+  const quiz = db.quizzes.find(q => q.projectId === req.params.id);
+  if (quiz) {
+    const newActiveQ = db.questions.filter(q => q.projectId === req.params.id && q.active !== false);
+    quiz.totalQuestions = newActiveQ.length;
+    quiz.totalMarks = newActiveQ.reduce((sum, q) => sum + Number(q.marks || 2), 0);
+  }
+
+  log(db, req.admin?.leaderId || "admin", "QUESTION_EDITED", { projectId: req.params.id, questionId: q.id });
+  write(db);
+
+  res.json({ message: "Question updated successfully.", question: q });
+});
+
+app.delete("/api/admin/projects/:id/quiz/questions/:qId", leaderAuth, (req, res) => {
+  const db = read();
+  const qIdx = db.questions.findIndex(item => item.id === req.params.qId && item.projectId === req.params.id);
+  if (qIdx === -1) return res.status(404).json({ message: "Question not found." });
+
+  db.questions.splice(qIdx, 1);
+
+  const quiz = db.quizzes.find(q => q.projectId === req.params.id);
+  if (quiz) {
+    const newActiveQ = db.questions.filter(q => q.projectId === req.params.id && q.active !== false);
+    quiz.totalQuestions = newActiveQ.length;
+    quiz.totalMarks = newActiveQ.reduce((sum, q) => sum + Number(q.marks || 2), 0);
+  }
+
+  log(db, req.admin?.leaderId || "admin", "QUESTION_DELETED", { projectId: req.params.id, questionId: req.params.qId });
+  write(db);
+
+  res.json({ message: "Question deleted successfully." });
+});
+
+app.delete("/api/admin/projects/:projectId/quiz/results/:studentId", leaderAuth, (req, res) => {
+  const db = read();
+  const { projectId, studentId } = req.params;
+  
+  const initialLength = db.quizResults.length;
+  db.quizResults = db.quizResults.filter(r => !(r.studentId === studentId && r.projectId === projectId));
+  
+  if (db.quizResults.length === initialLength) {
+    return res.status(404).json({ message: "Quiz result not found." });
+  }
+
+  const u = getUser(db, studentId);
+  if (u && u.progress && u.progress[projectId]) {
+    u.progress[projectId].quizPassed = false;
+    u.progress[projectId].quizScore = 0;
+  }
+
+  log(db, req.admin?.leaderId || "admin", "QUIZ_RESULT_RESET", { projectId, studentId });
+  write(db);
+
+  res.json({ message: "Quiz attempt reset successfully. Student can now re-attempt the quiz." });
 });
 
 app.post("/api/projects/:id/submit",auth,(req,res)=>{
@@ -1429,71 +1686,114 @@ app.post("/api/work-proof",auth,(req,res)=>{
 
 
 
-app.get("/api/camera-work/summary",auth,(req,res)=>{
-  const db=read(),u=getUser(db,req.auth.userId);
-  if(!u)return res.status(404).json({message:"User not found."});
-  const history=Array.isArray(u.cameraWorkHistory)?u.cameraWorkHistory:[];
-  const totalWorkSeconds=history.reduce((sum,item)=>sum+Number(item.durationSeconds||0),0);
-  const totalFocusedSeconds=history.reduce((sum,item)=>sum+Number(item.focusedSeconds||0),0);
-  const averageAttentionPercent=totalWorkSeconds>0
-    ? Math.round(totalFocusedSeconds/totalWorkSeconds*100)
+app.get("/api/camera-work/active", auth, (req, res) => {
+  const db = read();
+  const u = getUser(db, req.auth.userId);
+  if (!u) return res.status(404).json({ message: "User not found." });
+  res.json({ session: u.cameraWorkSession || null });
+});
+
+app.get("/api/camera-work/summary", auth, (req, res) => {
+  const db = read();
+  const u = getUser(db, req.auth.userId);
+  if (!u) return res.status(404).json({ message: "User not found." });
+  const history = Array.isArray(u.cameraWorkHistory) ? u.cameraWorkHistory : [];
+  const totalWorkSeconds = history.reduce((sum, item) => sum + Number(item.durationSeconds || item.duration || 0), 0);
+  const totalFocusedSeconds = history.reduce((sum, item) => sum + Number(item.focusedSeconds || 0), 0);
+  const averageAttentionPercent = totalWorkSeconds > 0
+    ? Math.round(totalFocusedSeconds / totalWorkSeconds * 100)
     : 0;
   res.json({
-    totalSessions:history.length,
+    totalSessions: history.length,
     totalWorkSeconds,
     totalFocusedSeconds,
     averageAttentionPercent
   });
 });
 
-app.post("/api/camera-work/start",auth,(req,res)=>{
-  const db=read(),u=getUser(db,req.auth.userId);
-  if(!u)return res.status(404).json({message:"User not found."});
-  u.cameraWorkSession={
-    active:true,
-    startedAt:new Date().toISOString(),
-    projectId:req.body?.projectId||null,
-    chapterIndex:req.body?.chapterIndex??null
+app.post("/api/camera-work/start", auth, (req, res) => {
+  const db = read();
+  const u = getUser(db, req.auth.userId);
+  if (!u) return res.status(404).json({ message: "User not found." });
+
+  if (u.cameraWorkSession && u.cameraWorkSession.status === "ACTIVE") {
+    return res.json({ message: "Work session already active.", session: u.cameraWorkSession });
+  }
+
+  const now = new Date().toISOString();
+  const sessionId = "sess_" + Math.random().toString(36).substr(2, 9) + "_" + Date.now();
+  
+  u.cameraWorkSession = {
+    studentId: u.id,
+    sessionId: sessionId,
+    projectId: req.body?.projectId || null,
+    startTime: now,
+    endTime: null,
+    duration: 0,
+    status: "ACTIVE",
+    createdAt: now,
+    updatedAt: now,
+    active: true,
+    startedAt: now,
+    chapterIndex: req.body?.chapterIndex ?? null
   };
-  log(db,u.id,"CAMERA_WORK_STARTED",u.cameraWorkSession);
+
+  log(db, u.id, "CAMERA_WORK_STARTED", u.cameraWorkSession);
   write(db);
-  res.json({message:"Camera work session started.",session:u.cameraWorkSession});
+
+  res.json({ message: "Camera work session started.", session: u.cameraWorkSession });
 });
 
-app.post("/api/camera-work/stop",auth,(req,res)=>{
-  const db=read(),u=getUser(db,req.auth.userId);
-  if(!u)return res.status(404).json({message:"User not found."});
-  const durationSeconds=Math.max(0,Number(req.body?.durationSeconds||0));
-  const focusedSeconds=Math.min(
+app.post("/api/camera-work/stop", auth, (req, res) => {
+  const db = read();
+  const u = getUser(db, req.auth.userId);
+  if (!u) return res.status(404).json({ message: "User not found." });
+
+  const session = u.cameraWorkSession;
+  if (!session || session.status !== "ACTIVE") {
+    return res.status(400).json({ message: "No active work session found." });
+  }
+
+  const now = new Date().toISOString();
+  const durationSeconds = Math.max(0, Math.floor((new Date(now) - new Date(session.startTime)) / 1000));
+  
+  const focusedSeconds = Math.min(
     durationSeconds,
-    Math.max(0,Number(req.body?.focusedSeconds||0))
+    Math.max(0, Number(req.body?.focusedSeconds || 0))
   );
-  const attentionPercent=durationSeconds>0
-    ? Math.round(focusedSeconds/durationSeconds*100)
+
+  const attentionPercent = durationSeconds > 0
+    ? Math.round((focusedSeconds / durationSeconds) * 100)
     : 0;
-  u.cameraWorkHistory=Array.isArray(u.cameraWorkHistory)?u.cameraWorkHistory:[];
-  const session={
-    ...(u.cameraWorkSession||{}),
-    active:false,
-    stoppedAt:new Date().toISOString(),
-    durationSeconds,
-    focusedSeconds,
-    attentionPercent,
-    projectId:req.body?.projectId || u.cameraWorkSession?.projectId || null,
-    chapterIndex:req.body?.chapterIndex ?? u.cameraWorkSession?.chapterIndex ?? null
-  };
+
+  session.status = "COMPLETED";
+  session.active = false;
+  session.endTime = now;
+  session.stoppedAt = now;
+  session.duration = durationSeconds;
+  session.durationSeconds = durationSeconds;
+  session.focusedSeconds = focusedSeconds;
+  session.attentionPercent = attentionPercent;
+  session.updatedAt = now;
+
+  u.cameraWorkHistory = Array.isArray(u.cameraWorkHistory) ? u.cameraWorkHistory : [];
   u.cameraWorkHistory.push(session);
-  if(u.cameraWorkHistory.length>500)u.cameraWorkHistory=u.cameraWorkHistory.slice(-500);
-  u.cameraWorkSession=null;
-  log(db,u.id,"CAMERA_WORK_STOPPED",{
+  if (u.cameraWorkHistory.length > 500) {
+    u.cameraWorkHistory = u.cameraWorkHistory.slice(-500);
+  }
+
+  u.cameraWorkSession = null;
+
+  log(db, u.id, "CAMERA_WORK_STOPPED", {
+    sessionId: session.sessionId,
     durationSeconds,
     focusedSeconds,
     attentionPercent,
-    projectId:session.projectId,
-    chapterIndex:session.chapterIndex
+    projectId: session.projectId
   });
+
   write(db);
-  res.json({message:"Camera work session saved.",session});
+  res.json({ message: "Camera work session saved.", session });
 });
 
 // INTERNSHIP NOTES API ENDPOINTS
