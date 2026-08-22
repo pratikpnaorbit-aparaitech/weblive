@@ -48,13 +48,14 @@ if (MONGODB_URI) {
           fs.writeFileSync(FILE, JSON.stringify(record.data, null, 2));
           console.log("🍃 Local database (data.json) successfully synced from MongoDB Atlas!");
           
-          // Normalize dynamic project difficulties and persist them to local and cloud database
           const db = read();
+          initializeAndNormalizeDatabase(db);
           write(db);
-          console.log("🍃 Project difficulties successfully normalized and persisted to DB!");
+          console.log("🍃 Database successfully initialized, normalized, and persisted!");
         } else if (!record) {
           const localDb = read();
-          record = await PortalData.create({ key: "main_data", data: localDb });
+          const db = initializeAndNormalizeDatabase(localDb);
+          record = await PortalData.create({ key: "main_data", data: db });
           console.log("🌱 MongoDB Atlas initialized with local database data.");
         }
       } catch (err) {
@@ -386,125 +387,21 @@ function getDefaultDocumentationForProject(proj) {
 function read(){
   try{
     const db = JSON.parse(fs.readFileSync(FILE,"utf8"));
+    db.users = Array.isArray(db.users) ? db.users : [];
+    db.leaders = Array.isArray(db.leaders) ? db.leaders : [];
+    db.auditLogs = Array.isArray(db.auditLogs) ? db.auditLogs : [];
     db.notes = Array.isArray(db.notes) ? db.notes : [];
-    db.projects = Array.isArray(db.projects) && db.projects.length ? db.projects : [...DEFAULT_PROJECTS];
+    db.projects = Array.isArray(db.projects) ? db.projects : [];
     db.documentation = Array.isArray(db.documentation) ? db.documentation : [];
-    db.domains = Array.isArray(db.domains) && db.domains.length ? db.domains : [...DEFAULT_DOMAINS];
-
-    db.domains = db.domains.map(d => d === "Artificial Intelligence (AI/ML)" ? "Artificial Intelligence" : d);
-    db.domains = [...new Set(db.domains)];
-
-    if (Array.isArray(db.users)) {
-      db.users.forEach(u => {
-        if (u.domain === "Artificial Intelligence (AI/ML)") {
-          u.domain = "Artificial Intelligence";
-        }
-      });
-    }
-
-    if (Array.isArray(db.projects)) {
-      db.projects.forEach(p => {
-        if (p.domain === "Artificial Intelligence (AI/ML)") {
-          p.domain = "Artificial Intelligence";
-        }
-      });
-    }
-
-    DEFAULT_DOMAINS.forEach(d => {
-      if (!db.domains.includes(d)) db.domains.push(d);
-    });
-
-    DEFAULT_PROJECTS.forEach(defP => {
-      let existing = db.projects.find(p => p.id === defP.id);
-      if (!existing) {
-        db.projects.push({ ...defP });
-      } else {
-        if (defP.domain) {
-          existing.domain = defP.domain;
-        }
-        if (defP.level) {
-          existing.level = defP.level;
-          existing.difficulty = defP.level;
-        }
-      }
-    });
-
-    const categoryCounts = {};
-    db.projects.forEach(p => {
-      p.domain = p.domain || "Web Development";
-      const cat = p.domain;
-      if (categoryCounts[cat] === undefined) {
-        categoryCounts[cat] = 0;
-      }
-      const index = categoryCounts[cat];
-      categoryCounts[cat]++;
-
-      let diff = "Intermediate";
-      if (index < 3) {
-        diff = "Easy";
-      } else if (index < 6) {
-        diff = "Intermediate";
-      } else {
-        diff = "Advanced";
-      }
-      p.difficulty = diff;
-      p.level = diff;
-
-            let doc = db.documentation.find(d => d.projectId === p.id);
-      if (!doc) {
-        doc = getDefaultDocumentationForProject(p);
-        db.documentation.push(doc);
-      } else {
-        // Repair / Update existing default documentation chapters to be project-specific
-        const defaults = getDefaultDocumentationForProject(p);
-        doc.projectTitle = defaults.projectTitle;
-        doc.projectDescription = defaults.projectDescription;
-        
-        // Repair/update only default chapters (preserve custom chapters)
-        doc.chapters = doc.chapters || [];
-        defaults.chapters.forEach(defChap => {
-          let existingChap = doc.chapters.find(c => c.id === defChap.id);
-          if (existingChap) {
-            // Overwrite the content fields of the default chapter
-            existingChap.title = defChap.title;
-            existingChap.shortDescription = defChap.shortDescription;
-            existingChap.mainHeading = defChap.mainHeading;
-            existingChap.introduction = defChap.introduction;
-            existingChap.importantSubtopics = defChap.importantSubtopics;
-            existingChap.projectObjective = defChap.projectObjective;
-            existingChap.learningOutcomes = defChap.learningOutcomes;
-            existingChap.sections = defChap.sections;
-            existingChap.codeExamples = defChap.codeExamples;
-            existingChap.difficulty = defChap.difficulty;
-            existingChap.updatedAt = new Date().toISOString();
-          } else {
-            // If somehow missing, push it
-            doc.chapters.push(defChap);
-          }
-        });
-        
-        // Ensure default chapters are sorted correctly by order
-        doc.chapters.sort((a, b) => (a.order || 0) - (b.order || 0));
-        doc.updatedAt = new Date().toISOString();
-      }
-    });
-
+    db.domains = Array.isArray(db.domains) ? db.domains : [];
     db.quizzes = Array.isArray(db.quizzes) ? db.quizzes : [];
     db.questions = Array.isArray(db.questions) ? db.questions : [];
     db.quizResults = Array.isArray(db.quizResults) ? db.quizResults : [];
-    
-    if (!global.quizzesEnsured) {
-      quizGenerator.ensureAllQuizzes(db, FILE);
-      global.quizzesEnsured = true;
-    }
-
-    (db.users || []).forEach(u => normalizeUser(u));
-
     return db;
   }
   catch{
     const defaultDoc = DEFAULT_PROJECTS.map(p => getDefaultDocumentationForProject(p));
-    const emptyDb = {
+    return {
       users:[],
       leaders:[],
       auditLogs:[],
@@ -516,12 +413,118 @@ function read(){
       questions: [],
       quizResults: []
     };
-    if (!global.quizzesEnsured) {
-      quizGenerator.ensureAllQuizzes(emptyDb, FILE);
-      global.quizzesEnsured = true;
-    }
-    return emptyDb;
   }
+}
+
+function initializeAndNormalizeDatabase(db) {
+  db.notes = Array.isArray(db.notes) ? db.notes : [];
+  db.projects = Array.isArray(db.projects) && db.projects.length ? db.projects : [...DEFAULT_PROJECTS];
+  db.documentation = Array.isArray(db.documentation) ? db.documentation : [];
+  db.domains = Array.isArray(db.domains) && db.domains.length ? db.domains : [...DEFAULT_DOMAINS];
+
+  db.domains = db.domains.map(d => d === "Artificial Intelligence (AI/ML)" ? "Artificial Intelligence" : d);
+  db.domains = [...new Set(db.domains)];
+
+  if (Array.isArray(db.users)) {
+    db.users.forEach(u => {
+      if (u.domain === "Artificial Intelligence (AI/ML)") {
+        u.domain = "Artificial Intelligence";
+      }
+    });
+  }
+
+  if (Array.isArray(db.projects)) {
+    db.projects.forEach(p => {
+      if (p.domain === "Artificial Intelligence (AI/ML)") {
+        p.domain = "Artificial Intelligence";
+      }
+    });
+  }
+
+  DEFAULT_DOMAINS.forEach(d => {
+    if (!db.domains.includes(d)) db.domains.push(d);
+  });
+
+  DEFAULT_PROJECTS.forEach(defP => {
+    let existing = db.projects.find(p => p.id === defP.id);
+    if (!existing) {
+      db.projects.push({ ...defP });
+    } else {
+      if (defP.domain) {
+        existing.domain = defP.domain;
+      }
+      if (defP.level) {
+        existing.level = defP.level;
+        existing.difficulty = defP.level;
+      }
+    }
+  });
+
+  const categoryCounts = {};
+  db.projects.forEach(p => {
+    p.domain = p.domain || "Web Development";
+    const cat = p.domain;
+    if (categoryCounts[cat] === undefined) {
+      categoryCounts[cat] = 0;
+    }
+    const index = categoryCounts[cat];
+    categoryCounts[cat]++;
+
+    let diff = "Intermediate";
+    if (index < 3) {
+      diff = "Easy";
+    } else if (index < 6) {
+      diff = "Intermediate";
+    } else {
+      diff = "Advanced";
+    }
+    p.difficulty = diff;
+    p.level = diff;
+
+    let doc = db.documentation.find(d => d.projectId === p.id);
+    if (!doc) {
+      doc = getDefaultDocumentationForProject(p);
+      db.documentation.push(doc);
+    } else {
+      const defaults = getDefaultDocumentationForProject(p);
+      doc.projectTitle = defaults.projectTitle;
+      doc.projectDescription = defaults.projectDescription;
+      
+      doc.chapters = doc.chapters || [];
+      defaults.chapters.forEach(defChap => {
+        let existingChap = doc.chapters.find(c => c.id === defChap.id);
+        if (existingChap) {
+          existingChap.title = defChap.title;
+          existingChap.shortDescription = defChap.shortDescription;
+          existingChap.mainHeading = defChap.mainHeading;
+          existingChap.introduction = defChap.introduction;
+          existingChap.importantSubtopics = defChap.importantSubtopics;
+          existingChap.projectObjective = defChap.projectObjective;
+          existingChap.learningOutcomes = defChap.learningOutcomes;
+          existingChap.sections = defChap.sections;
+          existingChap.codeExamples = defChap.codeExamples;
+          existingChap.difficulty = defChap.difficulty;
+          existingChap.updatedAt = new Date().toISOString();
+        } else {
+          doc.chapters.push(defChap);
+        }
+      });
+      doc.chapters.sort((a, b) => (a.order || 0) - (b.order || 0));
+      doc.updatedAt = new Date().toISOString();
+    }
+  });
+
+  db.quizzes = Array.isArray(db.quizzes) ? db.quizzes : [];
+  db.questions = Array.isArray(db.questions) ? db.questions : [];
+  db.quizResults = Array.isArray(db.quizResults) ? db.quizResults : [];
+  
+  if (!global.quizzesEnsured) {
+    quizGenerator.ensureAllQuizzes(db, FILE);
+    global.quizzesEnsured = true;
+  }
+
+  (db.users || []).forEach(u => normalizeUser(u));
+  return db;
 }
 function write(db){
   db.users=Array.isArray(db.users)?db.users:[];
@@ -2440,7 +2443,20 @@ app.post("/api/admin/documentation/:projectId/bulk", adminAuth, (req, res) => {
   res.json({ message: `Bulk action '${action}' completed on ${chapterIds.length} chapters.`, chapters: doc.chapters });
 });
 
-const server = app.listen(PORT,()=>console.log(`🚀 Backend running on http://localhost:${PORT}`))
+const server = app.listen(PORT,()=> {
+  console.log(`🚀 Backend running on http://localhost:${PORT}`);
+  // Run normalization once in the background after startup
+  setTimeout(() => {
+    try {
+      const db = read();
+      initializeAndNormalizeDatabase(db);
+      write(db);
+      console.log("🍃 Database startup normalization completed successfully.");
+    } catch (err) {
+      console.error("Database startup normalization error:", err.message);
+    }
+  }, 1000);
+})
   .on("error", (err) => {
     if (err.code === "EADDRINUSE") {
       console.error(`❌ Port ${PORT} is currently occupied by another process. Kill process on port ${PORT} or run: npx kill-port ${PORT}`);

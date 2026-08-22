@@ -34,7 +34,8 @@ async function api(path, options = {}) {
       }
     });
   } catch {
-    throw new Error("Backend is offline. Run backend using npm start.");
+    const isLocal = API.includes("localhost") || API.includes("127.0.0.1");
+    throw new Error(isLocal ? "Backend is offline. Run backend using npm start." : "Connection failed. Hosted backend is starting up or unreachable. Please try again in a few seconds.");
   }
   const data = await response.json().catch(() => ({ message: "Invalid server response." }));
   if (!response.ok) throw new Error(data.message || "Request failed.");
