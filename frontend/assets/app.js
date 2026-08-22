@@ -2023,6 +2023,54 @@ function openChapter(index) {
   renderChapterList();
   renderChapter();
   window.scrollTo({top:0,behavior:"smooth"});
+  
+  completeChapterOnSidebarClick(index);
+}
+
+async function completeChapterOnSidebarClick(chapterIndex) {
+  if (state.publicMode) {
+    const key = `publicProgress:${state.currentProject.id}`;
+    const completed = JSON.parse(localStorage.getItem(key) || "[]");
+    if (!completed.includes(chapterIndex)) {
+      completed.push(chapterIndex);
+      localStorage.setItem(key, JSON.stringify(completed));
+      renderChapterList();
+    }
+    return;
+  }
+  if (!state.token) return;
+
+  const progress = state.user?.progress?.[state.currentProject.id] || {};
+  const completedChapters = progress.completedChapters || [];
+  if (completedChapters.includes(chapterIndex)) {
+    return;
+  }
+
+  // Optimistic UI updates
+  completedChapters.push(chapterIndex);
+  completedChapters.sort((a, b) => a - b);
+  const totalChapters = CHAPTERS.length;
+  const completedCount = completedChapters.length;
+  const percentComplete = Math.min(100, Math.round(completedCount / totalChapters * 100));
+  progress.percent = percentComplete;
+  
+  renderChapterList();
+
+  const progressFill = document.querySelector(".progress-track-fill");
+  if (progressFill) progressFill.style.width = `${percentComplete}%`;
+  const progressText = document.querySelector(".progress-summary-bar-box small");
+  if (progressText) progressText.textContent = `${percentComplete}% Complete`;
+  const progressCount = document.querySelector(".progress-summary-bar-box span b");
+  if (progressCount) progressCount.textContent = `${completedCount}/subproject ${totalChapters}`;
+
+  // Execute actual API calls asynchronously in the background
+  api(`/projects/${state.currentProject.id}/chapters/${chapterIndex}`, { method: "POST" })
+    .then(async () => {
+      await loadMe();
+    })
+    .catch(err => {
+      console.error("Error in background completion:", err);
+    });
 }
 
 function getDynamicDeepTheory(project, chapterName) {
@@ -2635,8 +2683,7 @@ function renderChapter() {
         <div class="preview-info-card"><b>Documentation Preview</b><span>Read all chapters without changing tracked progress.</span></div>
         <div class="preview-info-card"><b>Tracking ${progressEnabled ? "Disabled in Preview" : "Disabled by Admin"}</b><span>Select 4 projects and use Start / Continue for chapter completion.</span></div>
       </div>` : `
-      <div class="notes-section"><h3>Intern Notes</h3><textarea id="noteBox" class="notes">	ext(localStorage.getItem(noteKey)||"")
-</textarea><button class="btn outline" id="saveNoteButton" type="button">Save Notes</button></div>`}
+      <div class="notes-section"><h3>Intern Notes</h3><textarea id="noteBox" class="notes">${localStorage.getItem(noteKey) || ""}</textarea><button class="btn outline" id="saveNoteButton" type="button">Save Notes</button></div>`}
     <div class="chapter-actions">
       <button class="btn outline" id="prevChapter" ${state.currentChapter===0?"disabled":""}>← Previous</button>
       ${state.publicMode ? `<button class="btn outline" id="backToProjectsButton">← Back to Projects</button>` : `<button class="btn success" id="completeChapterButton" ${!progressEnabled?"disabled":""}>Mark Chapter Complete</button>`}
@@ -3167,6 +3214,7 @@ async function loadCameraTotals() {
     cameraState.totalSeconds = Number(
       localStorage.getItem("cameraTotalWorkSeconds") || 0
     );
+    if (cameraState.totalSeconds > 50000000) cameraState.totalSeconds = 0;
     const total = document.getElementById("cameraTotalTimer");
     if (total) total.textContent = formatCameraDuration(cameraState.totalSeconds);
     updateDashboardWorkTime(cameraState.totalSeconds);
@@ -3176,6 +3224,7 @@ async function loadCameraTotals() {
   try {
     const data = await api("/camera-work/summary");
     cameraState.totalSeconds = Number(data.totalWorkSeconds || 0);
+    if (cameraState.totalSeconds > 50000000) cameraState.totalSeconds = 0;
     const total = document.getElementById("cameraTotalTimer");
     if (total) total.textContent = formatCameraDuration(cameraState.totalSeconds);
     updateDashboardWorkTime(cameraState.totalSeconds);
