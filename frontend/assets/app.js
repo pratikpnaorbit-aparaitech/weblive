@@ -2732,7 +2732,8 @@ function renderChapter() {
   const noteKey = `note:${p.id}:${state.currentChapter}`;
   const pg = state.user?.progress?.[p.id] || {};
   const isProjectPercent100 = pg.percent >= 100 || completed.length >= totalChaptersCount;
-  const submissionHtml = (!state.publicMode && isProjectPercent100) ? getSubmissionSectionHtml(p, pg) : "";
+  const isReferencesChapter = (state.currentChapter === totalChaptersCount - 1);
+  const submissionHtml = (!state.publicMode && isProjectPercent100 && isReferencesChapter) ? getSubmissionSectionHtml(p, pg) : "";
 
   $("chapterContent").innerHTML = `<section class="chapter">
     <div class="tracking-strip">
@@ -2795,7 +2796,7 @@ function renderChapter() {
     if (progressEnabled && !completed.includes(state.currentChapter) && !completed.includes(chapterTitle)) {
       $("completeChapterButton").onclick = completeChapter;
     }
-    if (isProjectPercent100 && !pg.githubUrl && pg.status !== "completed") {
+    if (isProjectPercent100 && isReferencesChapter && !pg.githubUrl && pg.status !== "completed") {
       const submitBtn = $("submitProjectButton");
       if (submitBtn) {
         submitBtn.onclick = submitProject;
