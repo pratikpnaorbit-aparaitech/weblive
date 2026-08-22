@@ -27,6 +27,32 @@ const REPORT_FILE=path.join(REPORTS,"student_work_report.xlsx");
 if(!fs.existsSync(UPLOADS))fs.mkdirSync(UPLOADS,{recursive:true});
 if(!fs.existsSync(REPORTS))fs.mkdirSync(REPORTS,{recursive:true});
 
+const multer = require("multer");
+const SUBMISSIONS_DIR = path.join(UPLOADS, "submissions");
+if (!fs.existsSync(SUBMISSIONS_DIR)) fs.mkdirSync(SUBMISSIONS_DIR, { recursive: true });
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, SUBMISSIONS_DIR);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, "sub-" + uniqueSuffix + ".zip");
+  }
+});
+
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB
+  fileFilter: (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (ext !== ".zip" && file.mimetype !== "application/zip" && file.mimetype !== "application/x-zip-compressed") {
+      return cb(new Error("Only .zip files are allowed."));
+    }
+    cb(null, true);
+  }
+});
+
 // Mongoose MongoDB Atlas Schema & Model
 const portalDataSchema = new mongoose.Schema({
   key: { type: String, default: "main_data", unique: true },
@@ -1654,19 +1680,107 @@ app.delete("/api/admin/projects/:projectId/quiz/results/:studentId", leaderAuth,
   res.json({ message: "Quiz attempt reset successfully. Student can now re-attempt the quiz." });
 });
 
-app.post("/api/projects/:id/submit",auth,(req,res)=>{
-  const{githubUrl,submissionNote=""}=req.body||{};
-  if(!/^https:\/\/github\.com\/[^/\s]+\/[^/\s]+\/?$/i.test(githubUrl||""))return res.status(400).json({message:"Enter a valid GitHub repository URL."});
-  const db=read(),u=getUser(db,req.auth.userId);normalizeUser(u);
-  const p=u.progress[req.params.id];
-  if(!p)return res.status(404).json({message:"Project not selected."});
-  if(p.percent<100)return res.status(400).json({message:"Complete all chapters before submission."});
-  if(!p.quizPassed)return res.status(400).json({message:"Pass the quiz before submission."});
-  p.githubUrl=githubUrl;p.submissionNote=submissionNote.trim();p.submittedAt=new Date().toISOString();p.status="completed";
-  const i=u.selectedProjects.indexOf(req.params.id);
-  if(i>=0&&i<u.selectedProjects.length-1)u.progress[u.selectedProjects[i+1]].status="available";
-  log(db,u.id,"PROJECT_SUBMITTED",{projectId:req.params.id,githubUrl});
-  write(db);res.json({message:"Project submitted successfully. Next project unlocked.",user:u});
+app.get("/api/admin/projects/:projectId/submissions/:studentId/zip", leaderAuth, (req, res) => {
+  const db = read();
+  const u = getUser(db, req.params.studentId);
+  if (!u) return res.status(404).json({ message: "Student not found." });
+  
+  const p = u.progress[req.params.projectId];
+  if (!p) return res.status(404).json({ message: "Project not selected by student." });
+  
+  if (!p.zipStoragePath) {
+    return res.status(404).json({ message: "No ZIP file uploaded for this submission." });
+  }
+  
+  const filePath = path.join(SUBMISSIONS_DIR, p.zipStoragePath);
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).json({ message: "Physical file not found on server." });
+  }
+  
+  res.setHeader("Content-Disposition", `attachment; filename="${p.zipOriginalName}"`);
+  res.setHeader("Content-Type", p.zipMimeType || "application/zip");
+  res.download(filePath, p.zipOriginalName);
+});
+
+app.post("/api/projects/:id/submit", auth, (req, res) => {
+  upload.single("projectZip")(req, res, async (err) => {
+    if (err) {
+      return res.status(400).json({ message: err.message });
+    }
+    
+    const { githubUrl, submissionNote = "" } = req.body || {};
+    if (!/^https:\/\/github\.com\/[^/\s]+\/[^/\s]+\/?$/i.test(githubUrl || "")) {
+      if (req.file) {
+        fs.unlinkSync(req.file.path);
+      }
+      return res.status(400).json({ message: "Enter a valid GitHub repository URL." });
+    }
+    
+    if (!req.file) {
+      return res.status(400).json({ message: "ZIP file upload is required." });
+    }
+    
+    // Validate file signature (magic bytes) to prevent extension spoofing
+    try {
+      const fd = fs.openSync(req.file.path, "r");
+      const buffer = Buffer.alloc(4);
+      fs.readSync(fd, buffer, 0, 4, 0);
+      fs.closeSync(fd);
+      
+      const isZip = buffer[0] === 0x50 && buffer[1] === 0x4B; // 'PK'
+      if (!isZip) {
+        fs.unlinkSync(req.file.path);
+        return res.status(400).json({ message: "Invalid file signature. Only valid ZIP archives are allowed." });
+      }
+    } catch (fsErr) {
+      if (req.file) fs.unlinkSync(req.file.path);
+      return res.status(400).json({ message: "Failed to read uploaded file signature." });
+    }
+    
+    const db = read();
+    const u = getUser(db, req.auth.userId);
+    normalizeUser(u);
+    const p = u.progress[req.params.id];
+    
+    if (!p) {
+      if (req.file) fs.unlinkSync(req.file.path);
+      return res.status(404).json({ message: "Project not selected." });
+    }
+    if (p.percent < 100) {
+      if (req.file) fs.unlinkSync(req.file.path);
+      return res.status(400).json({ message: "Complete all chapters before submission." });
+    }
+    if (!p.quizPassed) {
+      if (req.file) fs.unlinkSync(req.file.path);
+      return res.status(400).json({ message: "Pass the quiz before submission." });
+    }
+    
+    p.githubUrl = githubUrl;
+    p.submissionNote = submissionNote.trim();
+    p.submittedAt = new Date().toISOString();
+    p.status = "completed";
+    
+    p.zipOriginalName = req.file.originalname;
+    p.zipStoragePath = req.file.filename;
+    p.zipFileSize = req.file.size;
+    p.zipMimeType = req.file.mimetype;
+    p.zipUploadedAt = new Date().toISOString();
+    
+    const i = u.selectedProjects.indexOf(req.params.id);
+    if (i >= 0 && i < u.selectedProjects.length - 1) {
+      u.progress[u.selectedProjects[i+1]].status = "available";
+    }
+    
+    log(db, u.id, "PROJECT_SUBMITTED", { projectId: req.params.id, githubUrl, zipFile: req.file.originalname });
+    
+    try {
+      write(db);
+      res.json({ message: "Project submitted successfully. Next project unlocked.", user: u });
+    } catch (writeErr) {
+      if (req.file) fs.unlinkSync(req.file.path);
+      res.status(500).json({ message: "Database failure, submission failed." });
+    }
+  });
 });
 
 
