@@ -2,7 +2,7 @@
 "use strict";
 
 const API = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
-  ? (window.location.port === "5000" ? "/api" : "http://localhost:5000/api")
+  ? (window.location.port === "5000" ? "/api" : "https://weblive-qvzp.onrender.com/api")
   : "/api";
 const $ = id => document.getElementById(id);
 const state = {
