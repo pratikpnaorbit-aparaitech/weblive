@@ -1744,7 +1744,7 @@ app.post("/api/projects/:id/submit", auth, (req, res) => {
     }
     
     const { githubUrl, submissionNote = "" } = req.body || {};
-    if (!/^https:\/\/github\.com\/[^/\s]+\/[^/\s]+\/?$/i.test(githubUrl || "")) {
+    if (!/^https:\/\/github\.com\/[^/\s]+\/[^/\s]+(\/.*)?$/i.test(githubUrl || "")) {
       if (req.file) {
         fs.unlinkSync(req.file.path);
       }

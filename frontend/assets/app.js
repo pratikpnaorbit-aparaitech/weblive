@@ -3112,7 +3112,7 @@ async function submitProject() {
   const submissionNote = $("submissionNote").value.trim();
   const zipInput = $("projectZipFile");
   
-  if (!/^https:\/\/github\.com\/[^/\s]+\/[^/\s]+\/?$/i.test(githubUrl)) {
+  if (!/^https:\/\/github\.com\/[^/\s]+\/[^/\s]+(\/.*)?$/i.test(githubUrl)) {
     notify("Enter a valid GitHub repository URL.", "error");
     return;
   }
