@@ -3658,6 +3658,7 @@ window.addEventListener("beforeunload", () => {
 
 async function initApp() {
   initializeCameraWidget();
+  window.checkBackendHealth();
   await loadDomains();
   const isLogged = Boolean(state.token || state.leaderToken);
   const role = state.role || (state.leaderToken ? "ADMIN" : (state.token ? "STUDENT" : ""));
@@ -3669,8 +3670,13 @@ async function initApp() {
       try {
         await renderAdminDashboard();
         show("adminView");
-      } catch {
-        logout();
+      } catch (err) {
+        if (err.message.includes("Connection failed") || err.message.includes("Backend is offline") || err.message.includes("Failed to fetch")) {
+          show("loginView");
+          notify("Connection failed. Waking up backend server, please wait...", "error");
+        } else {
+          logout();
+        }
       }
     } else {
       try {
@@ -3682,8 +3688,13 @@ async function initApp() {
           renderSelection();
           show("selectView");
         }
-      } catch {
-        logout();
+      } catch (err) {
+        if (err.message.includes("Connection failed") || err.message.includes("Backend is offline") || err.message.includes("Failed to fetch")) {
+          show("loginView");
+          notify("Connection failed. Waking up backend server, please wait...", "error");
+        } else {
+          logout();
+        }
       }
     }
   }
@@ -4621,5 +4632,29 @@ window.downloadSubmissionZip = async function(studentId, projectId) {
     window.URL.revokeObjectURL(downloadUrl);
   } catch (err) {
     notify(err.message, "error");
+  }
+};
+
+window.checkBackendHealth = async function() {
+  const statusSpan = $("backendStatus");
+  if (!statusSpan) return;
+  
+  statusSpan.className = "status checking";
+  statusSpan.textContent = "Connecting to server...";
+  
+  try {
+    const response = await fetch(API + "/projects", {
+      method: "GET"
+    });
+    if (response.ok) {
+      statusSpan.className = "status online";
+      statusSpan.textContent = "Connected";
+    } else {
+      throw new Error("Server offline");
+    }
+  } catch (err) {
+    statusSpan.className = "status offline";
+    statusSpan.textContent = "Offline / Waking up server...";
+    setTimeout(window.checkBackendHealth, 3000);
   }
 };
