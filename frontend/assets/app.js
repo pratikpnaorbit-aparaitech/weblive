@@ -2,7 +2,7 @@
 "use strict";
 
 const API = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
-  ? (window.location.port === "5000" ? "/api" : "https://weblive-qvzp.onrender.com/api")
+  ? (window.location.port === "5000" ? "/api" : "http://localhost:5000/api")
   : "/api";
 const $ = id => document.getElementById(id);
 const state = {
@@ -24,11 +24,12 @@ let adminStudentsCache = [];
 
 async function api(path, options = {}) {
   let response;
-  try {
+    try {
+    const isFormData = typeof FormData !== "undefined" && options.body instanceof FormData;
     response = await fetch(API + path, {
       ...options,
       headers: {
-        "Content-Type": "application/json",
+        ...(isFormData ? {} : { "Content-Type": "application/json" }),
         ...(state.token ? { Authorization: `Bearer ${state.token}` } : {}),
         ...(options.headers || {})
       }
@@ -1058,6 +1059,26 @@ async function openStudentDetailModal(studentId) {
     const projectsHtml = assigned.map((id, idx) => {
       const p = PROJECTS.find(x => x.id === id);
       const pg = progress[id] || {};
+      
+      let zipHtml = "";
+      if (pg.zipOriginalName) {
+        const uploadTime = pg.zipUploadedAt ? new Date(pg.zipUploadedAt).toLocaleString() : "";
+        const sizeMb = pg.zipFileSize ? (pg.zipFileSize / (1024 * 1024)).toFixed(2) : "0.00";
+        zipHtml = `
+          <div style="margin-top:8px;padding:8px;background:var(--border);border-radius:6px;font-size:12px">
+            📁 <b>Project ZIP:</b> ${escapeHtml(pg.zipOriginalName)} (${sizeMb} MB)<br/>
+            <span class="muted">Uploaded: ${uploadTime}</span><br/>
+            <button class="btn btn-xs primary" style="margin-top:6px;padding:4px 8px;font-size:11px" onclick="downloadSubmissionZip('${student.id}', '${id}')">Download ZIP</button>
+          </div>
+        `;
+      } else if (pg.status === "completed") {
+        zipHtml = `
+          <div style="margin-top:8px;padding:8px;background:var(--border);border-radius:6px;font-size:12px;color:var(--text-muted)">
+            📁 No ZIP uploaded (Older submission)
+          </div>
+        `;
+      }
+
       return `
         <div class="detail-card" style="margin-bottom:10px">
           <div style="display:flex;justify-content:space-between;align-items:center">
@@ -1067,6 +1088,7 @@ async function openStudentDetailModal(studentId) {
           <p class="muted" style="margin:4px 0;font-size:13px">${p?.summary || ''}</p>
           <div class="progress" style="height:10px;margin:6px 0"><span style="width:${pg.percent||0}%"></span></div>
           <small>Chapters: ${(pg.completedChapters||[]).length}/16 · Quiz: ${pg.quizPassed ? "Passed" : "Pending"} · GitHub: ${pg.githubUrl ? `<a href="${pg.githubUrl}" target="_blank">View Repo</a>` : "Pending"}</small>
+          ${zipHtml}
         </div>
       `;
     }).join("") || '<p class="muted">No projects selected yet.</p>';
@@ -2687,7 +2709,13 @@ function renderChapter() {
       <div class="notes-section"><h3>Intern Notes</h3><textarea id="noteBox" class="notes">${localStorage.getItem(noteKey) || ""}</textarea><button class="btn outline" id="saveNoteButton" type="button">Save Notes</button></div>`}
     <div class="chapter-actions">
       <button class="btn outline" id="prevChapter" ${state.currentChapter===0?"disabled":""}>← Previous</button>
-      ${state.publicMode ? `<button class="btn outline" id="backToProjectsButton">← Back to Projects</button>` : `<button class="btn success" id="completeChapterButton" ${!progressEnabled?"disabled":""}>Mark Chapter Complete</button>`}
+      ${state.publicMode ? `
+        <button class="btn outline" id="backToProjectsButton">← Back to Projects</button>
+      ` : (completed.includes(state.currentChapter) || completed.includes(chapterTitle) ? `
+        <button class="btn success" id="completeChapterButton" style="background:var(--green);color:#fff;cursor:default;opacity:0.9" disabled>✓ Chapter Completed</button>
+      ` : `
+        <button class="btn success" id="completeChapterButton" ${!progressEnabled?"disabled":""}>Mark Chapter Complete</button>
+      `)}
       <button class="btn primary" id="nextChapter" ${state.currentChapter===totalChaptersCount-1?"disabled":""}>Next →</button>
     </div>
   </section>`;
@@ -2722,7 +2750,7 @@ function renderChapter() {
         notify(`Notes saved locally: ${err.message}`);
       }
     };
-    if (progressEnabled) {
+    if (progressEnabled && !completed.includes(state.currentChapter) && !completed.includes(chapterTitle)) {
       $("completeChapterButton").onclick = completeChapter;
     }
   } else {
@@ -2979,19 +3007,109 @@ async function completeChapter() {
 }
 
 function showSubmission() {
-  $("chapterContent").innerHTML=`<section class="chapter"><h2>Project Submission</h2><p>All chapters are complete. Pass the quiz and submit GitHub URL.</p><input id="githubUrl" class="input" placeholder="https://github.com/username/repository"><textarea id="submissionNote" class="input" placeholder="Submission note"></textarea><button class="btn success" id="submitProjectButton">Submit Project & Unlock Next</button></section>`;
-  $("submitProjectButton").onclick=submitProject;
+  $("chapterContent").innerHTML = `
+    <section class="chapter">
+      <h2>Project Submission</h2>
+      <p>All chapters are complete. Pass the quiz and submit GitHub URL and Project ZIP.</p>
+      
+      <label style="display:block;margin-bottom:6px;font-weight:bold;font-size:13px">GitHub Repository URL</label>
+      <input id="githubUrl" class="input" placeholder="https://github.com/username/repository" style="margin-bottom:12px">
+      
+      <label style="display:block;margin-bottom:6px;font-weight:bold;font-size:13px">Upload Project ZIP (Max 50MB)</label>
+      <div style="margin-bottom:12px">
+        <input type="file" id="projectZipFile" accept=".zip" style="display:none" onchange="handleZipSelection(this)">
+        <button type="button" class="btn outline" onclick="$('projectZipFile').click()">Choose ZIP File</button>
+        <span id="selectedZipInfo" style="margin-left:10px;font-size:13px;color:var(--text-muted)">No file chosen</span>
+      </div>
+      
+      <label style="display:block;margin-bottom:6px;font-weight:bold;font-size:13px">Submission Note</label>
+      <textarea id="submissionNote" class="input" placeholder="Submission note" style="margin-bottom:16px"></textarea>
+      
+      <button class="btn success" id="submitProjectButton">Submit Project & Unlock Next</button>
+    </section>
+  `;
+  $("submitProjectButton").onclick = submitProject;
 }
 
+window.handleZipSelection = function(input) {
+  const file = input.files[0];
+  const infoSpan = $("selectedZipInfo");
+  if (!infoSpan) return;
+  if (!file) {
+    infoSpan.textContent = "No file chosen";
+    return;
+  }
+  
+  if (!file.name.endsWith(".zip")) {
+    notify("Please select a valid .zip file.", "error");
+    input.value = "";
+    infoSpan.textContent = "No file chosen";
+    return;
+  }
+  
+  const sizeMb = file.size / (1024 * 1024);
+  if (sizeMb > 50) {
+    notify("File size exceeds the 50 MB limit.", "error");
+    input.value = "";
+    infoSpan.textContent = "No file chosen";
+    return;
+  }
+  
+  infoSpan.textContent = `${file.name} (${sizeMb.toFixed(2)} MB)`;
+};
+
 async function submitProject() {
-  try{
-    const data=await api(`/projects/${state.currentProject.id}/submit`,{method:"POST",body:JSON.stringify({githubUrl:$("githubUrl").value.trim(),submissionNote:$("submissionNote").value.trim()})});
-    await api(`/tracking/${state.currentProject.id}/stop`,{method:"POST"});
+  const githubUrl = $("githubUrl").value.trim();
+  const submissionNote = $("submissionNote").value.trim();
+  const zipInput = $("projectZipFile");
+  
+  if (!/^https:\/\/github\.com\/[^/\s]+\/[^/\s]+\/?$/i.test(githubUrl)) {
+    notify("Enter a valid GitHub repository URL.", "error");
+    return;
+  }
+  
+  if (!zipInput || zipInput.files.length === 0) {
+    notify("Please upload your project ZIP file.", "error");
+    return;
+  }
+  
+  const zipFile = zipInput.files[0];
+  if (!zipFile.name.endsWith(".zip")) {
+    notify("Please select a valid .zip file.", "error");
+    return;
+  }
+  if (zipFile.size / (1024 * 1024) > 50) {
+    notify("ZIP file size exceeds 50 MB.", "error");
+    return;
+  }
+  
+  const submitBtn = $("submitProjectButton");
+  const originalText = submitBtn.textContent;
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Uploading & Submitting...";
+  
+  try {
+    const formData = new FormData();
+    formData.append("githubUrl", githubUrl);
+    formData.append("submissionNote", submissionNote);
+    formData.append("projectZip", zipFile);
+    
+    const data = await api(`/projects/${state.currentProject.id}/submit`, {
+      method: "POST",
+      body: formData
+    });
+    
+    await api(`/tracking/${state.currentProject.id}/stop`, { method: "POST" });
     clearInterval(state.sessionTimer);
     notify(data.message);
     await renderDashboard();
     show("dashboardView");
-  }catch(e){notify(e.message,"error");}
+  } catch (e) {
+    notify(e.message, "error");
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = originalText;
+  }
 }
 
 async function backDashboard() {
@@ -4474,3 +4592,36 @@ async function resetStudentQuizAttempt(projectId, studentId) {
     notify(err.message, "error");
   }
 }
+
+window.downloadSubmissionZip = async function(studentId, projectId) {
+  try {
+    const url = `${API}/admin/projects/${projectId}/submissions/${studentId}/zip`;
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${state.leaderToken || state.token}`
+      }
+    });
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.message || "Failed to download file.");
+    }
+    const blob = await response.blob();
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = downloadUrl;
+    
+    const contentDisposition = response.headers.get("content-disposition");
+    let filename = `${studentId}-${projectId}.zip`;
+    if (contentDisposition) {
+      const match = contentDisposition.match(/filename="?([^"]+)"?/);
+      if (match) filename = match[1];
+    }
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(downloadUrl);
+  } catch (err) {
+    notify(err.message, "error");
+  }
+};
