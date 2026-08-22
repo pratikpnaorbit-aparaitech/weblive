@@ -578,8 +578,15 @@ function adminAuth(req,res,next){
 }
 function cameraSummary(u){
   const history=Array.isArray(u.cameraWorkHistory)?u.cameraWorkHistory:[];
-  const totalWorkSeconds=history.reduce((sum,item)=>sum+Number(item.durationSeconds||item.duration||0),0);
-  const totalFocusedSeconds=history.reduce((sum,item)=>sum+Number(item.focusedSeconds||0),0);
+  const totalWorkSeconds = history.reduce((sum, item) => {
+    const dur = Number(item.durationSeconds || item.duration || 0);
+    return sum + (dur > 86400 ? 0 : dur);
+  }, 0);
+  const totalFocusedSeconds = history.reduce((sum, item) => {
+    const dur = Number(item.durationSeconds || item.duration || 0);
+    const foc = Number(item.focusedSeconds || 0);
+    return sum + (dur > 86400 ? 0 : foc);
+  }, 0);
   return{
     totalWorkSeconds,
     totalFocusedSeconds,
@@ -723,10 +730,14 @@ async function generateExcelReport(db){
   camera.addRow(["Student Username","Student Name","Project ID","Chapter","Started At","Stopped At","Duration Seconds","Focused Seconds","Attention %","Status"]);
   for(const u of db.users||[]){
     for(const item of u.cameraWorkHistory||[]){
+      const isCorrupt = (item.durationSeconds || 0) > 86400;
       camera.addRow([
         u.username||"",u.name||"",item.projectId||"",item.chapterIndex??"",
-        item.startedAt||"",item.stoppedAt||"",item.durationSeconds||0,
-        item.focusedSeconds||0,item.attentionPercent||0,item.active?"Active":"Completed"
+        item.startedAt||"",item.stoppedAt||"",
+        isCorrupt ? 0 : (item.durationSeconds||0),
+        isCorrupt ? 0 : (item.focusedSeconds||0),
+        isCorrupt ? 0 : (item.attentionPercent||0),
+        item.active?"Active":"Completed"
       ]);
     }
   }
@@ -1698,8 +1709,15 @@ app.get("/api/camera-work/summary", auth, (req, res) => {
   const u = getUser(db, req.auth.userId);
   if (!u) return res.status(404).json({ message: "User not found." });
   const history = Array.isArray(u.cameraWorkHistory) ? u.cameraWorkHistory : [];
-  const totalWorkSeconds = history.reduce((sum, item) => sum + Number(item.durationSeconds || item.duration || 0), 0);
-  const totalFocusedSeconds = history.reduce((sum, item) => sum + Number(item.focusedSeconds || 0), 0);
+  const totalWorkSeconds = history.reduce((sum, item) => {
+    const dur = Number(item.durationSeconds || item.duration || 0);
+    return sum + (dur > 86400 ? 0 : dur);
+  }, 0);
+  const totalFocusedSeconds = history.reduce((sum, item) => {
+    const dur = Number(item.durationSeconds || item.duration || 0);
+    const foc = Number(item.focusedSeconds || 0);
+    return sum + (dur > 86400 ? 0 : foc);
+  }, 0);
   const averageAttentionPercent = totalWorkSeconds > 0
     ? Math.round(totalFocusedSeconds / totalWorkSeconds * 100)
     : 0;

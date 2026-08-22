@@ -83,3 +83,20 @@ The student's cumulative work time was previously recalculated from each fronten
 - **Backend Timestamp Verification (`server.js`)**: Calculate and record work session durations on the backend using `now - startTime` (verifying actual start and end timestamps rather than trusting client-side variables).
 - **Dashboard Display Card (`index.html` & `app.js`)**: Injected a new stat card **Total Work Time** into the dashboard statistics grid, displaying the student's accumulated hours/minutes computed dynamically from completed work sessions in their history.
 - **Prevent Duplicate Sessions (`server.js`)**: The start endpoint checks for existing `ACTIVE` sessions and returns the existing one instead of spawning a duplicate.
+
+---
+
+## 6. Recent Bug Fixes (August 22, 2026)
+
+### A. Total Work Time Calculation Fix (`server.js` & `app.js`)
+* **Issue**: Old sessions were saved with corrupt/epoch timestamp values (e.g. `1,787,382,000` seconds) instead of true durations, causing the total work time to display millions of hours (`496495h`).
+* **Solution**: In backend `cameraSummary`, `/api/camera-work/summary`, and the Excel report generator, any session duration greater than `86400` seconds (24 hours) is treated as `0` seconds. On the frontend, `loadCameraTotals` checks and resets any total time greater than `50,000,000` seconds to `0` to instantly filter out corrupt legacy values and display accurate hours.
+
+### B. Pre-filled Intern Notes Textarea Typo (`app.js`)
+* **Issue**: The textarea element on render was hardcoded with the raw text `ext(localStorage.getItem(noteKey)||"")` due to a syntax typo, displaying it visually.
+* **Solution**: Fixed the template string evaluation so the default value inside the textarea evaluates to `${localStorage.getItem(noteKey) || ""}` or falls back to empty while loading async server notes.
+
+### C. Sidebar Chapter Completion on Click (`app.js`)
+* **Issue**: Students had to manually scroll and click "Mark Chapter Complete", and sidebar list items were not updating progress directly when navigated.
+* **Solution**: Integrated a background `completeChapterOnSidebarClick(chapterIndex)` helper function triggered automatically inside `openChapter()`. When a student clicks any chapter in the left sidebar, it registers it as completed in the database and updates the sidebar tick icon and progress bar instantly.
+
