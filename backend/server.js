@@ -62,8 +62,23 @@ const portalDataSchema = new mongoose.Schema({
 const PortalData = mongoose.model("PortalData", portalDataSchema);
 
 let isMongoConnected = false;
+let isDatabaseNormalized = false;
+
+function runStartupNormalization() {
+  if (isDatabaseNormalized) return;
+  try {
+    const db = read();
+    initializeAndNormalizeDatabase(db);
+    write(db);
+    isDatabaseNormalized = true;
+    console.log("🍃 Database startup normalization completed successfully.");
+  } catch (err) {
+    console.error("Database startup normalization error:", err.message);
+  }
+}
 
 if (MONGODB_URI) {
+  mongoose.set("bufferCommands", false);
   mongoose.connect(MONGODB_URI)
     .then(async () => {
       isMongoConnected = true;
@@ -73,15 +88,12 @@ if (MONGODB_URI) {
         if (record && record.data) {
           fs.writeFileSync(FILE, JSON.stringify(record.data, null, 2));
           console.log("🍃 Local database (data.json) successfully synced from MongoDB Atlas!");
-          
-          const db = read();
-          initializeAndNormalizeDatabase(db);
-          write(db);
-          console.log("🍃 Database successfully initialized, normalized, and persisted!");
+          runStartupNormalization();
         } else if (!record) {
           const localDb = read();
           const db = initializeAndNormalizeDatabase(localDb);
           record = await PortalData.create({ key: "main_data", data: db });
+          isDatabaseNormalized = true;
           console.log("🌱 MongoDB Atlas initialized with local database data.");
         }
       } catch (err) {
@@ -552,6 +564,7 @@ function initializeAndNormalizeDatabase(db) {
   (db.users || []).forEach(u => normalizeUser(u));
   return db;
 }
+let mongoSyncTimeout = null;
 function write(db){
   db.users=Array.isArray(db.users)?db.users:[];
   db.leaders=Array.isArray(db.leaders)?db.leaders:[];
@@ -567,11 +580,14 @@ function write(db){
   queueExcelReport(db);
 
   if (isMongoConnected) {
-    PortalData.findOneAndUpdate(
-      { key: "main_data" },
-      { data: db },
-      { upsert: true, new: true }
-    ).catch(err => console.error("MongoDB Atlas sync error:", err.message));
+    if (mongoSyncTimeout) clearTimeout(mongoSyncTimeout);
+    mongoSyncTimeout = setTimeout(() => {
+      PortalData.findOneAndUpdate(
+        { key: "main_data" },
+        { data: db },
+        { upsert: true, new: true }
+      ).catch(err => console.error("MongoDB Atlas sync error:", err.message));
+    }, 2000);
   }
 }
 function auth(req,res,next){
@@ -2561,14 +2577,7 @@ const server = app.listen(PORT,()=> {
   console.log(`🚀 Backend running on http://localhost:${PORT}`);
   // Run normalization once in the background after startup
   setTimeout(() => {
-    try {
-      const db = read();
-      initializeAndNormalizeDatabase(db);
-      write(db);
-      console.log("🍃 Database startup normalization completed successfully.");
-    } catch (err) {
-      console.error("Database startup normalization error:", err.message);
-    }
+    runStartupNormalization();
   }, 1000);
 })
   .on("error", (err) => {
