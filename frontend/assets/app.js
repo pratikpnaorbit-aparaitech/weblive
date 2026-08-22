@@ -1727,7 +1727,9 @@ async function renderDashboard() {
         <p class="muted">Chapters: ${(item.completedChapters||[]).length}/${CHAPTERS.length} · Quiz: ${item.quizPassed?"Passed":"Pending"} · Time: ${formatTime(item.timeSpentSeconds||0)}</p>
         ${locked
           ? `<button class="btn outline" disabled>🔒 Complete previous project</button>`
-          : `<button class="btn primary tracked-open" data-id="${id}" type="button" onclick="window.openTrackedProjectSafe('${id}'); return false;">${item.status==="completed"?"Review":"Start / Continue"}</button>`}
+          : (item.status === "ready_for_submission"
+              ? `<button class="btn success tracked-open" data-id="${id}" type="button" onclick="window.openTrackedProjectSafe('${id}'); return false;" style="background:var(--green);color:#fff">Submit Project</button>`
+              : `<button class="btn primary tracked-open" data-id="${id}" type="button" onclick="window.openTrackedProjectSafe('${id}'); return false;">${item.status==="completed"?"Review":"Start / Continue"}</button>`)}
       </article></div>`;
   }).join("");
   $("completedStat").textContent = completed;
@@ -1956,7 +1958,7 @@ function openProjectDocument(id, publicMode = false) {
     const firstPending = CHAPTERS.findIndex(
       (chapter, index) => !completed.includes(index) && !completed.includes(chapter)
     );
-    state.currentChapter = firstPending >= 0 ? firstPending : 0;
+    state.currentChapter = firstPending >= 0 ? firstPending : (CHAPTERS.length - 1);
 
     const title = $("projectTitle");
     if (title) title.textContent = project.name;
@@ -2553,6 +2555,44 @@ function getEnhancedChapterContent(project, chapterIndex, chapterName, completed
   `;
 }
 
+function getSubmissionSectionHtml(p, pg) {
+  const isSubmitted = pg.status === "completed" || pg.githubUrl;
+  if (isSubmitted) {
+    const uploadTime = pg.zipUploadedAt ? new Date(pg.zipUploadedAt).toLocaleString() : "";
+    const sizeMb = pg.zipFileSize ? (pg.zipFileSize / (1024 * 1024)).toFixed(2) : "0.00";
+    return `
+      <div class="enhancement-card" style="margin-top:24px;border-left:4px solid var(--green);background:var(--card)">
+        <h3 style="color:var(--green);margin-top:0">✓ Project Submitted Successfully</h3>
+        <p style="margin:8px 0;font-size:13px"><b>GitHub Repository:</b> <a href="${escapeHtml(pg.githubUrl)}" target="_blank">${escapeHtml(pg.githubUrl)}</a></p>
+        ${pg.zipOriginalName ? `<p style="margin:8px 0;font-size:13px"><b>Project ZIP:</b> ${escapeHtml(pg.zipOriginalName)} (${sizeMb} MB) - <span class="muted">Uploaded ${uploadTime}</span></p>` : ""}
+        ${pg.submissionNote ? `<p style="margin:8px 0;font-size:13px"><b>Submission Note:</b> <br/><span class="muted">${escapeHtml(pg.submissionNote)}</span></p>` : ""}
+      </div>
+    `;
+  }
+
+  return `
+    <div class="enhancement-card" style="margin-top:24px;border-left:4px solid var(--blue);background:var(--card)">
+      <h3 style="color:var(--navy);margin-top:0">🎉 Project Completed!</h3>
+      <p class="muted" style="margin-bottom:14px;font-size:13px">All chapters are completed. You can now submit your project.</p>
+      
+      <label style="display:block;margin-bottom:6px;font-weight:bold;font-size:13px">GitHub Repository URL</label>
+      <input id="githubUrl" class="input" placeholder="https://github.com/username/repository" style="margin-bottom:12px">
+      
+      <label style="display:block;margin-bottom:6px;font-weight:bold;font-size:13px">Upload Project ZIP (Max 50MB)</label>
+      <div style="margin-bottom:12px">
+        <input type="file" id="projectZipFile" accept=".zip" style="display:none" onchange="handleZipSelection(this)">
+        <button type="button" class="btn outline" onclick="$('projectZipFile').click()">Choose ZIP File</button>
+        <span id="selectedZipInfo" style="margin-left:10px;font-size:13px;color:var(--text-muted)">No file chosen</span>
+      </div>
+      
+      <label style="display:block;margin-bottom:6px;font-weight:bold;font-size:13px">Submission Note</label>
+      <textarea id="submissionNote" class="input" placeholder="Submission note" style="margin-bottom:16px"></textarea>
+      
+      <button class="btn success" id="submitProjectButton">Submit Project & Unlock Next</button>
+    </div>
+  `;
+}
+
 function renderChapter() {
   const p = state.currentProject;
   const docChapters = (state.currentDoc?.chapters || []).filter(c => c.isEnabled !== false && c.status !== "draft");
@@ -2690,6 +2730,9 @@ function renderChapter() {
   body += getEnhancedChapterContent(p, state.currentChapter, chapterTitle, completed.length, totalChaptersCount, activeChapObj);
 
   const noteKey = `note:${p.id}:${state.currentChapter}`;
+  const pg = state.user?.progress?.[p.id] || {};
+  const isProjectPercent100 = pg.percent >= 100 || completed.length >= totalChaptersCount;
+  const submissionHtml = (!state.publicMode && isProjectPercent100) ? getSubmissionSectionHtml(p, pg) : "";
 
   $("chapterContent").innerHTML = `<section class="chapter">
     <div class="tracking-strip">
@@ -2716,6 +2759,7 @@ function renderChapter() {
       `)}
       <button class="btn primary" id="nextChapter" ${state.currentChapter===totalChaptersCount-1?"disabled":""}>Next →</button>
     </div>
+    ${submissionHtml}
   </section>`;
 
   if(!state.publicMode){
@@ -2750,6 +2794,12 @@ function renderChapter() {
     };
     if (progressEnabled && !completed.includes(state.currentChapter) && !completed.includes(chapterTitle)) {
       $("completeChapterButton").onclick = completeChapter;
+    }
+    if (isProjectPercent100 && !pg.githubUrl && pg.status !== "completed") {
+      const submitBtn = $("submitProjectButton");
+      if (submitBtn) {
+        submitBtn.onclick = submitProject;
+      }
     }
   } else {
     $("backToProjectsButton").onclick = () => show("homeView");
@@ -2999,7 +3049,7 @@ async function completeChapter() {
     const data=await api(`/projects/${state.currentProject.id}/chapters/${state.currentChapter}`,{method:"POST"});
     await loadMe();
     notify(`Chapter completed. Progress ${data.progress.percent}%`);
-    if(data.progress.percent>=100) showSubmission();
+    if(data.progress.percent>=100) renderChapter();
     else if(state.currentChapter<CHAPTERS.length-1) openChapter(state.currentChapter+1);
   }catch(e){notify(e.message,"error");}
 }

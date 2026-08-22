@@ -855,9 +855,19 @@ function normalizeUser(u){
   for(const id of u.selectedProjects){
     u.progress[id]=u.progress[id]||{};
     const p=u.progress[id];
-    p.status=p.status||"locked";
     p.completedChapters=Array.isArray(p.completedChapters)?p.completedChapters:[];
     p.percent=Number(p.percent||0);
+
+    // Repair legacy completed records
+    if (p.completedChapters.length >= 16) {
+      p.percent = 100;
+      if (p.status !== "completed") {
+        p.status = "ready_for_submission";
+      }
+    } else {
+      p.status=p.status||"locked";
+    }
+
     p.githubUrl=p.githubUrl||"";
     p.submissionNote=p.submissionNote||"";
     p.submittedAt=p.submittedAt||null;
@@ -865,6 +875,14 @@ function normalizeUser(u){
     p.activeStartedAt=p.activeStartedAt||null;
     p.quizPassed=Boolean(p.quizPassed);
     p.quizScore=Number(p.quizScore||0);
+
+    // Add computed properties for progress monitoring API
+    p.totalChapters = 16;
+    p.completedChaptersCount = p.completedChapters.length;
+    p.remainingChapters = Math.max(0, 16 - p.completedChapters.length);
+    p.completionPercentage = p.percent;
+    p.projectCompleted = p.percent >= 100;
+    p.canSubmitProject = p.percent >= 100 && p.quizPassed === true;
   }
   return u;
 }
@@ -1450,7 +1468,8 @@ app.post("/api/projects/:id/chapters/:chapter",auth,(req,res)=>{
   if(!p.completedChapters.includes(chapter))p.completedChapters.push(chapter);
   p.completedChapters.sort((a,b)=>a-b);
   p.percent=Math.min(100,Math.round(p.completedChapters.length/16*100));
-  if(p.percent===100)p.status="ready_for_submission";
+  if(p.percent===100 && p.status !== "completed") p.status="ready_for_submission";
+  normalizeUser(u);
   log(db,u.id,"CHAPTER_COMPLETED",{projectId:req.params.id,chapter,percent:p.percent});
   write(db);res.json({progress:p});
 });
