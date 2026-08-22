@@ -4447,6 +4447,17 @@ async function loadStudentQuiz(projectId) {
     }
   } catch (err) {
     console.error("Error loading quiz:", err.message);
+    const container = $("activeQuizContainer");
+    if (container) {
+      container.innerHTML = `
+        <div style="padding:20px;background:var(--card);border:1px solid var(--border);border-radius:12px;text-align:center">
+          <div style="font-size:48px;margin-bottom:12px">❌</div>
+          <h3 style="color:var(--red)">Failed to load quiz</h3>
+          <p class="muted">${escapeHtml(err.message)}</p>
+        </div>
+      `;
+    }
+    return;
   }
   
   renderStudentQuizPage();
