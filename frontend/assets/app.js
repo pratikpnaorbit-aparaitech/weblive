@@ -1745,8 +1745,31 @@ async function saveSelection() {
 
 async function loadMe() {
   const data = await api("/intern/me");
-  state.user = data.user;
-  return data.user;
+  const fresh = data.user;
+  // Merge: protect locally-set "completed" project statuses from server overwrite
+  // (server may lag behind due to 2s MongoDB debounce on write)
+  if (state.user && state.user.progress && fresh && fresh.progress) {
+    Object.keys(state.user.progress).forEach(pid => {
+      const local = state.user.progress[pid];
+      const remote = fresh.progress[pid];
+      if (!remote) return;
+      // Never downgrade completed->ready_for_submission in local state
+      if (local.status === "completed" && remote.status !== "completed") {
+        remote.status = "completed";
+        remote.githubUrl = remote.githubUrl || local.githubUrl;
+        remote.submittedAt = remote.submittedAt || local.submittedAt;
+      }
+      // Preserve any locally-added completedChapters not yet on server
+      if (Array.isArray(local.completedChapters) && Array.isArray(remote.completedChapters)) {
+        local.completedChapters.forEach(idx => {
+          if (!remote.completedChapters.includes(idx)) remote.completedChapters.push(idx);
+        });
+        remote.completedChapters.sort((a, b) => a - b);
+      }
+    });
+  }
+  state.user = fresh;
+  return fresh;
 }
 
 function formatTime(seconds) {
@@ -5007,8 +5030,10 @@ async function submitStudentQuiz() {
     renderChapterList();
     renderStudentQuizPage();
 
-    // Background sync with server
-    loadMe().catch(() => {});
+    // Background sync with server - re-render chapter list after sync to keep tick
+    loadMe().then(() => {
+      renderChapterList();
+    }).catch(() => {});
   } catch (err) {
     notify(err.message, "error");
   }
