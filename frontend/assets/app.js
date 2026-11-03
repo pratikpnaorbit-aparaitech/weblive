@@ -2252,7 +2252,9 @@ function renderChapterList() {
 
 function startSessionTimer() {
   clearInterval(state.sessionTimer);
-  state.sessionSeconds = 0;
+  // Start from the already-accumulated time for this project (not from 0)
+  const prevTime = state.user?.progress?.[state.currentProject?.id]?.timeSpentSeconds || 0;
+  state.sessionSeconds = prevTime;
   state.sessionTimer = setInterval(()=>{
     state.sessionSeconds++;
     const el=$("liveSessionTime");
@@ -3219,17 +3221,34 @@ async function completeChapter() {
   }
   try{
     const data=await api(`/projects/${state.currentProject.id}/chapters/${state.currentChapter}`,{method:"POST"});
+    // Immediately patch local state so renderChapter sees completed status without waiting for loadMe
+    if (state.user && state.user.progress && state.user.progress[state.currentProject.id]) {
+      const prog = state.user.progress[state.currentProject.id];
+      if (!prog.completedChapters) prog.completedChapters = [];
+      const chIdx = state.currentChapter;
+      // Store by both index and title so any completion-check finds it
+      if (!prog.completedChapters.includes(chIdx)) prog.completedChapters.push(chIdx);
+      const chTitle = (state.currentDoc?.chapters?.[chIdx]?.title) || CHAPTERS[chIdx] || "";
+      if (chTitle && !prog.completedChapters.includes(chTitle)) prog.completedChapters.push(chTitle);
+      prog.percent = data.progress.percent;
+    }
     await loadMe();
     notify(`Chapter completed. Progress ${data.progress.percent}%`);
+    const docChaptersAll = (state.currentDoc?.chapters || []).filter(c => c.isEnabled !== false && c.status !== 'draft');
+    const totalChapters = docChaptersAll.length || CHAPTERS.length;
     if(data.progress.percent>=100) {
-  const docChapters = (state.currentDoc?.chapters || []).filter(c => c.isEnabled !== false && c.status !== 'draft');
-  const totalCh = docChapters.length || CHAPTERS.length;
-  state.currentChapter = totalCh - 1;
-  renderChapterList();
-  renderChapter();
-  notify("🎉 All chapters complete! Submit your project below.", "success");
-}
-    else if(state.currentChapter<CHAPTERS.length-1) openChapter(state.currentChapter+1);
+      state.currentChapter = totalChapters - 1;
+      renderChapterList();
+      renderChapter();
+      notify("All chapters complete! You can now submit your project below.", "success");
+    } else {
+      // Re-render current chapter first (shows it as completed), then move to next
+      renderChapterList();
+      renderChapter();
+      if(state.currentChapter < totalChapters - 1) {
+        setTimeout(() => openChapter(state.currentChapter + 1), 400);
+      }
+    }
   }catch(e){notify(e.message,"error");}
 }
 
@@ -3891,6 +3910,77 @@ function initializeCameraWidget() {
     if (event.target.closest("button")) return;
     togglePanel();
   };
+
+  // Make camera widget draggable so it never blocks page content
+  (function makeDraggable() {
+    let isDragging = false, startX = 0, startY = 0, startRight = 0, startBottom = 0;
+    const header = widget.querySelector(".camera-header");
+    if (!header) return;
+
+    header.style.cursor = "grab";
+
+    header.addEventListener("mousedown", (e) => {
+      if (e.target.closest("button")) return;
+      isDragging = true;
+      startX = e.clientX;
+      startY = e.clientY;
+      const rect = widget.getBoundingClientRect();
+      startRight = window.innerWidth - rect.right;
+      startBottom = window.innerHeight - rect.bottom;
+      header.style.cursor = "grabbing";
+      e.preventDefault();
+    });
+
+    document.addEventListener("mousemove", (e) => {
+      if (!isDragging) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      let newRight = Math.max(0, startRight - dx);
+      let newBottom = Math.max(0, startBottom - dy);
+      // Clamp within viewport
+      newRight = Math.min(newRight, window.innerWidth - widget.offsetWidth);
+      newBottom = Math.min(newBottom, window.innerHeight - widget.offsetHeight);
+      widget.style.right = newRight + "px";
+      widget.style.bottom = newBottom + "px";
+      widget.style.left = "auto";
+      widget.style.top = "auto";
+    });
+
+    document.addEventListener("mouseup", () => {
+      if (isDragging) {
+        isDragging = false;
+        header.style.cursor = "grab";
+      }
+    });
+
+    // Touch support for mobile
+    header.addEventListener("touchstart", (e) => {
+      if (e.target.closest("button")) return;
+      const t = e.touches[0];
+      isDragging = true;
+      startX = t.clientX; startY = t.clientY;
+      const rect = widget.getBoundingClientRect();
+      startRight = window.innerWidth - rect.right;
+      startBottom = window.innerHeight - rect.bottom;
+    }, { passive: true });
+
+    document.addEventListener("touchmove", (e) => {
+      if (!isDragging) return;
+      const t = e.touches[0];
+      const dx = t.clientX - startX;
+      const dy = t.clientY - startY;
+      let newRight = Math.max(0, startRight - dx);
+      let newBottom = Math.max(0, startBottom - dy);
+      newRight = Math.min(newRight, window.innerWidth - widget.offsetWidth);
+      newBottom = Math.min(newBottom, window.innerHeight - widget.offsetHeight);
+      widget.style.right = newRight + "px";
+      widget.style.bottom = newBottom + "px";
+      widget.style.left = "auto";
+      widget.style.top = "auto";
+    }, { passive: true });
+
+    document.addEventListener("touchend", () => { isDragging = false; });
+  })();
   const startBtn = document.getElementById("startCameraButton");
   if (startBtn) startBtn.onclick = toggleWorkCamera;
 
