@@ -64,10 +64,39 @@ const PortalData = mongoose.model("PortalData", portalDataSchema);
 let isMongoConnected = false;
 let isDatabaseNormalized = false;
 
+function migrateQuizChapters(db) {
+  // One-time migration: add chapter index 14 (Quiz chapter) to completedChapters
+  // for any student who already submitted the quiz before this fix was deployed.
+  const QUIZ_IDX = 14;
+  let changed = 0;
+  (db.users || []).forEach(u => {
+    if (!u.progress || typeof u.progress !== "object") return;
+    Object.keys(u.progress).forEach(projectId => {
+      const p = u.progress[projectId];
+      if (!p) return;
+      // Check if student has a quiz result for this project
+      const hasResult = (db.quizResults || []).some(
+        r => r.studentId === u.id && r.projectId === projectId
+      );
+      if (hasResult || p.quizPassed) {
+        if (!Array.isArray(p.completedChapters)) p.completedChapters = [];
+        if (!p.completedChapters.includes(QUIZ_IDX)) {
+          p.completedChapters.push(QUIZ_IDX);
+          p.completedChapters.sort((a, b) => a - b);
+          p.percent = Math.min(100, Math.round(p.completedChapters.length / 16 * 100));
+          changed++;
+        }
+      }
+    });
+  });
+  if (changed > 0) console.log(\`🍃 Quiz migration: added quiz chapter to \${changed} project progress record(s).\`);
+}
+
 function runStartupNormalization() {
   if (isDatabaseNormalized) return;
   try {
     const db = read();
+    migrateQuizChapters(db);
     initializeAndNormalizeDatabase(db);
     write(db);
     isDatabaseNormalized = true;
