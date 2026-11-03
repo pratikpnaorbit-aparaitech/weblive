@@ -4968,13 +4968,34 @@ async function submitStudentQuiz() {
     });
     notify(res.message || "Quiz submitted successfully.");
     studentQuizResult = res.result;
-    
+
+    // Update local state immediately — mark quiz chapter (index 14) as completed
     if (state.user && state.user.progress && state.user.progress[projectId]) {
-      state.user.progress[projectId].quizPassed = res.passed;
-      state.user.progress[projectId].quizScore = res.result.percentage;
+      const prog = state.user.progress[projectId];
+      prog.quizPassed = res.passed;
+      prog.quizScore  = res.result?.percentage ?? prog.quizScore;
+
+      // Mark chapter 14 (Quiz, chapter 15) as completed in the local list
+      const QUIZ_IDX = 14;
+      if (!Array.isArray(prog.completedChapters)) prog.completedChapters = [];
+      if (!prog.completedChapters.includes(QUIZ_IDX)) {
+        prog.completedChapters = [...prog.completedChapters, QUIZ_IDX];
+      }
+
+      // Sync full progress from server response if available
+      if (res.progress) {
+        prog.completedChapters = res.progress.completedChapters ?? prog.completedChapters;
+        prog.percent  = res.progress.percent  ?? prog.percent;
+        prog.status   = res.progress.status   ?? prog.status;
+      }
     }
-    
+
+    // Re-render chapter list so chapter 15 shows the green tick
+    renderChapterList();
     renderStudentQuizPage();
+
+    // Background sync with server
+    loadMe().catch(() => {});
   } catch (err) {
     notify(err.message, "error");
   }

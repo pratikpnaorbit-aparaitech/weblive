@@ -1618,15 +1618,29 @@ app.post("/api/projects/:id/quiz", auth, (req, res) => {
   db.quizResults.push(result);
   
   p.quizPassed = passed;
-  p.quizScore = percentage; // store percentage as score
-  
+  p.quizScore = percentage;
+
+  // Mark quiz chapter (index 14 = Chapter 15) as completed regardless of pass/fail
+  const QUIZ_CHAPTER_INDEX = 14;
+  if (!p.completedChapters.includes(QUIZ_CHAPTER_INDEX)) {
+    p.completedChapters.push(QUIZ_CHAPTER_INDEX);
+    p.completedChapters.sort((a, b) => a - b);
+    p.percent = Math.min(100, Math.round(p.completedChapters.length / 16 * 100));
+  }
+  if (p.percent === 100 && p.status !== "completed") p.status = "ready_for_submission";
+
+  normalizeUser(u);
   log(db, u.id, "QUIZ_SUBMITTED", { projectId: req.params.id, score, totalMarks, percentage, passed });
   write(db);
 
+  const safeProgress = u.progress[req.params.id];
   res.json({
-    message: passed ? "Quiz passed successfully." : "Quiz not passed. Score at least 70% and try again.",
+    message: passed
+      ? "Quiz passed! Chapter 15 marked complete."
+      : "Quiz attempted! Chapter 15 marked complete. You can still submit your project.",
     passed,
-    result
+    result,
+    progress: safeProgress
   });
 });
 
