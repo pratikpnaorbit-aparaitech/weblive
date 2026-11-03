@@ -185,15 +185,19 @@
   position:fixed;
   right:18px;
   bottom:18px;
-  z-index:1200;
+  z-index:9999;
   width:320px;
   border:1px solid var(--border);
   border-radius:16px;
   background:var(--card);
   color:var(--text);
   box-shadow:0 24px 70px rgba(2,6,23,.28);
+  overflow:visible;
+  transition:width .25s,box-shadow .25s;
+}
+.camera-widget .camera-body{
+  border-radius:0 0 16px 16px;
   overflow:hidden;
-  transition:width .25s,transform .25s,box-shadow .25s;
 }
 .camera-widget.collapsed{width:205px}
 .camera-widget.collapsed .camera-body{display:none}
@@ -1374,17 +1378,11 @@ body.on-login-page .login-landing-section {
 
 /* ── Draggable camera widget ─────────────────────────────────── */
 .camera-widget {
-  position: fixed !important;
-  bottom: 20px !important;
-  right: 20px !important;
-  z-index: 9999 !important;
-  max-width: 320px;
-  min-width: 200px;
   user-select: none;
 }
 .camera-header {
-  cursor: grab;
+  cursor: grab !important;
 }
 .camera-header:active {
-  cursor: grabbing;
+  cursor: grabbing !important;
 }

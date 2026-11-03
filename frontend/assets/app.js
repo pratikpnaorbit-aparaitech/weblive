@@ -3220,35 +3220,49 @@ async function completeChapter() {
     return;
   }
   try{
-    const data=await api(`/projects/${state.currentProject.id}/chapters/${state.currentChapter}`,{method:"POST"});
-    // Immediately patch local state so renderChapter sees completed status without waiting for loadMe
-    if (state.user && state.user.progress && state.user.progress[state.currentProject.id]) {
+    const data = await api(`/projects/${state.currentProject.id}/chapters/${state.currentChapter}`, {method:"POST"});
+    const completedChapterIdx = state.currentChapter; // capture before any navigation
+
+    // Update state.user directly from server response — no loadMe() to avoid race conditions
+    if (state.user) {
+      if (!state.user.progress) state.user.progress = {};
+      if (!state.user.progress[state.currentProject.id]) state.user.progress[state.currentProject.id] = {};
       const prog = state.user.progress[state.currentProject.id];
-      if (!prog.completedChapters) prog.completedChapters = [];
-      const chIdx = state.currentChapter;
-      // Store by both index and title so any completion-check finds it
-      if (!prog.completedChapters.includes(chIdx)) prog.completedChapters.push(chIdx);
-      const chTitle = (state.currentDoc?.chapters?.[chIdx]?.title) || CHAPTERS[chIdx] || "";
-      if (chTitle && !prog.completedChapters.includes(chTitle)) prog.completedChapters.push(chTitle);
-      prog.percent = data.progress.percent;
+      // Replace completedChapters entirely with what server returned (authoritative)
+      prog.completedChapters = Array.isArray(data.progress?.completedChapters)
+        ? data.progress.completedChapters
+        : (prog.completedChapters || []);
+      // Ensure the just-completed chapter is in the array (safety net)
+      if (!prog.completedChapters.includes(completedChapterIdx)) {
+        prog.completedChapters = [...prog.completedChapters, completedChapterIdx];
+      }
+      prog.percent  = data.progress.percent ?? prog.percent;
+      prog.status   = data.progress.status  ?? prog.status;
     }
-    await loadMe();
-    notify(`Chapter completed. Progress ${data.progress.percent}%`);
+
     const docChaptersAll = (state.currentDoc?.chapters || []).filter(c => c.isEnabled !== false && c.status !== 'draft');
     const totalChapters = docChaptersAll.length || CHAPTERS.length;
-    if(data.progress.percent>=100) {
+
+    notify(`Chapter ${completedChapterIdx + 1} completed. Progress ${data.progress.percent}%`);
+
+    if (data.progress.percent >= 100) {
+      // All chapters done — jump to last chapter (submit section)
       state.currentChapter = totalChapters - 1;
       renderChapterList();
       renderChapter();
       notify("All chapters complete! You can now submit your project below.", "success");
     } else {
-      // Re-render current chapter first (shows it as completed), then move to next
+      // Re-render current chapter as completed, then advance to next
       renderChapterList();
       renderChapter();
-      if(state.currentChapter < totalChapters - 1) {
-        setTimeout(() => openChapter(state.currentChapter + 1), 400);
+      const nextIdx = completedChapterIdx + 1;
+      if (nextIdx < totalChapters) {
+        setTimeout(() => openChapter(nextIdx), 500);
       }
     }
+
+    // Sync with server in background (fire-and-forget, no await)
+    loadMe().catch(() => {});
   }catch(e){notify(e.message,"error");}
 }
 
@@ -3911,75 +3925,71 @@ function initializeCameraWidget() {
     togglePanel();
   };
 
-  // Make camera widget draggable so it never blocks page content
+  // Make camera widget draggable using left/top positioning
   (function makeDraggable() {
-    let isDragging = false, startX = 0, startY = 0, startRight = 0, startBottom = 0;
+    let dragging = false, ox = 0, oy = 0;
     const header = widget.querySelector(".camera-header");
     if (!header) return;
-
     header.style.cursor = "grab";
 
-    header.addEventListener("mousedown", (e) => {
+    // Switch widget from right/bottom anchoring to left/top so transform works
+    function ensureAbsolute() {
+      if (!widget.style.left || widget.style.left === "auto") {
+        const r = widget.getBoundingClientRect();
+        widget.style.left   = r.left + "px";
+        widget.style.top    = r.top  + "px";
+        widget.style.right  = "auto";
+        widget.style.bottom = "auto";
+      }
+    }
+
+    header.addEventListener("mousedown", e => {
       if (e.target.closest("button")) return;
-      isDragging = true;
-      startX = e.clientX;
-      startY = e.clientY;
-      const rect = widget.getBoundingClientRect();
-      startRight = window.innerWidth - rect.right;
-      startBottom = window.innerHeight - rect.bottom;
+      ensureAbsolute();
+      dragging = true;
+      ox = e.clientX - widget.getBoundingClientRect().left;
+      oy = e.clientY - widget.getBoundingClientRect().top;
       header.style.cursor = "grabbing";
       e.preventDefault();
     });
 
-    document.addEventListener("mousemove", (e) => {
-      if (!isDragging) return;
-      const dx = e.clientX - startX;
-      const dy = e.clientY - startY;
-      let newRight = Math.max(0, startRight - dx);
-      let newBottom = Math.max(0, startBottom - dy);
-      // Clamp within viewport
-      newRight = Math.min(newRight, window.innerWidth - widget.offsetWidth);
-      newBottom = Math.min(newBottom, window.innerHeight - widget.offsetHeight);
-      widget.style.right = newRight + "px";
-      widget.style.bottom = newBottom + "px";
-      widget.style.left = "auto";
-      widget.style.top = "auto";
+    document.addEventListener("mousemove", e => {
+      if (!dragging) return;
+      let nx = e.clientX - ox;
+      let ny = e.clientY - oy;
+      nx = Math.max(0, Math.min(nx, window.innerWidth  - widget.offsetWidth));
+      ny = Math.max(0, Math.min(ny, window.innerHeight - widget.offsetHeight));
+      widget.style.left = nx + "px";
+      widget.style.top  = ny + "px";
     });
 
     document.addEventListener("mouseup", () => {
-      if (isDragging) {
-        isDragging = false;
-        header.style.cursor = "grab";
-      }
+      dragging = false;
+      header.style.cursor = "grab";
     });
 
-    // Touch support for mobile
-    header.addEventListener("touchstart", (e) => {
+    // Touch
+    header.addEventListener("touchstart", e => {
       if (e.target.closest("button")) return;
+      ensureAbsolute();
       const t = e.touches[0];
-      isDragging = true;
-      startX = t.clientX; startY = t.clientY;
-      const rect = widget.getBoundingClientRect();
-      startRight = window.innerWidth - rect.right;
-      startBottom = window.innerHeight - rect.bottom;
-    }, { passive: true });
+      dragging = true;
+      ox = t.clientX - widget.getBoundingClientRect().left;
+      oy = t.clientY - widget.getBoundingClientRect().top;
+    }, {passive:true});
 
-    document.addEventListener("touchmove", (e) => {
-      if (!isDragging) return;
+    document.addEventListener("touchmove", e => {
+      if (!dragging) return;
       const t = e.touches[0];
-      const dx = t.clientX - startX;
-      const dy = t.clientY - startY;
-      let newRight = Math.max(0, startRight - dx);
-      let newBottom = Math.max(0, startBottom - dy);
-      newRight = Math.min(newRight, window.innerWidth - widget.offsetWidth);
-      newBottom = Math.min(newBottom, window.innerHeight - widget.offsetHeight);
-      widget.style.right = newRight + "px";
-      widget.style.bottom = newBottom + "px";
-      widget.style.left = "auto";
-      widget.style.top = "auto";
-    }, { passive: true });
+      let nx = t.clientX - ox;
+      let ny = t.clientY - oy;
+      nx = Math.max(0, Math.min(nx, window.innerWidth  - widget.offsetWidth));
+      ny = Math.max(0, Math.min(ny, window.innerHeight - widget.offsetHeight));
+      widget.style.left = nx + "px";
+      widget.style.top  = ny + "px";
+    }, {passive:true});
 
-    document.addEventListener("touchend", () => { isDragging = false; });
+    document.addEventListener("touchend", () => { dragging = false; });
   })();
   const startBtn = document.getElementById("startCameraButton");
   if (startBtn) startBtn.onclick = toggleWorkCamera;
