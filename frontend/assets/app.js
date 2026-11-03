@@ -158,6 +158,18 @@ async function request(path, options = {}, isLeader = false) {
       return data;
     }
 
+    // Handle 429 rate limit - wait and retry
+    if (response.status === 429) {
+      if (attempt < maxRetries) {
+        attempt++;
+        const retryDelay = 5000 + (attempt * 2000); // 7s, 9s, 11s
+        console.warn(`[API] Rate limited (429). Retrying in ${retryDelay/1000}s... (Attempt ${attempt}/${maxRetries})`);
+        await new Promise(resolve => setTimeout(resolve, retryDelay));
+        continue;
+      }
+      throw new Error("Too many requests. Please wait a moment and try again.");
+    }
+
     // Handle 502/503/504 retry logic for sleeping server
     if (response.status === 502 || response.status === 503 || response.status === 504) {
       if (attempt < maxRetries) {
@@ -4762,6 +4774,7 @@ async function loadStudentQuiz(projectId) {
           <div style="font-size:48px;margin-bottom:12px">❌</div>
           <h3 style="color:var(--red)">Failed to load quiz</h3>
           <p class="muted">${escapeHtml(err.message)}</p>
+          <button onclick="loadStudentQuiz('${projectId}')" style="margin-top:12px;padding:10px 24px;background:var(--blue);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:15px">Retry</button>
         </div>
       `;
     }
