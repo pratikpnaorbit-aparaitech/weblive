@@ -89,7 +89,7 @@ function migrateQuizChapters(db) {
       }
     });
   });
-  if (changed > 0) console.log(\`🍃 Quiz migration: added quiz chapter to \${changed} project progress record(s).\`);
+  if (changed > 0) console.log("Quiz migration: added quiz chapter to " + changed + " project progress record(s).");
 }
 
 function runStartupNormalization() {
