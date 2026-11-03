@@ -884,9 +884,9 @@ function normalizeUser(u){
     if (p.status === "completed") {
       // Already submitted — protect it from being overwritten
       p.percent = Math.max(p.percent, 100);
-    } else if (p.completedChapters.length >= 16) {
+    } else if (p.percent >= 100 || p.completedChapters.length >= 16) {
       p.percent = 100;
-      // Only promote to ready_for_submission, never demote completed→ready
+      // Promote to ready_for_submission once all chapters done (quiz not required)
       if (p.status !== "completed") {
         p.status = "ready_for_submission";
       }
@@ -908,7 +908,7 @@ function normalizeUser(u){
     p.remainingChapters = Math.max(0, 16 - p.completedChapters.length);
     p.completionPercentage = p.percent;
     p.projectCompleted = p.percent >= 100;
-    p.canSubmitProject = p.percent >= 100 && p.quizPassed === true;
+    p.canSubmitProject = p.percent >= 100; // quiz is optional — not required for submission
   }
   return u;
 }
@@ -1852,11 +1852,6 @@ app.post("/api/projects/:id/submit", auth, (req, res) => {
       if (req.file) fs.unlinkSync(req.file.path);
       return res.status(400).json({ message: "Complete all chapters before submission." });
     }
-    if (!p.quizPassed) {
-      if (req.file) fs.unlinkSync(req.file.path);
-      return res.status(400).json({ message: "Pass the quiz before submission." });
-    }
-    
     p.githubUrl = normalizedUrl;
     p.submissionNote = submissionNote.trim();
     p.submittedAt = new Date().toISOString();

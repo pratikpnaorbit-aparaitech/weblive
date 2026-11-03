@@ -1871,8 +1871,8 @@ async function renderDashboard() {
     totalTime += item.timeSpentSeconds || 0;
     const locked = item.status==="locked";
     const isCompleted = item.status==="completed";
-    // canSubmit: chapters done + quiz passed but NOT yet submitted
-    const canSubmit = !isCompleted && (item.status==="ready_for_submission" || (item.percent >= 100 && item.quizPassed));
+    // canSubmit: chapters done (quiz optional)
+    const canSubmit = !isCompleted && (item.status==="ready_for_submission" || item.percent >= 100);
     const btnHtml = locked
       ? `<button class="btn outline" disabled>Complete Project ${index} First (Locked)</button>`
       : isCompleted
@@ -1935,7 +1935,7 @@ async function renderAdditionalProjects(user) {
     const chosenProject = PROJECTS.find(p => p.id === additionalId);
     const item = (user.progress || {})[additionalId] || {};
     const isCompleted = item.status === "completed";
-    const canSubmit = !isCompleted && (item.status === "ready_for_submission" || (item.percent >= 100 && item.quizPassed));
+    const canSubmit = !isCompleted && (item.status === "ready_for_submission" || item.percent >= 100);
     if (chosenProject) {
       const btnHtml = isCompleted
         ? `<button class="btn outline tracked-open" data-id="${additionalId}" type="button" onclick="window.openTrackedProjectSafe('${additionalId}'); return false;">Review Submitted</button>`
@@ -2744,7 +2744,7 @@ function getSubmissionSectionHtml(p, pg) {
   return `
     <div class="enhancement-card" style="margin-top:24px;border-left:4px solid var(--blue);background:var(--card)">
       <h3 style="color:var(--navy);margin-top:0">🎉 Project Completed!</h3>
-      <p class="muted" style="margin-bottom:14px;font-size:13px">All chapters are completed. You can now submit your project.</p>
+      <p class="muted" style="margin-bottom:14px;font-size:13px">All chapters are completed. Submit your GitHub repository and project ZIP to finish.</p>
       
       <label style="display:block;margin-bottom:6px;font-weight:bold;font-size:13px">GitHub Repository URL</label>
       <input id="githubUrl" class="input" placeholder="https://github.com/username/repository" style="margin-bottom:12px">
@@ -2967,7 +2967,7 @@ function renderChapter() {
     if (progressEnabled && !completed.includes(state.currentChapter) && !completed.includes(chapterTitle)) {
       $("completeChapterButton").onclick = completeChapter;
     }
-    if (isProjectPercent100 && isReferencesChapter && !pg.githubUrl && pg.status !== "completed") {
+    if (isProjectPercent100 && isReferencesChapter && pg.status !== "completed") {
       const submitBtn = $("submitProjectButton");
       if (submitBtn) {
         submitBtn.onclick = submitProject;
@@ -3237,7 +3237,7 @@ function showSubmission() {
   $("chapterContent").innerHTML = `
     <section class="chapter">
       <h2>Project Submission</h2>
-      <p>All chapters are complete. Pass the quiz and submit GitHub URL and Project ZIP.</p>
+      <p>All chapters are complete. Submit your GitHub URL and project ZIP below.</p>
       
       <label style="display:block;margin-bottom:6px;font-weight:bold;font-size:13px">GitHub Repository URL</label>
       <input id="githubUrl" class="input" placeholder="https://github.com/username/repository" style="margin-bottom:12px">
