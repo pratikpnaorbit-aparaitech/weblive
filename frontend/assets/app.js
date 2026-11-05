@@ -1769,6 +1769,10 @@ async function loadMe() {
     });
   }
   state.user = fresh;
+  // Flush any queued chapter syncs now that we have a fresh connection
+  if (window._chapterSyncQueue && window._chapterSyncQueue.length) {
+    setTimeout(_flushChapterSyncQueue, 1000);
+  }
   return fresh;
 }
 
@@ -3244,61 +3248,91 @@ async function submitQuiz() {
   } catch(e){notify(e.message,"error");}
 }
 
+// Background sync queue for chapter completions that fail due to rate limiting
+if (!window._chapterSyncQueue) window._chapterSyncQueue = [];
+function _flushChapterSyncQueue() {
+  if (!window._chapterSyncQueue.length) return;
+  const item = window._chapterSyncQueue[0];
+  api(`/projects/${item.projectId}/chapters/${item.chapterIdx}`, {method:"POST"})
+    .then(() => {
+      window._chapterSyncQueue.shift();
+      if (window._chapterSyncQueue.length) setTimeout(_flushChapterSyncQueue, 3000);
+    })
+    .catch(() => {
+      setTimeout(_flushChapterSyncQueue, 8000); // retry after 8s
+    });
+}
+
 async function completeChapter() {
   if(state.publicMode){
     const key=`publicProgress:${state.currentProject.id}`;
     const completed=JSON.parse(localStorage.getItem(key)||"[]");
     if(!completed.includes(state.currentChapter)) completed.push(state.currentChapter);
     localStorage.setItem(key,JSON.stringify(completed));
-    notify(`Chapter completed locally: ${completed.length}/${CHAPTERS.length}`);
+    notify(`Chapter completed!`);
     if(state.currentChapter<CHAPTERS.length-1) openChapter(state.currentChapter+1);
     return;
   }
-  try{
-    const data = await api(`/projects/${state.currentProject.id}/chapters/${state.currentChapter}`, {method:"POST"});
-    const completedChapterIdx = state.currentChapter; // capture before any navigation
 
-    // Update state.user directly from server response — no loadMe() to avoid race conditions
-    if (state.user) {
-      if (!state.user.progress) state.user.progress = {};
-      if (!state.user.progress[state.currentProject.id]) state.user.progress[state.currentProject.id] = {};
-      const prog = state.user.progress[state.currentProject.id];
-      // Replace completedChapters entirely with what server returned (authoritative)
-      prog.completedChapters = Array.isArray(data.progress?.completedChapters)
-        ? data.progress.completedChapters
-        : (prog.completedChapters || []);
-      // Ensure the just-completed chapter is in the array (safety net)
-      if (!prog.completedChapters.includes(completedChapterIdx)) {
-        prog.completedChapters = [...prog.completedChapters, completedChapterIdx];
-      }
-      prog.percent  = data.progress.percent ?? prog.percent;
-      prog.status   = data.progress.status  ?? prog.status;
+  const completedChapterIdx = state.currentChapter;
+  const projectId = state.currentProject.id;
+
+  // ── OPTIMISTIC UPDATE: update local state & UI immediately ──
+  if (state.user) {
+    if (!state.user.progress) state.user.progress = {};
+    if (!state.user.progress[projectId]) state.user.progress[projectId] = { completedChapters: [], percent: 0, status: "active" };
+    const prog = state.user.progress[projectId];
+    if (!Array.isArray(prog.completedChapters)) prog.completedChapters = [];
+    if (!prog.completedChapters.includes(completedChapterIdx)) {
+      prog.completedChapters = [...prog.completedChapters, completedChapterIdx];
+      prog.completedChapters.sort((a, b) => a - b);
     }
+    prog.percent = Math.min(100, Math.round(prog.completedChapters.length / 16 * 100));
+    if (prog.percent >= 100 && prog.status !== "completed") prog.status = "ready_for_submission";
+  }
 
-    const docChaptersAll = (state.currentDoc?.chapters || []).filter(c => c.isEnabled !== false && c.status !== 'draft');
-    const totalChapters = docChaptersAll.length || CHAPTERS.length;
+  const docChaptersAll = (state.currentDoc?.chapters || []).filter(c => c.isEnabled !== false && c.status !== "draft");
+  const totalChapters = docChaptersAll.length || CHAPTERS.length;
+  const currentPercent = state.user?.progress?.[projectId]?.percent || 0;
 
-    notify(`Chapter ${completedChapterIdx + 1} completed. Progress ${data.progress.percent}%`);
+  // Render sidebar with green tick immediately
+  renderChapterList();
 
-    if (data.progress.percent >= 100) {
-      // All chapters done — jump to last chapter (submit section)
-      state.currentChapter = totalChapters - 1;
-      renderChapterList();
-      renderChapter();
-      notify("All chapters complete! You can now submit your project below.", "success");
-    } else {
-      // Re-render current chapter as completed, then advance to next
-      renderChapterList();
-      renderChapter();
-      const nextIdx = completedChapterIdx + 1;
-      if (nextIdx < totalChapters) {
-        setTimeout(() => openChapter(nextIdx), 500);
-      }
+  if (currentPercent >= 100) {
+    notify("All chapters complete! You can now submit your project.", "success");
+    state.currentChapter = totalChapters - 1;
+    renderChapterList();
+    renderChapter();
+  } else {
+    notify(`Chapter ${completedChapterIdx + 1} completed!`);
+    renderChapter();
+    const nextIdx = completedChapterIdx + 1;
+    if (nextIdx < totalChapters) {
+      setTimeout(() => openChapter(nextIdx), 400);
     }
+  }
 
-    // Sync with server in background (fire-and-forget, no await)
-    loadMe().catch(() => {});
-  }catch(e){notify(e.message,"error");}
+  // ── BACKGROUND SYNC: send to server silently, queue if rate-limited ──
+  api(`/projects/${projectId}/chapters/${completedChapterIdx}`, {method:"POST"})
+    .then(data => {
+      // Merge server response back (server is authoritative for percent/status)
+      if (data?.progress && state.user?.progress?.[projectId]) {
+        const prog = state.user.progress[projectId];
+        if (Array.isArray(data.progress.completedChapters)) {
+          // Keep any locally-added entries the server may have missed
+          const merged = [...new Set([...data.progress.completedChapters, completedChapterIdx])];
+          prog.completedChapters = merged.sort((a, b) => a - b);
+        }
+        prog.percent = data.progress.percent ?? prog.percent;
+        if (prog.status !== "completed") prog.status = data.progress.status ?? prog.status;
+        renderChapterList(); // refresh tick with server-confirmed data
+      }
+    })
+    .catch(() => {
+      // Queue for retry — do NOT show error to user
+      window._chapterSyncQueue.push({ projectId, chapterIdx: completedChapterIdx });
+      if (window._chapterSyncQueue.length === 1) setTimeout(_flushChapterSyncQueue, 8000);
+    });
 }
 
 function showSubmission() {
@@ -3396,7 +3430,8 @@ async function submitProject() {
   const submitBtn = $("submitProjectButton");
   const originalText = submitBtn.textContent;
   submitBtn.disabled = true;
-  submitBtn.textContent = "Uploading & Submitting...";
+  submitBtn.textContent = "Uploading ZIP... please wait";
+  submitBtn.style.opacity = "0.8";
   
   try {
     const formData = new FormData();
@@ -3433,6 +3468,7 @@ async function submitProject() {
   } finally {
     submitBtn.disabled = false;
     submitBtn.textContent = originalText;
+    submitBtn.style.opacity = "";
   }
 }
 
